@@ -15,7 +15,7 @@
 
 Acts::Intersection2D Acts::detail::IntersectionHelper2D::intersectSegment(
     const Vector2D& s0, const Vector2D& s1, const Vector2D& origin,
-    const Vector2D& dir) {
+    const Vector2D& dir, bool segmentCheck) {
   using Line = Eigen::ParametrizedLine<double, 2>;
   using Plane = Eigen::Hyperplane<double, 2>;
 
@@ -28,7 +28,15 @@ Acts::Intersection2D Acts::detail::IntersectionHelper2D::intersectSegment(
   auto line = Line(origin, dir);
   auto d = line.intersectionParameter(Plane::Through(s0, s1));
 
-  return Intersection2D(origin + d * dir, d, Intersection2D::Status::reachable);
+  Vector2D sol = origin + d * dir;
+
+  Intersection2D::Status status =
+      (not segmentCheck or std::abs((sol - s0).norm() + (s1 - sol).norm() -
+                                    (s1 - s0).norm()) < s_onSurfaceTolerance)
+          ? Intersection2D::Status::reachable
+          : Intersection2D::Status::unreachable;
+
+  return Intersection2D(sol, d, Intersection2D::Status::reachable);
 }
 
 std::pair<Acts::Intersection2D, Acts::Intersection2D>
@@ -105,11 +113,19 @@ Acts::detail::IntersectionHelper2D::intersectEllipse(double Rx, double Ry,
   return {Intersection2D(), Intersection2D()};
 }
 
-Acts::detail::IntersectionHelper2D::mask(const Vector2D& start, const Vector2D& end, const PlanarBounds& pBounds){
+std::tuple<double, Acts::Vector2D, Acts::Vector2D>
+Acts::detail::IntersectionHelper2D::mask(const Vector2D& start,
+                                         const Vector2D& end,
+                                         const PlanarBounds& pBounds) {
   bool startInside = pBounds.inside(start, true);
   bool endInside = pBounds.inside(end, true);
-  if (startInside and endInside){
-    return { 1, start, end };
+  if (startInside and endInside) {
+    return {1, start, end};
   }
-  return mask(start, end, pbounds.vertices(1));  
+  return mask(start, end, pbounds.vertices(1));
 }
+
+std::tuple<double, Acts::Vector2D, Acts::Vector2D>
+Acts::detail::IntersectionHelper2D::mask(
+    const Vector2D& start, bool startInside, const Vector2D& end,
+    bool endInside, const std::vector<Vector2D>& vertices) {}

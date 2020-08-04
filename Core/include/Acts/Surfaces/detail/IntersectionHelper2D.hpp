@@ -27,9 +27,11 @@ struct IntersectionHelper2D {
   /// @param s1 The end of the segement
   /// @param origin The Start of intersection line
   /// @param direction The Direction of intersection line
+  /// @param segmentCheck Require that the point is within s0 and s1
   static Intersection2D intersectSegment(const Vector2D& s0, const Vector2D& s1,
                                          const Vector2D& origin,
-                                         const Vector2D& dir);
+                                         const Vector2D& dir,
+                                         bool segmentCheck = true);
 
   /// Intersect ellipses
   ///
@@ -75,14 +77,16 @@ struct IntersectionHelper2D {
   /// extruding the segement is clipped off.
   ///
   /// @param start of the segment
+  /// @param startInside boolean flag if start is inside
   /// @param end of the segment
+  /// @param endInside bollean flag if the end is inside
   /// @param pBounds the PlanarBounds object
   ///
   /// @return the fraction of the segment that survived and the (new)
   /// start and end points
   static std::tuple<double, Vector2D, Vector2D> mask(
-      const Vector2D& start, const Vector2D& end,
-      const std::vector<Vector2D>& vertices);
+      const Vector2D& start, bool startInside, const Vector2D& end,
+      bool endInside, const std::vector<Vector2D>& vertices);
 
 };  // struct IntersectionHelper2D
 
