@@ -3,6 +3,7 @@ add_library(
   src/LandauDistribution.cpp
   src/Particle.cpp
   src/ParticleData.cpp
+  src/PlanarDigitizer.cpp
   src/ProcessType.cpp
   src/SimulatorError.cpp
   src/StandardPhysicsLists.cpp)

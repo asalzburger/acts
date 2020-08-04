@@ -8,12 +8,16 @@
 
 #pragma once
 
+#include <tuple>
 #include <utility>
 
 #include "Acts/Utilities/Definitions.hpp"
 #include "Acts/Utilities/Intersection.hpp"
 
 namespace Acts {
+
+class PlanarBounds;
+
 namespace detail {
 
 struct IntersectionHelper2D {
@@ -49,6 +53,36 @@ struct IntersectionHelper2D {
       double R, const Vector2D& origin, const Vector2D& dir) {
     return intersectEllipse(R, R, origin, dir);
   }
+
+  ///  Mask a segment with a planar bounds shape
+  ///
+  /// If both are inside the bounds, no masking is done, everything
+  /// extruding the segement is clipped off.
+  ///
+  /// @param start of the segment
+  /// @param end of the segment
+  /// @param pBounds the PlanarBounds object
+  ///
+  /// @return the fraction of the segment that survived and the (new)
+  /// start and end points
+  static std::tuple<double, Vector2D, Vector2D> mask(
+      const Vector2D& start, const Vector2D& end, const PlanarBounds& pBounds);
+
+  ///  Mask a segment with a planar bounds shape represented as a connected set
+  ///  of vertices
+  ///
+  /// If both are inside the bounds, no masking is done, everything
+  /// extruding the segement is clipped off.
+  ///
+  /// @param start of the segment
+  /// @param end of the segment
+  /// @param pBounds the PlanarBounds object
+  ///
+  /// @return the fraction of the segment that survived and the (new)
+  /// start and end points
+  static std::tuple<double, Vector2D, Vector2D> mask(
+      const Vector2D& start, const Vector2D& end,
+      const std::vector<Vector2D>& vertices);
 
 };  // struct IntersectionHelper2D
 

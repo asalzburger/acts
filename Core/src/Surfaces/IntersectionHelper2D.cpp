@@ -104,3 +104,12 @@ Acts::detail::IntersectionHelper2D::intersectEllipse(double Rx, double Ry,
   }
   return {Intersection2D(), Intersection2D()};
 }
+
+Acts::detail::IntersectionHelper2D::mask(const Vector2D& start, const Vector2D& end, const PlanarBounds& pBounds){
+  bool startInside = pBounds.inside(start, true);
+  bool endInside = pBounds.inside(end, true);
+  if (startInside and endInside){
+    return { 1, start, end };
+  }
+  return mask(start, end, pbounds.vertices(1));  
+}
