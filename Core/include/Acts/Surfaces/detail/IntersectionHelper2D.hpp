@@ -17,6 +17,7 @@
 namespace Acts {
 
 class PlanarBounds;
+class DiscBounds;
 
 namespace detail {
 
@@ -70,6 +71,22 @@ struct IntersectionHelper2D {
   static std::tuple<double, Vector2D, Vector2D> mask(
       const Vector2D& start, const Vector2D& end, const PlanarBounds& pBounds);
 
+
+  ///  Mask a segment with a disc like bound shape
+  /// 
+  /// If both are inside the bounds, no masking is done, everything
+  /// extruding the segement is clipped off.
+  ///
+  /// @param start of the segment
+  /// @param end of the segment
+  /// @param dBounds the DiscBounds object
+  ///
+  /// @return the fraction of the segment that survived and the (new)
+  /// start and end points
+  static std::tuple<double, Vector2D, Vector2D> mask(
+      const Vector2D& start, const Vector2D& end, const DiscBounds& dBounds);
+
+
   ///  Mask a segment with a planar bounds shape represented as a connected set
   ///  of vertices
   ///
@@ -80,13 +97,36 @@ struct IntersectionHelper2D {
   /// @param startInside boolean flag if start is inside
   /// @param end of the segment
   /// @param endInside bollean flag if the end is inside
-  /// @param pBounds the PlanarBounds object
+  /// @param vertices the PlanarBounds represented as vertices
   ///
   /// @return the fraction of the segment that survived and the (new)
   /// start and end points
   static std::tuple<double, Vector2D, Vector2D> mask(
       const Vector2D& start, bool startInside, const Vector2D& end,
       bool endInside, const std::vector<Vector2D>& vertices);
+
+  ///  Mask a segment with a planar ellipsoid bound shape
+  ///
+  /// If both are inside the bounds, no masking is done, everything
+  /// extruding the segement is clipped off.
+  ///
+  /// @param start of the segment
+  /// @param startInside boolean flag if start is inside
+  /// @param end of the segment
+  /// @param endInside bollean flag if the end is inside
+  /// @param rIx The inner radius in X
+  /// @param rYx The inner radius in Y
+  /// @param rOx The outer radius in X
+  /// @param rOy The outer radius in Y
+  /// @param avgPhi The central phi value
+  /// @param halfPhi The half phi value
+  ///
+  /// @return the fraction of the segment that survived and the (new)
+  /// start and end points
+  static std::tuple<double, Vector2D, Vector2D> mask(
+      const Vector2D& start, bool startInside, const Vector2D& end,
+      bool endInside, double rIx, double rIy, double rOx, double rOy,
+      double avgPhi, double halfPhi);
 
 };  // struct IntersectionHelper2D
 

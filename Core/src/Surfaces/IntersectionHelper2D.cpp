@@ -10,8 +10,14 @@
 #include <iostream>
 #include <tuple>
 
+#include "Acts/Surfaces/EllipseBounds.hpp"
+#include "Acts/Surfaces/PlanarBounds.hpp"
+#include "Acts/Surfaces/DiscBounds.hpp"
+#include "Acts/Surfaces/AnnulusBounds.hpp"
+#include "Acts/Surfaces/RadialBounds.hpp"
 #include "Acts/Surfaces/detail/IntersectionHelper2D.hpp"
 #include "Acts/Utilities/detail/RealQuadraticEquation.hpp"
+#include "Acts/Utilities/Helpers.hpp"
 
 Acts::Intersection2D Acts::detail::IntersectionHelper2D::intersectSegment(
     const Vector2D& s0, const Vector2D& s1, const Vector2D& origin,
@@ -121,11 +127,78 @@ Acts::detail::IntersectionHelper2D::mask(const Vector2D& start,
   bool endInside = pBounds.inside(end, true);
   if (startInside and endInside) {
     return {1, start, end};
+  } else if (pBounds.type() == SurfaceBounds::eEllipse) {
+    auto values = pBounds.values();
+    double iRx = values[EllipseBounds::eInnerRx];
+    double iRy = values[EllipseBounds::eInnerRy];
+    double oRx = values[EllipseBounds::eOuterRx];
+    double oRy = values[EllipseBounds::eOuterRy];
+    double avgPhi = values[EllipseBounds::eAveragePhi];
+    double halfPhi = values[EllipseBounds::eHalfPhiSector];
+    return mask(start, startInside, end, endInside, iRx, iRy, oRx, oRy, avgPhi,
+                halfPhi);
   }
-  return mask(start, end, pbounds.vertices(1));
+  return mask(start, startInside, end, endInside, pBounds.vertices(1));
 }
+
+std::tuple<double, Acts::Vector2D, Acts::Vector2D>
+Acts::detail::IntersectionHelper2D::mask(const Vector2D& start,
+                                         const Vector2D& end,
+                                         const DiscBounds& dBounds) {
+
+  double startR = VectorHelpers::perp(start);
+  double startPhi = VectorHelpers::phi(start);
+  double endR = VectorHelpers::perp(end);
+  double endPhi = VectorHelpers::phi(end);
+
+  Vector2D startPolar(startR, startPhi);
+  Vector2D endPolar(endR, endPhi);
+
+  bool startInside = dBounds.inside(starPolar, true);
+  bool endInside = dBounds.inside(endPolar, true);
+
+  // Trapezoidal shape falls back to vertices based solution
+  if (dBounds.type() == SurfaceBounds::eDiscTrapezoid){
+    if (startInside and endInside){
+      return {1., start, end };
+    }
+    return mask(start,startInside,end,endInside,dBounds.vertices(1));
+  }
+
+  // Purely radial bounds
+  if (dBounds.type() == SurfaceBounds::eDisc){
+
+    double iR = values[RadialBounds::eMinR];
+    double oR = values[RadialBounds::eMaxR];
+    double avgPhi = values[RadialBounds::eAveragePhi];
+    double halfPhi = values[RadialBounds::eHalfPhiSector];
+    return mask(start, startInside, end, endInside, iR, iR, oR, oR, avgPhi,
+                halfPhi);
+  }
+  
+  // Annulus bounds object
+  if (dBounds.type() == SurfaceBounds::eAnnulus){
+
+
+
+  }
+
+  return { 0., start, end };
+}
+
 
 std::tuple<double, Acts::Vector2D, Acts::Vector2D>
 Acts::detail::IntersectionHelper2D::mask(
     const Vector2D& start, bool startInside, const Vector2D& end,
-    bool endInside, const std::vector<Vector2D>& vertices) {}
+    bool endInside, const std::vector<Vector2D>& vertices) {
+  return {1., start, end};
+}
+
+std::tuple<double, Acts::Vector2D, Acts::Vector2D>
+Acts::detail::IntersectionHelper2D::mask(const Vector2D& start,
+                                         bool startInside, const Vector2D& end,
+                                         bool endInside, double rIx, double rIy,
+                                         double rOx, double rOy, double avgPhi,
+                                         double halfPhi) {
+  return {1., start, end};
+}
