@@ -201,13 +201,13 @@ struct GenericDefaultExtension {
     dk1dT *= qop;
 
     dk2dT += half_h * dk1dT;
-    dk2dT = qop * VectorHelpers::cross(dk2dT, sd.B_middle);
+    dk2dT = qop * dk2dT.colwise().cross(sd.B_middle);
 
     dk3dT += half_h * dk2dT;
-    dk3dT = qop * VectorHelpers::cross(dk3dT, sd.B_middle);
+    dk3dT = qop * dk3dT.colwise().cross(sd.B_middle);
 
     dk4dT += h * dk3dT;
-    dk4dT = qop * VectorHelpers::cross(dk4dT, sd.B_last);
+    dk4dT = qop * dk4dT.colwise().cross(sd.B_last);
 
     dFdT.setIdentity();
     dFdT += h / 6. * (dk1dT + dk2dT + dk3dT);
@@ -219,8 +219,7 @@ struct GenericDefaultExtension {
 
     dGdL = h / 6. * (dk1dL + 2. * (dk2dL + dk3dL) + dk4dL);
 
-    D(3, 7) =
-        h * state.options.mass * state.options.mass *
+    D(3, 7) = h * state.options.mass * state.options.mass *
         stepper.charge(state.stepping) /
         (stepper.momentum(state.stepping) *
          std::hypot(1., state.options.mass / stepper.momentum(state.stepping)));

@@ -290,13 +290,13 @@ struct GenericDenseEnvironmentExtension {
     dk1dT *= qop[0];
 
     dk2dT += half_h * dk1dT;
-    dk2dT = qop[1] * VectorHelpers::cross(dk2dT, sd.B_middle);
+    dk2dT = qop[1] * dk2dT.colwise().cross(sd.B_middle);
 
     dk3dT += half_h * dk2dT;
-    dk3dT = qop[2] * VectorHelpers::cross(dk3dT, sd.B_middle);
+    dk3dT = qop[2] * dk3dT.colwise().cross(sd.B_middle);
 
     dk4dT += h * dk3dT;
-    dk4dT = qop[3] * VectorHelpers::cross(dk4dT, sd.B_last);
+    dk4dT = qop[3] * dk4dT.colwise().cross(sd.B_last);
 
     dFdT.setIdentity();
     dFdT += h / 6. * (dk1dT + dk2dT + dk3dT);
