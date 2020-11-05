@@ -16,6 +16,10 @@ namespace Acts {
 
 namespace detail {
 
+static auto freeIdentity = FreeMatrix::Identity();
+static auto kMatrixIdentity = ActsMatrixD<3, 3>::Identity();
+static auto kMatrixZero = ActsMatrixD<3, 3>::Zero();
+
 /// @brief Default evaluater of the k_i's and elements of the transport matrix
 /// D of the RKN4 stepping. This is a pure implementation by textbook.
 /// @note This it templated on the scalar type because of the autodiff plugin.
@@ -99,8 +103,8 @@ struct GenericDefaultExtension {
   template <typename propagator_state_t, typename stepper_t>
   bool finalize(propagator_state_t& state, const stepper_t& stepper,
                 const double h, FreeMatrix& D) const {
-    propagateTime(state, stepper, h);
-    return transportMatrix(state, stepper, h, D);
+    return transportMatrix(state, stepper, h, propagateTime(state, stepper, h),
+                           D);
   }
 
  private:
@@ -112,18 +116,18 @@ struct GenericDefaultExtension {
   /// @param [in] stepper Stepper of the propagation
   /// @param [in] h Step size
   template <typename propagator_state_t, typename stepper_t>
-  void propagateTime(propagator_state_t& state, const stepper_t& stepper,
-                     const double h) const {
+  double propagateTime(propagator_state_t& state, const stepper_t& stepper,
+                       const double h) const {
     /// This evaluation is based on dt/ds = 1/v = 1/(beta * c) with the velocity
     /// v, the speed of light c and beta = v/c. This can be re-written as dt/ds
     /// = sqrt(m^2/p^2 + c^{-2}) with the mass m and the momentum p.
-    using std::hypot;
     auto derivative =
-        hypot(1, state.options.mass / stepper.momentum(state.stepping));
+        std::hypot(1, state.options.mass / stepper.momentum(state.stepping));
     state.stepping.pars[eFreeTime] += h * derivative;
     if (state.stepping.covTransport) {
       state.stepping.derivative(3) = derivative;
     }
+    return derivative;
   }
 
   /// @brief Calculates the transport matrix D for the jacobian
@@ -133,11 +137,12 @@ struct GenericDefaultExtension {
   /// @param [in] state State of the propagator
   /// @param [in] stepper Stepper of the propagation
   /// @param [in] h Step size
+  /// @param [in] dT/dS precalcualted from time propagation
   /// @param [out] D Transport matrix
   /// @return Boolean flag if evaluation is valid
   template <typename propagator_state_t, typename stepper_t>
   bool transportMatrix(propagator_state_t& state, const stepper_t& stepper,
-                       const double h, FreeMatrix& D) const {
+                       const double h, const double dTdS, FreeMatrix& D) const {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -159,10 +164,11 @@ struct GenericDefaultExtension {
 
     auto& sd = state.stepping.stepData;
     auto dir = stepper.direction(state.stepping);
-    auto qop =
-        stepper.charge(state.stepping) / stepper.momentum(state.stepping);
+    double p = stepper.momentum(state.stepping);
+    double q = stepper.charge(state.stepping);
+    double qop = q / p;
 
-    D = FreeMatrix::Identity();
+    D = freeIdentity;
 
     double half_h = h * 0.5;
     // This sets the reference to the sub matrices
@@ -173,24 +179,18 @@ struct GenericDefaultExtension {
     auto dGdT = D.block<3, 3>(4, 4);
     auto dGdL = D.block<3, 1>(4, 7);
 
-    ActsMatrixD<3, 3> dk1dT = ActsMatrixD<3, 3>::Zero();
-    ActsMatrixD<3, 3> dk2dT = ActsMatrixD<3, 3>::Identity();
-    ActsMatrixD<3, 3> dk3dT = ActsMatrixD<3, 3>::Identity();
-    ActsMatrixD<3, 3> dk4dT = ActsMatrixD<3, 3>::Identity();
-
-    Vector3D dk1dL = Vector3D::Zero();
-    Vector3D dk2dL = Vector3D::Zero();
-    Vector3D dk3dL = Vector3D::Zero();
-    Vector3D dk4dL = Vector3D::Zero();
+    ActsMatrixD<3, 3> dk1dT = kMatrixZero;
+    ActsMatrixD<3, 3> dk2dT = kMatrixIdentity;
+    ActsMatrixD<3, 3> dk3dT = kMatrixIdentity;
+    ActsMatrixD<3, 3> dk4dT = kMatrixIdentity;
 
     // For the case without energy loss
-    dk1dL = dir.cross(sd.B_first);
-    dk2dL = (dir + half_h * sd.k1).cross(sd.B_middle) +
-            qop * half_h * dk1dL.cross(sd.B_middle);
-    dk3dL = (dir + half_h * sd.k2).cross(sd.B_middle) +
-            qop * half_h * dk2dL.cross(sd.B_middle);
-    dk4dL =
-        (dir + h * sd.k3).cross(sd.B_last) + qop * h * dk3dL.cross(sd.B_last);
+    Vector3D dk1dL = dir.cross(sd.B_first);
+    Vector3D dk2dL =
+        (dir + half_h * sd.k1 + qop * half_h * dk1dL).cross(sd.B_middle);
+    Vector3D dk3dL =
+        (dir + half_h * sd.k2 + qop * half_h * dk2dL).cross(sd.B_middle);
+    Vector3D dk4dL = (dir + h * sd.k3 + qop * h * dk3dL).cross(sd.B_last);
 
     dk1dT(0, 1) = sd.B_first.z();
     dk1dT(0, 2) = -sd.B_first.y();
@@ -219,10 +219,7 @@ struct GenericDefaultExtension {
 
     dGdL = h / 6. * (dk1dL + 2. * (dk2dL + dk3dL) + dk4dL);
 
-    D(3, 7) = h * state.options.mass * state.options.mass *
-        stepper.charge(state.stepping) /
-        (stepper.momentum(state.stepping) *
-         std::hypot(1., state.options.mass / stepper.momentum(state.stepping)));
+    D(3, 7) = h * state.options.mass * state.options.mass * q / (p * dTdS);
     return true;
   }
 };

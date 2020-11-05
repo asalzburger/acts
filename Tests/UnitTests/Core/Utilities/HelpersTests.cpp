@@ -74,34 +74,6 @@ BOOST_AUTO_TEST_CASE(theta_eta_test_helper) {
   CHECK_CLOSE_ABS(eta(v2), 1.10359, 1e-5);
 }
 
-BOOST_AUTO_TEST_CASE(cross_test_helper) {
-  {
-    Vector3D v(1, 2, 3);
-    ActsMatrixD<3, 3> mat;
-    mat << 1, 2, 3, 4, 5, 6, 7, 8, 9;
-
-    ActsMatrixD<3, 3> act = cross(mat, v);
-    ActsMatrixD<3, 3> exp;
-    exp << -2, -1, 0, 4, 2, 0, -2, -1, 0;
-
-    CHECK_CLOSE_ABS(act, exp, 1e-9);
-  }
-
-  // should work with dynamic types as well
-  {
-    ActsVectorXd v{3};
-    v << 1, 2, 3;
-    ActsMatrixXd mat{3, 3};
-    mat << 1, 2, 3, 4, 5, 6, 7, 8, 9;
-
-    ActsMatrixXd act = cross(mat, v);
-    ActsMatrixXd exp{3, 3};
-    exp << -2, -1, 0, 4, 2, 0, -2, -1, 0;
-
-    BOOST_CHECK(act.isApprox(exp, 1e-9));
-  }
-}
-
 BOOST_AUTO_TEST_CASE(toString_test_helper) {
   ActsMatrixD<3, 3> mat;
   mat << 1, 2, 3, 4, 5, 6, 7, 8, 9;
