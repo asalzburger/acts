@@ -125,8 +125,11 @@ class DirectNavigator {
   ///
   /// @param [in,out] state is the mutable propagator state object
   /// @param [in] stepper Stepper in use
+  ///
+  /// @return returns a surface if reached
   template <typename propagator_state_t, typename stepper_t>
-  void status(propagator_state_t& state, const stepper_t& stepper) const {
+  const Surface* 
+  status(propagator_state_t& state, const stepper_t& stepper) const {
     const auto& logger = state.options.logger;
     // Screen output
     ACTS_VERBOSE("Entering navigator::status.");
@@ -163,6 +166,7 @@ class DirectNavigator {
                      << stepper.outputStepSize(state.stepping));
       }
     }
+    return state.navigation.currentSurface;
   }
 
   /// @brief Navigator target call

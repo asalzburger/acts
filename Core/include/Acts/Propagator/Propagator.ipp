@@ -20,7 +20,7 @@ auto Acts::Propagator<S, N>::propagate_impl(propagator_state_t& state) const
   ACTS_VERBOSE("Entering propagation.");
 
   // Navigator initialize state call
-  m_navigator.status(state, m_stepper);
+  const Surface* surface = m_navigator.status(state, m_stepper);
   // Pre-Stepping call to the action list
   state.options.actionList(state, m_stepper, result);
   // assume negative outcome, only set to true later if we actually have
@@ -54,7 +54,7 @@ auto Acts::Propagator<S, N>::propagate_impl(propagator_state_t& state) const
       }
       // Post-stepping:
       // navigator status call - action list - aborter list - target call
-      m_navigator.status(state, m_stepper);
+      surface = m_navigator.status(state, m_stepper);
       state.options.actionList(state, m_stepper, result);
       if (state.options.abortList(result, state, m_stepper)) {
         terminatedNormally = true;

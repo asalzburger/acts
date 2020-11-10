@@ -45,8 +45,9 @@ struct VoidNavigator {
   ///
   /// Empty call, compiler should optimise that
   template <typename propagator_state_t, typename stepper_t>
-  void status(propagator_state_t& /*state*/,
-              const stepper_t& /*unused*/) const {}
+  const Surface*
+  status(propagator_state_t& /*state*/,
+              const stepper_t& /*unused*/) const { return nullptr; }
 
   /// Navigation call - void
   ///

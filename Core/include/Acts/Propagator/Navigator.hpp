@@ -234,13 +234,16 @@ class Navigator {
   ///
   /// @param [in,out] state is the mutable propagator state object
   /// @param [in] stepper Stepper in use
+  ///
+  /// @return returns a surface if reached
   template <typename propagator_state_t, typename stepper_t>
-  void status(propagator_state_t& state, const stepper_t& stepper) const {
+  const Surface* 
+  status(propagator_state_t& state, const stepper_t& stepper) const {
     const auto& logger = state.options.logger;
 
     // Check if the navigator is inactive
     if (inactive(state, stepper)) {
-      return;
+      return nullptr;
     }
 
     // Set the navigation stage
@@ -253,7 +256,7 @@ class Navigator {
     if (not state.navigation.startVolume or not state.navigation.startSurface) {
       // Initialize and return
       initialize(state, stepper);
-      return;
+      return state.navigation.currentSurface;
     }
 
     // Navigator status always starts without current surface
@@ -275,7 +278,7 @@ class Navigator {
           } else {
             // no layers, go to boundary
             state.navigation.navigationStage = Stage::boundaryTarget;
-            return;
+            return state.navigation.currentSurface;
           }
         }
       }
@@ -291,7 +294,7 @@ class Navigator {
         if (resolveSurfaces(state, stepper)) {
           // Set the navigation stage back to surface handling
           state.navigation.navigationStage = Stage::surfaceTarget;
-          return;
+          return state.navigation.currentSurface;
         }
       } else {
         // Set the navigation stage to layer target
@@ -328,7 +331,7 @@ class Navigator {
           // Navigation break & release navigation stepping
           state.navigation.navigationBreak = true;
           stepper.releaseStepSize(state.stepping);
-          return;
+          return state.navigation.currentSurface;
         } else {
           ACTS_VERBOSE(volInfo(state) << "Volume updated.");
           // Forget the bounday information
@@ -352,7 +355,7 @@ class Navigator {
       ACTS_VERBOSE(volInfo(state)
                    << "Status could not be determined - good luck.");
     }
-    return;
+    return state.navigation.currentSurface;
   }
 
   /// @brief Navigator target call
