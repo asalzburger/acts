@@ -10,6 +10,7 @@
 
 #include "Acts/Definitions/Algebra.hpp"
 #include "Acts/Plugins/Json/AlgebraJsonConverter.hpp"
+#include "Acts/Plugins/Json/JsonHelper.hpp"
 #include "Acts/Tests/CommonHelpers/DataDirectory.hpp"
 
 #include <fstream>
@@ -25,8 +26,7 @@ BOOST_AUTO_TEST_CASE(TransformRoundTripTests) {
   std::ofstream out;
 
   // Test the identity transform
-  nlohmann::json identityOut;
-  to_json(identityOut, reference);
+  nlohmann::json identityOut = Acts::toJson(reference);
   out.open("Transform3_Identity.json");
   out << identityOut.dump(2);
   out.close();
@@ -46,8 +46,7 @@ BOOST_AUTO_TEST_CASE(TransformRoundTripTests) {
   // Test a pure translation transform
   reference.pretranslate(Acts::Vector3(1., 2., 3.));
 
-  nlohmann::json translationOut;
-  to_json(translationOut, reference);
+  nlohmann::json translationOut = Acts::toJson(reference);
   out.open("Transform3_Translation.json");
   out << translationOut.dump(2);
   out.close();
@@ -68,8 +67,7 @@ BOOST_AUTO_TEST_CASE(TransformRoundTripTests) {
   reference = Eigen::AngleAxis(0.12334, Acts::Vector3(1., 2., 3).normalized());
   reference.pretranslate(Acts::Vector3(1., 2., 3.));
 
-  nlohmann::json fullOut;
-  to_json(fullOut, reference);
+  nlohmann::json fullOut = Acts::toJson(reference);
   out.open("Transform3_Full.json");
   out << fullOut.dump(2);
   out.close();

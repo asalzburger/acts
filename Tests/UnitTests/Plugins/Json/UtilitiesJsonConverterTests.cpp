@@ -9,6 +9,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "Acts/Definitions/Algebra.hpp"
+#include "Acts/Plugins/Json/JsonHelper.hpp"
 #include "Acts/Plugins/Json/UtilitiesJsonConverter.hpp"
 #include "Acts/Tests/CommonHelpers/DataDirectory.hpp"
 #include "Acts/Utilities/BinUtility.hpp"
@@ -83,8 +84,7 @@ BOOST_AUTO_TEST_CASE(BinUtilityRoundTripTests) {
   std::ofstream out;
 
   // Test in in one dimension
-  nlohmann::json joneDimOut;
-  to_json(joneDimOut, reference);
+  nlohmann::json joneDimOut = Acts::toJson(reference);
   out.open("BinUtility_1D.json");
   out << joneDimOut.dump(2);
   out.close();
@@ -103,8 +103,7 @@ BOOST_AUTO_TEST_CASE(BinUtilityRoundTripTests) {
 
   // Increase to two dimensions
   reference += Acts::BinUtility(10., -M_PI, M_PI, Acts::closed, Acts::binPhi);
-  nlohmann::json jtwoDimOut;
-  to_json(jtwoDimOut, reference);
+  nlohmann::json jtwoDimOut = Acts::toJson(reference);
   out.open("BinUtility_2D.json");
   out << jtwoDimOut.dump(2);
   out.close();
@@ -124,8 +123,7 @@ BOOST_AUTO_TEST_CASE(BinUtilityRoundTripTests) {
   // Increase to three dimensions
   std::vector<float> boundaries = {-4., -1.5, 0., 10.};
   reference += Acts::BinUtility(boundaries, Acts::open, Acts::binZ);
-  nlohmann::json jthreeDimOut;
-  to_json(jthreeDimOut, reference);
+  nlohmann::json jthreeDimOut = Acts::toJson(reference);
   out.open("BinUtility_3D.json");
   out << jthreeDimOut.dump(2);
   out.close();
@@ -151,8 +149,7 @@ BOOST_AUTO_TEST_CASE(BinUtilityRoundTripTests) {
 
   reference = Acts::BinUtility(bData, t);
 
-  nlohmann::json jtransformOut;
-  to_json(jtransformOut, reference);
+  nlohmann::json jtransformOut = Acts::toJson(reference);
   out.open("BinUtility_Transform.json");
   out << jtransformOut.dump(2);
   out.close();
