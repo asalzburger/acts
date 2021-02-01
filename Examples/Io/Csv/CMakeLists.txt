@@ -1,5 +1,6 @@
 add_library(
   ActsExamplesIoCsv SHARED
+  src/CsvMeasurementWriter.cpp
   src/CsvOptionsReader.cpp
   src/CsvOptionsWriter.cpp
   src/CsvParticleReader.cpp
