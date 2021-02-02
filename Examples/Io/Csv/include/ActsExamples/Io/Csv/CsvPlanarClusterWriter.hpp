@@ -48,7 +48,7 @@ class CsvPlanarClusterWriter final
     /// Number of decimal digits for floating point precision in output.
     size_t outputPrecision = std::numeric_limits<float>::max_digits10;
     /// Tracking geometry required to access global-to-local transforms.
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry;
+    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry = nullptr;
   };
 
   /// Construct the cluster writer.

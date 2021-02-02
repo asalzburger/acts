@@ -44,10 +44,10 @@ ActsExamples::Options::readCsvSimHitWriterConfig(const Variables& vm) {
   return cfg;
 }
 
-ActsExamples::CsvPlanarClusterWriter::Config
-ActsExamples::Options::readCsvPlanarClusterWriterConfig(
+ActsExamples::CsvMeasurementWriter::Config
+ActsExamples::Options::readCsvMeasurementWriterConfig(
     const ActsExamples::Options::Variables& vm) {
-  ActsExamples::CsvPlanarClusterWriter::Config cfg;
+  ActsExamples::CsvMeasurementWriter::Config cfg;
   if (not vm["output-dir"].empty()) {
     cfg.outputDir = vm["output-dir"].as<std::string>();
   }

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "ActsExamples/Io/Csv/CsvParticleReader.hpp"
-#include "ActsExamples/Io/Csv/CsvPlanarClusterReader.hpp"
+//#include "ActsExamples/Io/Csv/CsvMeasurementReader.hpp"
 #include "ActsExamples/Io/Csv/CsvSimHitReader.hpp"
 #include "ActsExamples/Utilities/OptionsFwd.hpp"
 
@@ -28,8 +28,8 @@ ActsExamples::CsvSimHitReader::Config readCsvSimHitReaderConfig(
     const Variables& vm);
 
 /// Read the CSV particle reader config.
-ActsExamples::CsvPlanarClusterReader::Config readCsvPlanarClusterReaderConfig(
-    const Variables& vm);
+// ctsExamples::CsvMeasurementReader::Config readCsvPlanarClusterReaderConfig(
+//    const Variables& vm);
 
 }  // namespace Options
 }  // namespace ActsExamples

@@ -12,6 +12,7 @@
 #include "Acts/Surfaces/Surface.hpp"
 #include "Acts/Utilities/Helpers.hpp"
 #include "Acts/Utilities/Intersection.hpp"
+#include "ActsExamples/EventData/AverageSimHits.hpp"
 #include "ActsExamples/EventData/Index.hpp"
 #include "ActsExamples/EventData/SimHit.hpp"
 #include "ActsExamples/EventData/SimParticle.hpp"
@@ -25,8 +26,6 @@
 
 #include <TFile.h>
 #include <TString.h>
-
-#include "detail/AverageSimHits.hpp"
 
 ActsExamples::RootMeasurementWriter::RootMeasurementWriter(
     const ActsExamples::RootMeasurementWriter::Config& cfg,

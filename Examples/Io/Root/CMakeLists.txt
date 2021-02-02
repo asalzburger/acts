@@ -5,7 +5,6 @@ add_library(
   src/RootMaterialWriter.cpp
   src/RootMaterialTrackReader.cpp
   src/RootMaterialTrackWriter.cpp
-  src/RootPlanarClusterWriter.cpp
   src/RootParticleWriter.cpp
   src/RootPropagationStepsWriter.cpp
   src/RootSimHitWriter.cpp

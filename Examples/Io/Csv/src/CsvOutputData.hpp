@@ -22,11 +22,11 @@ struct ParticleData {
   uint64_t particle_id;
   /// Particle type number a.k.a. PDG particle number.
   int32_t particle_type;
-  /// Production process type. Not available in the TrackML datasets.
+  /// Production process type.
   uint32_t process = 0u;
   /// Production position components in mm.
   float vx, vy, vz;
-  // Production time in ns. Not available in the TrackML datasets.
+  // Production time in ns.
   float vt = 0.0f;
   /// Momentum components in GeV.
   float px, py, pz;
@@ -41,26 +41,26 @@ struct ParticleData {
 
 // Write out simhits before digitization (no hi_id associated)
 struct SimHitData {
-  /// Hit surface identifier. Not available in the TrackML datasets.
+  /// Hit surface identifier.
   uint64_t geometry_id = 0u;
   /// Event-unique particle identifier of the generating particle.
   uint64_t particle_id;
   /// True global hit position components in mm.
   float tx, ty, tz;
-  // True global hit time in ns. Not available in the TrackML datasets.
+  // True global hit time in ns.
   float tt = 0.0f;
   /// True particle momentum in GeV before interaction.
   float tpx, tpy, tpz;
   /// True particle energy in GeV before interaction.
-  /// Not available in the TrackML datasets.
+  ///
   float te = 0.0f;
   /// True four-momentum change in GeV due to interaction.
-  /// Not available in the TrackML datasets.
+  ///
   float deltapx = 0.0f;
   float deltapy = 0.0f;
   float deltapz = 0.0f;
   float deltae = 0.0f;
-  // Hit index along the trajectory. Not available in the TrackML datasets.
+  // Hit index along the trajectory.
   int32_t index = -1;
 
   DFE_NAMEDTUPLE(SimHitData, particle_id, geometry_id, tx, ty, tz, tt, tpx, tpy,
@@ -68,71 +68,74 @@ struct SimHitData {
 };
 
 struct TruthHitData {
-  /// Event-unique hit identifier. As defined for the simulated hit below and
-  /// used to link back to it; same value can appear multiple times here due to
-  /// shared hits in dense environments.
-  uint64_t hit_id;
-  /// Hit surface identifier. Not available in the TrackML datasets.
+  /// Event-unique measurement identifier. As defined for the simulated hit
+  /// below and used to link back to it; same value can appear multiple times
+  /// here due to shared measurements in dense environments.
+  uint64_t measurement_id;
+  /// Hit surface identifier.
   uint64_t geometry_id = 0u;
   /// Event-unique particle identifier of the generating particle.
   uint64_t particle_id;
   /// True global hit position components in mm.
   float tx, ty, tz;
-  // True global hit time in ns. Not available in the TrackML datasets.
+  // True global hit time in ns.
   float tt = 0.0f;
   /// True particle momentum in GeV before interaction.
   float tpx, tpy, tpz;
   /// True particle energy in GeV before interaction.
-  /// Not available in the TrackML datasets.
   float te = 0.0f;
   /// True four-momentum change in GeV due to interaction.
-  /// Not available in the TrackML datasets.
   float deltapx = 0.0f;
   float deltapy = 0.0f;
   float deltapz = 0.0f;
   float deltae = 0.0f;
-  // Hit index along the trajectory. Not available in the TrackML datasets.
+  // Hit index along the trajectory.
   int32_t index = -1;
 
-  DFE_NAMEDTUPLE(TruthHitData, hit_id, particle_id, geometry_id, tx, ty, tz, tt,
-                 tpx, tpy, tpz, te, deltapx, deltapy, deltapz, deltae, index);
+  DFE_NAMEDTUPLE(TruthHitData, measurement_id, particle_id, geometry_id, tx, ty,
+                 tz, tt, tpx, tpy, tpz, te, deltapx, deltapy, deltapz, deltae,
+                 index);
 };
 
-struct HitData {
-  /// Event-unique hit identifier. Each value can appear at most once.
-  uint64_t hit_id;
-  /// Hit surface identifier. Not available in the TrackML datasets.
+struct MeasurementData {
+  /// Event-unique measurement identifier. Each value can appear at most once.
+  uint64_t measurement_id;
+  /// Hit surface identifier.
   uint64_t geometry_id = 0u;
   /// Partially decoded hit surface identifier components.
   uint32_t volume_id, layer_id, module_id;
-  /// Global hit position components in mm.
-  float x, y, z;
-  /// Global hit time in ns. Not available in the TrackML datasets.
-  float t = 0.0f;
+  /// Local hit information - bit identification what's measured
+  uint8_t local_key;
+  float local0, local1, phi, theta, time;
+  float cov0, cov1, covPhi, covTheta, covTime;
 
-  DFE_NAMEDTUPLE(HitData, hit_id, geometry_id, volume_id, layer_id, module_id,
-                 x, y, z, t);
+  DFE_NAMEDTUPLE(MeasurementData, measurement_id, geometry_id, volume_id,
+                 layer_id, module_id, local0, local1, phi, theta, time, cov0,
+                 cov1, covPhi, covTheta, covTime);
 };
 
 struct CellData {
-  /// Event-unique hit identifier. As defined for the simulated hit above and
-  /// used to link back to it; same value can appear multiple times for clusters
-  /// with more than one active cell.
-  uint64_t hit_id;
-  /// Digital cell address/ channel identifier. These should have been named
-  /// channel{0,1} but we cannot change it now to avoid breaking backward
-  /// compatibility.
-  int32_t ch0, ch1;
-  /// Digital cell timestamp. Not available in the TrackML datasets.
+  /// For reconstruction:
+  /// Event-unique measurement identifier. As defined for the  measurement above
+  /// and used to link back to it; same value can appear multiple times for
+  /// clusters with more than one active cell/channel.
+  ///
+  /// For truth clusters:
+  /// Particle-unique identifier
+  uint64_t association_id;
+  /// Digital cell address/channel identifier.
+  int32_t channel0, channel1;
+  /// Digital cell timestamp.
   int32_t timestamp = 0;
   /// (Digital) measured cell value, e.g. amplitude or time-over-threshold.
-  int32_t value;
+  float value;
 
-  DFE_NAMEDTUPLE(CellData, hit_id, ch0, ch1, timestamp, value);
+  DFE_NAMEDTUPLE(CellData, association_id, channel0, channel1, timestamp,
+                 value);
 };
 
 struct SurfaceData {
-  /// Surface identifier. Not available in the TrackML datasets.
+  /// Surface identifier.
   uint64_t geometry_id;
   /// Partially decoded surface identifier components.
   uint32_t volume_id, boundary_id, layer_id, module_id;

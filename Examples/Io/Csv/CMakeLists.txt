@@ -5,8 +5,8 @@ add_library(
   src/CsvOptionsWriter.cpp
   src/CsvParticleReader.cpp
   src/CsvParticleWriter.cpp
-  src/CsvPlanarClusterReader.cpp
-  src/CsvPlanarClusterWriter.cpp
+  #src/CsvPlanarClusterReader.cpp
+  #src/CsvPlanarClusterWriter.cpp
   src/CsvSimHitReader.cpp
   src/CsvSimHitWriter.cpp
   src/CsvTrackingGeometryWriter.cpp)
@@ -17,7 +17,7 @@ target_link_libraries(
   ActsExamplesIoCsv
   PRIVATE
     ActsCore ActsPluginDigitization ActsPluginIdentification
-    ActsExamplesFramework
+    ActsExamplesFramework ActsExamplesDigitization
     Threads::Threads Boost::program_options dfelibs)
 
 install(

@@ -39,15 +39,14 @@ namespace ActsExamples {
 /// measurement, the associated truth information and the cell/channel details
 ///
 ///     event000000001-cells.csv
-///     event000000001-hits.csv
+///     event000000001-measurements.csv
 ///     event000000001-truth.csv
 ///     event000000002-cells.csv
-///     event000000002-hits.csv
+///     event000000002-measurements.csv
 ///     event000000002-truth.csv
 ///     ...
 ///
-///
-/// Safe to use from multiple writer threads - uses a std::mutex lock.
+/// Intrinsically thread-safe as one file per event
 class CsvMeasurementWriter final : public WriterT<MeasurementContainer> {
  public:
   struct Config {
@@ -59,12 +58,12 @@ class CsvMeasurementWriter final : public WriterT<MeasurementContainer> {
     std::string inputSimHits;
     /// Input collection to map measured hits to simulated hits.
     std::string inputMeasurementSimHitsMap;
-    std::string filePath = "";          ///< path of the output file
-    std::string fileMode = "RECREATE";  ///< file access mode
-    /// The indices for this digitization configurations
-    Acts::GeometryHierarchyMap<std::vector<Acts::BoundIndices>> boundIndices;
-    /// Tracking geometry required to access local-to-global transforms.
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry;
+    /// Where to place output files
+    std::string outputDir;
+    /// Number of decimal digits for floating point precision in output.
+    size_t outputPrecision = std::numeric_limits<float>::max_digits10;
+    /// Tracking geometry required to access global-to-local transforms.
+    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry = nullptr;
   };
 
   /// Constructor with
@@ -89,10 +88,6 @@ class CsvMeasurementWriter final : public WriterT<MeasurementContainer> {
 
  private:
   Config m_cfg;
-  std::mutex m_writeMutex;  ///< protect multi-threaded writes
-
-  std::unordered_map<Acts::GeometryIdentifier, const Acts::Surface*>
-      m_dSurfaces;  ///< All surfaces that could carry measurements
 };
 
 }  // namespace ActsExamples

@@ -15,7 +15,7 @@
 #include "ActsExamples/GenericDetector/GenericDetector.hpp"
 #include "ActsExamples/Geometry/CommonGeometry.hpp"
 #include "ActsExamples/Io/Csv/CsvParticleReader.hpp"
-#include "ActsExamples/Io/Csv/CsvPlanarClusterReader.hpp"
+//#include "ActsExamples/Io/Csv/CsvMeasurementReader.hpp"
 #include "ActsExamples/Options/CommonOptions.hpp"
 #include "ActsExamples/Printers/HitsPrinter.hpp"
 #include "ActsExamples/Printers/ParticlesPrinter.hpp"
@@ -71,37 +71,38 @@ int main(int argc, char* argv[]) {
       std::make_shared<CsvParticleReader>(readFinalCfg, logLevel));
 
   // read clusters/hits
-  CsvPlanarClusterReader::Config readClustersCfg;
-  readClustersCfg.inputDir = inputDir;
-  readClustersCfg.outputClusters = "clusters";
-  readClustersCfg.outputMeasurementParticlesMap = "hit_particle_map";
-  readClustersCfg.outputHitIds = "hit_ids";
-  readClustersCfg.outputSimHits = "simulated_hits";
-  readClustersCfg.trackingGeometry = trackingGeometry;
-  sequencer.addReader(std::make_shared<ActsExamples::CsvPlanarClusterReader>(
-      readClustersCfg, logLevel));
+  // CsvPlanarClusterReader::Config readClustersCfg;
+  // readClustersCfg.inputDir = inputDir;
+  // readClustersCfg.outputClusters = "clusters";
+  // readClustersCfg.outputMeasurementParticlesMap = "hit_particle_map";
+  // readClustersCfg.outputHitIds = "hit_ids";
+  // readClustersCfg.outputSimHits = "simulated_hits";
+  // readClustersCfg.trackingGeometry = trackingGeometry;
+  // sequencer.addReader(std::make_shared<ActsExamples::CsvPlanarClusterReader>(
+  //    readClustersCfg, logLevel));
 
   // print event data
-  ParticlesPrinter::Config printInitialCfg;
-  printInitialCfg.inputParticles = readInitialCfg.outputParticles;
-  sequencer.addAlgorithm(
-      std::make_shared<ParticlesPrinter>(printInitialCfg, logLevel));
-  ParticlesPrinter::Config printFinalCfg;
-  printFinalCfg.inputParticles = readFinalCfg.outputParticles;
-  sequencer.addAlgorithm(
-      std::make_shared<ParticlesPrinter>(printFinalCfg, logLevel));
-  HitsPrinter::Config printHitsCfg;
-  printHitsCfg.inputClusters = readClustersCfg.outputClusters;
-  printHitsCfg.inputMeasurementParticlesMap =
-      readClustersCfg.outputMeasurementParticlesMap;
-  printHitsCfg.inputHitIds = readClustersCfg.outputHitIds;
+  // ParticlesPrinter::Config printInitialCfg;
+  // printInitialCfg.inputParticles = readInitialCfg.outputParticles;
+  // sequencer.addAlgorithm(
+  //    std::make_shared<ParticlesPrinter>(printInitialCfg, logLevel));
+  // ParticlesPrinter::Config printFinalCfg;
+  // printFinalCfg.inputParticles = readFinalCfg.outputParticles;
+  // sequencer.addAlgorithm(
+  //    std::make_shared<ParticlesPrinter>(printFinalCfg, logLevel));
+  // HitsPrinter::Config printHitsCfg;
+  // printHitsCfg.inputClusters = kFatrasCollectionMeasurements;
+  // printHitsCfg.inputMeasurementParticlesMap =
+  //    readClustersCfg.outputMeasurementParticlesMap;
+  // printHitsCfg.inputHitIds = readClustersCfg.outputHitIds;
   // print all hits in the container
-  printHitsCfg.selectIndexLength = SIZE_MAX;
+  // printHitsCfg.selectIndexLength = SIZE_MAX;
   // print all hits within a volume/layer/volume
   // printHitsCfg.selectVolume = 9;
   // printHitsCfg.selectLayer = 6;
   // printHits.selectModule = 116;
-  sequencer.addAlgorithm(std::make_shared<HitsPrinter>(printHitsCfg, logLevel));
+  // sequencer.addAlgorithm(std::make_shared<HitsPrinter>(printHitsCfg,
+  // logLevel));
 
   return sequencer.run();
 }
