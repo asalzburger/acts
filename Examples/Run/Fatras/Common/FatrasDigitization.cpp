@@ -14,7 +14,7 @@
 #include "ActsExamples/Digitization/SmearingAlgorithm.hpp"
 #include "ActsExamples/Framework/RandomNumbers.hpp"
 #include "ActsExamples/Framework/Sequencer.hpp"
-#include "ActsExamples/Io/Csv/CsvPlanarClusterWriter.hpp"
+#include "ActsExamples/Io/Csv/CsvMeasurementWriter.hpp"
 #include "ActsExamples/Io/Json/JsonDigitizationConfig.hpp"
 #include "ActsExamples/Io/Root/RootMeasurementWriter.hpp"
 #include "ActsExamples/Options/CommonOptions.hpp"
@@ -131,5 +131,17 @@ void setupDigitization(
     measWriterRoot.trackingGeometry = trackingGeometry;
     sequencer.addWriter(
         std::make_shared<RootMeasurementWriter>(measWriterRoot, logLevel));
+  }
+
+  // Write digitization out as CSV files
+  if (vars["output-csv"].template as<bool>()) {
+    CsvMeasurementWriter::Config measWriterCsv;
+    measWriterCsv.inputMeasurements = kFatrasCollectionMeasurements;
+    measWriterCsv.inputClusters = clusters;
+    measWriterCsv.inputSimHits = kFatrasCollectionHits;
+    measWriterCsv.inputMeasurementSimHitsMap = kFatrasMapMeasurementSimHits;
+    measWriterCsv.trackingGeometry = trackingGeometry;
+    sequencer.addWriter(
+        std::make_shared<CsvMeasurementWriter>(measWriterCsv, logLevel));
   }
 }
