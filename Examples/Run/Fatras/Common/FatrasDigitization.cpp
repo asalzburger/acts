@@ -76,6 +76,8 @@ void setupDigitization(
       sequencer.addAlgorithm(
           std::make_shared<DigitizationAlgorithm>(digiCfg, logLevel));
 
+      clusters = kFatrasCollectionClusters;
+
       // Prepare for the (eventual) output writing
       for (size_t ibi = 0; ibi < digiCfg.digitizationConfigs.size(); ++ibi) {
         Acts::GeometryIdentifier geoID = digiCfg.digitizationConfigs.idAt(ibi);

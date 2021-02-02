@@ -82,6 +82,7 @@ ActsExamples::ProcessCode ActsExamples::CsvMeasurementWriter::writeT(
   MeasurementData meas;
   CellData cell;
   TruthHitData truth;
+
   // Will be reused as hit counter
   meas.measurement_id = 0;
 

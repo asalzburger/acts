@@ -120,8 +120,8 @@ struct CellData {
   /// and used to link back to it; same value can appear multiple times for
   /// clusters with more than one active cell/channel.
   ///
-  /// For truth clusters:
-  /// Particle-unique identifier
+  /// For truth clusters / reconstructed clusters
+  /// Particle-unique identifier / measurement-unique identifier
   uint64_t association_id;
   /// Digital cell address/channel identifier.
   int32_t channel0, channel1;
