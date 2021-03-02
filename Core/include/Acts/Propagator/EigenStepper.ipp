@@ -31,19 +31,21 @@ void Acts::EigenStepper<E, A>::resetState(State& state,
                                           const Surface& surface,
                                           const NavigationDirection navDir,
                                           const double stepSize) const {
+
   // Update the stepping state
   update(state,
          detail::transformBoundToFreeParameters(surface, state.geoContext,
                                                 boundParams),
-         cov);
+         boundCov);
   state.navDir = navDir;
   state.stepSize = ConstrainedStep(stepSize);
   state.pathAccumulated = 0.;
 
   // Reinitialize the stepping jacobian
-  state.jacToGlobal =
+  auto boundToGlobal =
       surface.jacobianLocalToGlobal(state.geoContext, boundParams);
-  state.jacobian = BoundMatrix::Identity();
+  state.jacToGlobal.template emplace<BoundToFreeMatrix>(boundToGlobal);
+  state.jacobian.template emplace<BoundMatrix>(BoundMatrix::Identity());
   state.jacTransport = FreeMatrix::Identity();
   state.derivative = FreeVector::Zero();
 }
@@ -53,9 +55,11 @@ auto Acts::EigenStepper<E, A>::boundState(State& state, const Surface& surface,
                                           bool transportCov) const
     -> BoundState {
   return detail::boundState(
-      state.geoContext, state.cov, state.jacobian, state.jacTransport,
-      state.derivative, state.jacToGlobal, state.pars,
-      state.covTransport && transportCov, state.pathAccumulated, surface);
+      state.geoContext, std::get<BoundSymMatrix>(state.cov),
+      std::get<BoundMatrix>(state.jacobian), state.jacTransport,
+      state.derivative, std::get<BoundToFreeMatrix>(state.jacToGlobal),
+      state.pars, state.covTransport && transportCov, state.pathAccumulated,
+      surface);
 }
 
 template <typename E, typename A>
@@ -63,23 +67,25 @@ auto Acts::EigenStepper<E, A>::curvilinearState(State& state,
                                                 bool transportCov) const
     -> CurvilinearState {
   return detail::curvilinearState(
-      state.cov, state.jacobian, state.jacTransport, state.derivative,
-      state.jacToGlobal, state.pars, state.covTransport && transportCov,
-      state.pathAccumulated);
+      std::get<BoundSymMatrix>(state.cov),
+      std::get<BoundMatrix>(state.jacobian), state.jacTransport,
+      state.derivative, std::get<BoundToFreeMatrix>(state.jacToGlobal),
+      state.pars, state.covTransport && transportCov, state.pathAccumulated);
 }
 
+// @todo needs to become a free covariance for the update
 template <typename E, typename A>
-void Acts::EigenStepper<E, A>::update(State& state,
-                                      const FreeVector& parameters,
-                                      const Covariance& covariance) const {
+void Acts::EigenStepper<E, A>::update(
+    State& state, const FreeVector& parameters,
+    const BoundSymMatrix& covariance) const {
   state.pars = parameters;
-  state.cov = covariance;
+  state.cov.template emplace<BoundSymMatrix>(covariance);
 }
 
 template <typename E, typename A>
 void Acts::EigenStepper<E, A>::update(State& state, const Vector3& uposition,
-                                      const Vector3& udirection, double up,
-                                      double time) const {
+                                         const Vector3& udirection,
+                                         ActsScalar up, ActsScalar time) const {
   state.pars.template segment<3>(eFreePos0) = uposition;
   state.pars.template segment<3>(eFreeDir0) = udirection;
   state.pars[eFreeTime] = time;
@@ -88,17 +94,21 @@ void Acts::EigenStepper<E, A>::update(State& state, const Vector3& uposition,
 
 template <typename E, typename A>
 void Acts::EigenStepper<E, A>::covarianceTransport(State& state) const {
-  detail::covarianceTransport(state.cov, state.jacobian, state.jacTransport,
-                              state.derivative, state.jacToGlobal,
+  detail::covarianceTransport(std::get<BoundSymMatrix>(state.cov),
+                              std::get<BoundMatrix>(state.jacobian),
+                              state.jacTransport, state.derivative,
+                              std::get<BoundToFreeMatrix>(state.jacToGlobal),
                               direction(state));
 }
 
 template <typename E, typename A>
 void Acts::EigenStepper<E, A>::covarianceTransport(
     State& state, const Surface& surface) const {
-  detail::covarianceTransport(state.geoContext.get(), state.cov, state.jacobian,
-                              state.jacTransport, state.derivative,
-                              state.jacToGlobal, state.pars, surface);
+  detail::covarianceTransport(
+      state.geoContext.get(), std::get<BoundSymMatrix>(state.cov),
+      std::get<BoundMatrix>(state.jacobian), state.jacTransport,
+      state.derivative, std::get<BoundToFreeMatrix>(state.jacToGlobal),
+      state.pars, surface);
 }
 
 template <typename E, typename A>
