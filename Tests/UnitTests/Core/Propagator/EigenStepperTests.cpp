@@ -174,8 +174,8 @@ BOOST_AUTO_TEST_CASE(eigen_stepper_state_test) {
   BoundSymMatrix cov = 8. * BoundSymMatrix::Identity();
   ncp = NeutralCurvilinearTrackParameters(makeVector4(pos, time), dir,
                                           1 / absMom, cov);
-  esState = EigenStepper<ConstantBField>::State(tgContext, Field->makeCache(mfContext), ncp, ndir,
-                                                stepSize, tolerance);
+  esState = EigenStepper<>::State(tgContext, bField->makeCache(mfContext), ncp,
+                                  ndir, stepSize, tolerance);
   BOOST_CHECK_NE(std::get<BoundToFreeMatrix>(esState.jacToGlobal),
                  BoundToFreeMatrix::Zero());
   BOOST_CHECK(esState.covTransport);

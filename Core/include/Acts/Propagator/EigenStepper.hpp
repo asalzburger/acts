@@ -389,7 +389,7 @@ class EigenStepper {
   ///
   /// @todo remove mixture of free and bound covariance ?
   void update(State& state, const FreeVector& parameters,
-              const BoundSymMatrix& covariance) const;
+              const BoundSymMatrix& boundCov) const;
 
   /// Method to update momentum, direction and p
   ///

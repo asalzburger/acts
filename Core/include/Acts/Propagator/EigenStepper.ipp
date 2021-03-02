@@ -27,11 +27,10 @@ auto Acts::EigenStepper<E, A>::makeState(
 template <typename E, typename A>
 void Acts::EigenStepper<E, A>::resetState(State& state,
                                           const BoundVector& boundParams,
-                                          const BoundSymMatrix& cov,
+                                          const BoundSymMatrix& boundCov,
                                           const Surface& surface,
                                           const NavigationDirection navDir,
                                           const double stepSize) const {
-
   // Update the stepping state
   update(state,
          detail::transformBoundToFreeParameters(surface, state.geoContext,
@@ -75,17 +74,17 @@ auto Acts::EigenStepper<E, A>::curvilinearState(State& state,
 
 // @todo needs to become a free covariance for the update
 template <typename E, typename A>
-void Acts::EigenStepper<E, A>::update(
-    State& state, const FreeVector& parameters,
-    const BoundSymMatrix& covariance) const {
+void Acts::EigenStepper<E, A>::update(State& state,
+                                      const FreeVector& parameters,
+                                      const BoundSymMatrix& covariance) const {
   state.pars = parameters;
   state.cov.template emplace<BoundSymMatrix>(covariance);
 }
 
 template <typename E, typename A>
 void Acts::EigenStepper<E, A>::update(State& state, const Vector3& uposition,
-                                         const Vector3& udirection,
-                                         ActsScalar up, ActsScalar time) const {
+                                      const Vector3& udirection, ActsScalar up,
+                                      ActsScalar time) const {
   state.pars.template segment<3>(eFreePos0) = uposition;
   state.pars.template segment<3>(eFreeDir0) = udirection;
   state.pars[eFreeTime] = time;
