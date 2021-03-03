@@ -260,17 +260,8 @@ BOOST_AUTO_TEST_CASE(eigen_stepper_test) {
   BOOST_CHECK_EQUAL(esState.derivative, FreeVector::Zero());
 
   // Perform a step without and with covariance transport
-<<<<<<< HEAD:Tests/UnitTests/Core/Propagator/EigenStepperTests.cpp
   esState.cov.template emplace<BoundSymMatrix>(cov);
-=======
-<<<<<<< HEAD:Tests/UnitTests/Core/Propagator/StepperTests.cpp
-  esState.cov = cov;
->>>>>>> 5288d904e... internal variants for Steppers:Tests/UnitTests/Core/Propagator/StepperTests.cpp
   PropState ps(std::move(esState));
-=======
-  esState.cov.template emplace<BoundSymMatrix>(cov);
-  PropState ps(esState);
->>>>>>> 230679333... internal variants for Steppers:Tests/UnitTests/Core/Propagator/EigenStepperTests.cpp
 
   ps.stepping.covTransport = false;
   double h = es.step(ps).value();
