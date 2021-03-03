@@ -57,9 +57,6 @@ class StraightLineStepper {
   using CurvilinearState =
       std::tuple<CurvilinearTrackParameters, Jacobian, ActsScalar>;
 
-  /// A free state with its associated jacobian from last set/reset
-  using FreeState = std::tuple<FreeTrackParameters, Jacobian, ActsScalar>;
-
   /// State for track parameter propagation
   ///
   struct State {

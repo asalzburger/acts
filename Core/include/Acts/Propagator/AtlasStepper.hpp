@@ -54,9 +54,6 @@ class AtlasStepper {
   using CurvilinearState =
       std::tuple<CurvilinearTrackParameters, Jacobian, ActsScalar>;
 
-  /// A free state with its associated jacobian from last set/reset
-  using FreeState = std::tuple<FreeTrackParameters, Jacobian, ActsScalar>;
-
   /// @brief Nested State struct for the local caching
   struct State {
     /// Default constructor - deleted
