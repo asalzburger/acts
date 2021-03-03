@@ -60,8 +60,6 @@ class StraightLineStepper {
   /// A free state with its associated jacobian from last set/reset
   using FreeState = std::tuple<FreeTrackParameters, Jacobian, ActsScalar>;
 
-  using BField = NullBField;
-
   /// State for track parameter propagation
   ///
   struct State {
@@ -95,6 +93,9 @@ class StraightLineStepper {
       pars.template segment<3>(eFreeDir0) = par.unitDirection();
       pars[eFreeTime] = par.time();
       pars[eFreeQOverP] = par.parameters()[eBoundQOverP];
+
+      jacobian.template emplace<BoundMatrix>(BoundMatrix::Zero());
+
       if (par.covariance()) {
         // Get the reference surface for navigation
         const auto& surface = par.referenceSurface();
@@ -102,6 +103,10 @@ class StraightLineStepper {
         covTransport = true;
         cov = BoundSymMatrix(*par.covariance());
         jacToGlobal = surface.jacobianLocalToGlobal(gctx, par.parameters());
+      } else {
+        cov.template emplace<BoundSymMatrix>(BoundSymMatrix::Zero());
+        jacToGlobal.template emplace<BoundToFreeMatrix>(
+            BoundToFreeMatrix::Zero());
       }
     }
 

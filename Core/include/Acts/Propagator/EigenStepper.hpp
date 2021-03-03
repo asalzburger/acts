@@ -111,6 +111,8 @@ class EigenStepper {
       pars[eFreeTime] = par.time();
       pars[eFreeQOverP] = par.parameters()[eBoundQOverP];
 
+      jacobian.template emplace<BoundMatrix>(BoundMatrix::Zero());
+
       // Init the jacobian matrix if needed
       if (par.covariance()) {
         // Get the reference surface for navigation
@@ -119,41 +121,10 @@ class EigenStepper {
         covTransport = true;
         cov.emplace<BoundSymMatrix>(*par.covariance());
         jacToGlobal = surface.jacobianLocalToGlobal(gctx, par.parameters());
-      }
-    }
-
-    /// Constructor from initial free track parameters
-    ///
-    /// @tparam charge_t Type of the free parameter charge
-    ///
-    /// @param [in] gctx is the context object for the geometry
-    /// @param [in] mctx is the context object for the magnetic field
-    /// @param [in] par The track parameters at start
-    /// @param [in] ndir The navigation direciton w.r.t momentum
-    /// @param [in] ssize is the maximum step size
-    /// @param [in] stolerance is the stepping tolerance
-    ///
-    /// @note the covariance matrix is copied when needed
-    template <typename charge_t>
-    explicit State(const GeometryContext& gctx,
-                   const MagneticFieldContext& mctx,
-                   const SingleFreeTrackParameters<charge_t>& par,
-                   NavigationDirection ndir = forward,
-                   double ssize = std::numeric_limits<double>::max(),
-                   double stolerance = s_onSurfaceTolerance)
-        : pars(par.parameters()),
-          q(par.charge()),
-          navDir(ndir),
-          stepSize(ndir * std::abs(ssize)),
-          tolerance(stolerance),
-          fieldCache(mctx),
-          geoContext(gctx) {
-      // Init the jacobian matrix if needed
-      if (par.covariance()) {
-        // set the covariance transport flag to true and copy
-        covTransport = true;
-        cov.emplace<FreeSymMatrix>(*par.covariance());
-        jacToGlobal = FreeSymMatrix::Identity();
+      } else {
+        cov.template emplace<BoundSymMatrix>(BoundSymMatrix::Zero());
+        jacToGlobal.template emplace<BoundToFreeMatrix>(
+            BoundToFreeMatrix::Zero());
       }
     }
 
