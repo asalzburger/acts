@@ -6,26 +6,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "EventAction.hpp"
+#include "MaterialEventAction.hpp"
 
-#include "ActsExamples/Geant4/PrimaryGeneratorAction.hpp"
+#include "ActsExamples/Geant4/MaterialGeneratorAction.hpp"
 
 #include <stdexcept>
 
 #include <G4Event.hh>
 #include <G4RunManager.hh>
 
-#include "SteppingAction.hpp"
+#include "MaterialSteppingAction.hpp"
 
 namespace ActsExamples::Geant4 {
 
-EventAction* EventAction::s_instance = nullptr;
+MaterialEventAction* MaterialEventAction::s_instance = nullptr;
 
-EventAction* EventAction::instance() {
+MaterialEventAction* MaterialEventAction::instance() {
   return s_instance;
 }
 
-EventAction::EventAction() : G4UserEventAction() {
+MaterialEventAction::MaterialEventAction() : G4UserEventAction() {
   if (s_instance) {
     throw std::logic_error("Attempted to duplicate the EventAction singleton");
   } else {
@@ -33,33 +33,33 @@ EventAction::EventAction() : G4UserEventAction() {
   }
 }
 
-EventAction::~EventAction() {
+MaterialEventAction::~MaterialEventAction() {
   s_instance = nullptr;
 }
 
-void EventAction::BeginOfEventAction(const G4Event*) {
+void MaterialEventAction::BeginOfEventAction(const G4Event*) {
   // reset the collection of material steps
-  SteppingAction::instance()->clear();
+  MaterialSteppingAction::instance()->clear();
 }
 
-void EventAction::EndOfEventAction(const G4Event* event) {
+void MaterialEventAction::EndOfEventAction(const G4Event* event) {
   const auto* rawPos = event->GetPrimaryVertex();
   // access the initial direction of the track
-  G4ThreeVector rawDir = PrimaryGeneratorAction::instance()->direction();
+  G4ThreeVector rawDir = MaterialGeneratorAction::instance()->direction();
   // create the RecordedMaterialTrack
   Acts::RecordedMaterialTrack mtrecord;
   mtrecord.first.first =
       Acts::Vector3(rawPos->GetX0(), rawPos->GetY0(), rawPos->GetZ0());
   mtrecord.first.second = Acts::Vector3(rawDir.x(), rawDir.y(), rawDir.z());
   mtrecord.second.materialInteractions =
-      SteppingAction::instance()->materialSteps();
+      MaterialSteppingAction::instance()->materialSteps();
 
   // write out the RecordedMaterialTrack of one event
   m_materialTracks.push_back(mtrecord);
 }
 
 /// Clear the recorded data.
-void EventAction::clear() {
+void MaterialEventAction::clear() {
   m_materialTracks.clear();
 }
 
@@ -67,8 +67,8 @@ void EventAction::clear() {
 ///
 /// This only contains valid data after the end-of-event action has been
 /// executed.
-const std::vector<Acts::RecordedMaterialTrack>& EventAction::materialTracks()
-    const {
+const std::vector<Acts::RecordedMaterialTrack>&
+MaterialEventAction::materialTracks() const {
   return m_materialTracks;
 }
 

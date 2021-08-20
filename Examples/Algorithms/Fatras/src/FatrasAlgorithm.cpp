@@ -198,7 +198,7 @@ ActsExamples::ProcessCode ActsExamples::FatrasAlgorithm::execute(
   const auto &inputParticles =
       ctx.eventStore.get<SimParticleContainer>(m_cfg.inputParticles);
 
-  ACTS_DEBUG(inputParticles.size() << " input particles");
+  ACTS_DEBUG("Retrieved : " << inputParticles.size() << " input particles");
 
   // prepare output containers
   SimParticleContainer::sequence_type particlesInitialUnordered;

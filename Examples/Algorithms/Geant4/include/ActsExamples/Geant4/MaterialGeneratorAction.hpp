@@ -20,16 +20,16 @@ class G4Event;
 
 namespace ActsExamples::Geant4 {
 
-/// @class PrimaryGeneratorAction
+/// @class MaterialGeneratorAction
 ///
 /// @brief configures the run
 ///
-/// The PrimaryGeneratorAction is the implementation of the Geant4
-/// class G4VUserPrimaryGeneratorAction. It generates a random direction
+/// The MaterialGeneratorAction is the implementation of the Geant4
+/// class G4VUserMaterialGeneratorAction. It generates a random direction
 /// and shoots a geantino.
 ///
 /// @todo tempate with RandomService
-class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction {
+class MaterialGeneratorAction final : public G4VUserPrimaryGeneratorAction {
  public:
   struct Config {
     /// Name of the generated particle
@@ -61,11 +61,11 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction {
   };
 
   /// Static access method
-  static PrimaryGeneratorAction* instance();
+  static MaterialGeneratorAction* instance();
 
   /// Construct the action and ensure singleton usage.
-  PrimaryGeneratorAction(const Config& cfg);
-  ~PrimaryGeneratorAction() final override;
+  MaterialGeneratorAction(const Config& cfg);
+  ~MaterialGeneratorAction() final override;
 
   /// Interface method to generate the primary
   void GeneratePrimaries(G4Event*) final override;
@@ -80,8 +80,8 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction {
   /// The config class
   Config m_cfg;
 
-  /// Instance of the PrimaryGeneratorAction
-  static PrimaryGeneratorAction* s_instance;
+  /// Instance of the MaterialGeneratorAction
+  static MaterialGeneratorAction* s_instance;
 
   /// Pointer to the G4 particle gun
   std::unique_ptr<G4ParticleGun> m_particleGun;

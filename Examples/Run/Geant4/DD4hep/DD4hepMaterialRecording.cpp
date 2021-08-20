@@ -1,19 +1,20 @@
 // This file is part of the Acts project.
 //
-// Copyright (C) 2020 CERN for the benefit of the Acts project
+// Copyright (C) 2017-2020 CERN for the benefit of the Acts project
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "ActsExamples/Geant4/GdmlDetectorConstruction.hpp"
+#include "ActsExamples/DD4hepDetector/DD4hepDetectorOptions.hpp"
+#include "ActsExamples/DD4hepDetector/DD4hepGeometryService.hpp"
+#include "ActsExamples/Geant4DD4hep/DD4hepDetectorConstruction.hpp"
 #include "ActsExamples/Options/CommonOptions.hpp"
 
 #include <boost/program_options.hpp>
 
-#include "GeantinoRecordingBase.hpp"
+#include "../MaterialRecordingBase.hpp"
 
-using namespace ActsExamples;
 using namespace ActsExamples;
 
 int main(int argc, char* argv[]) {
@@ -21,22 +22,20 @@ int main(int argc, char* argv[]) {
   auto desc = Options::makeDefaultOptions();
   Options::addSequencerOptions(desc);
   Options::addOutputOptions(desc, OutputFormat::Root);
+  Options::addDD4hepOptions(desc);
   Options::addGeant4Options(desc);
-  desc.add_options()(
-      "gdml-file",
-      boost::program_options::value<std::string>()->default_value(""),
-      "GDML detector file.");
-
   auto vm = Options::parse(desc, argc, argv);
-
   if (vm.empty()) {
     return EXIT_FAILURE;
   }
-  auto gdmlFile = vm["gdml-file"].as<std::string>();
 
-  // Setup the GDML detector
+  // Setup the DD4hep detector
+  auto dd4hepCfg = Options::readDD4hepConfig<po::variables_map>(vm);
+  auto geometrySvc = std::make_shared<DD4hep::DD4hepGeometryService>(dd4hepCfg);
+
   Acts::PolymorphicValue<G4VUserDetectorConstruction> g4detector =
-      Acts::makePolymorphicValue<GdmlDetectorConstruction>(gdmlFile);
+      Acts::makePolymorphicValue<DD4hepDetectorConstruction>(
+          *geometrySvc->lcdd());
 
-  return runGeantinoRecording(vm, std::move(g4detector));
+  return runGeant4MaterialRecording(vm, std::move(g4detector));
 }

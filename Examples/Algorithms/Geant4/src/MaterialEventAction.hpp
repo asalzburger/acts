@@ -1,6 +1,6 @@
 // This file is part of the Acts project.
 //
-// Copyright (C) 2017-2020 CERN for the benefit of the Acts project
+// Copyright (C) 2017-2021 CERN for the benefit of the Acts project
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,9 +18,9 @@
 
 namespace ActsExamples::Geant4 {
 
-class SteppingAction;
+class MaterialSteppingAction;
 
-/// @class EventAction
+/// @class MaterialEventAction
 ///
 /// @brief Writes out material track records
 ///
@@ -28,14 +28,14 @@ class SteppingAction;
 /// G4UserEventAction and is writing out the collected RecordedMaterialTrack
 /// entities needed for material mapping once per event.
 ///
-class EventAction final : public G4UserEventAction {
+class MaterialEventAction final : public G4UserEventAction {
  public:
   /// Static access method
-  static EventAction* instance();
+  static MaterialEventAction* instance();
 
   /// Construct the action and ensure singleton usage.
-  EventAction();
-  ~EventAction() final override;
+  MaterialEventAction();
+  ~MaterialEventAction() final override;
 
   /// Interface method for begin of the event
   /// @param event is the G4Event to be processed
@@ -58,7 +58,7 @@ class EventAction final : public G4UserEventAction {
 
  private:
   /// Instance of the EventAction
-  static EventAction* s_instance;
+  static MaterialEventAction* s_instance;
 
   /// The materialTrackWriter
   std::vector<Acts::RecordedMaterialTrack> m_materialTracks;

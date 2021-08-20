@@ -24,6 +24,7 @@ class GdmlDetectorConstruction final : public G4VUserDetectorConstruction {
 
  private:
   std::string m_path;
+  G4VPhysicalVolume* m_world = nullptr;
 };
 
 }  // namespace ActsExamples

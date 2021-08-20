@@ -99,6 +99,7 @@ ActsExamples::DD4hep::DD4hepGeometryService::buildTrackingGeometry(
       m_cfg.bTypeZ, m_cfg.envelopeR, m_cfg.envelopeZ,
       m_cfg.defaultLayerThickness, m_cfg.sortDetectors, gctx,
       m_cfg.matDecorator);
+
   return ActsExamples::ProcessCode::SUCCESS;
 }
 

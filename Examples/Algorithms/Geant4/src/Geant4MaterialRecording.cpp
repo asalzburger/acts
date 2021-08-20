@@ -6,7 +6,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "ActsExamples/Geant4/GeantinoRecording.hpp"
+#include "ActsExamples/Geant4/Geant4MaterialRecording.hpp"
 
 #include "ActsExamples/Framework/WhiteBoard.hpp"
 
@@ -17,16 +17,16 @@
 #include <G4RunManager.hh>
 #include <G4VUserDetectorConstruction.hh>
 
-#include "EventAction.hpp"
-#include "RunAction.hpp"
-#include "SteppingAction.hpp"
+#include "MaterialEventAction.hpp"
+#include "MaterialRunAction.hpp"
+#include "MaterialSteppingAction.hpp"
 
 using namespace ActsExamples;
 using namespace ActsExamples::Geant4;
 
-GeantinoRecording::GeantinoRecording(GeantinoRecording::Config config,
-                                     Acts::Logging::Level level)
-    : BareAlgorithm("GeantinoRecording", level),
+Geant4MaterialRecording::Geant4MaterialRecording(
+    Geant4MaterialRecording::Config config, Acts::Logging::Level level)
+    : BareAlgorithm("Geant4MaterialRecording", level),
       m_cfg(std::move(config)),
       m_runManager(std::make_unique<G4RunManager>()) {
   if (m_cfg.outputMaterialTracks.empty()) {
@@ -41,18 +41,17 @@ GeantinoRecording::GeantinoRecording(GeantinoRecording::Config config,
 
   m_runManager->SetUserInitialization(m_cfg.detectorConstruction.release());
   m_runManager->SetUserInitialization(new FTFP_BERT);
-  m_runManager->SetUserAction(new RunAction());
-  m_runManager->SetUserAction(new EventAction());
+  m_runManager->SetUserAction(new MaterialRunAction());
+  m_runManager->SetUserAction(new MaterialEventAction());
   m_runManager->SetUserAction(
-      new PrimaryGeneratorAction(m_cfg.generationConfig));
-  m_runManager->SetUserAction(new SteppingAction());
+      new MaterialGeneratorAction(m_cfg.generationConfig));
+  m_runManager->SetUserAction(new MaterialSteppingAction());
   m_runManager->Initialize();
 }
 
-// needed to allow std::unique_ptr<G4RunManager> with forward-declared class.
-GeantinoRecording::~GeantinoRecording() {}
+Geant4MaterialRecording::~Geant4MaterialRecording() {}
 
-ActsExamples::ProcessCode GeantinoRecording::execute(
+ActsExamples::ProcessCode Geant4MaterialRecording::execute(
     const ActsExamples::AlgorithmContext& ctx) const {
   // ensure exclusive access to the geant run manager
   std::lock_guard<std::mutex> guard(m_runManagerLock);
@@ -63,7 +62,8 @@ ActsExamples::ProcessCode GeantinoRecording::execute(
   // start simulation. each track is simulated as a separate Geant4 event.
   m_runManager->BeamOn(m_cfg.tracksPerEvent);
 
-  auto materialTracks = EventAction::instance()->materialTracks();
+  auto materialTracks = MaterialEventAction::instance()->materialTracks();
+
   // Write the recorded material to the event store
   ctx.eventStore.add(m_cfg.outputMaterialTracks, move(materialTracks));
 

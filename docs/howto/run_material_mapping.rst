@@ -54,11 +54,11 @@ Then edit the config-map.json file
 Geantino scan
 -------------
 
-The next step is to do a geantino scan of our detector. For this we will use the ``GeantinoRecording`` algorithm :
+The next step is to do a geantino scan of our detector. For this we will use the ``Geant4MaterialRecording`` algorithm :
 
 .. code-block:: console
 
-  ./../build/bin/ActsExampleGeantinoRecordingDD4hep -j1 --dd4hep-input ../thirdparty/OpenDataDetector/xml/OpenDataDetector.xml --output-root -n10000
+  ./../build/bin/ActsExampleMaterialRecordingDD4hep -j1 --dd4hep-input ../thirdparty/OpenDataDetector/xml/OpenDataDetector.xml --output-root -n10000
 
 
 The result of the geantino scan will be a root file containing material tracks. Those contain the direction and production vertex of the geantino, the total material accumulated and all the interaction points in the detector.

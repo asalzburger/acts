@@ -17,21 +17,21 @@ class G4Run;
 
 namespace ActsExamples::Geant4 {
 
-/// @class RunAction
+/// @class MaterialRunAction
 ///
 /// @brief The material mapping run action
 ///
 /// The RunAction class is the implementation of the
 /// Geant4 class G4UserRunAction. It initiates the run
 /// an resets the EventAction
-class RunAction final : public G4UserRunAction {
+class MaterialRunAction final : public G4UserRunAction {
  public:
   /// Static access method
-  static RunAction* instance();
+  static MaterialRunAction* instance();
 
   /// Construct the action and ensure singleton usage.
-  RunAction();
-  ~RunAction() final override;
+  MaterialRunAction();
+  ~MaterialRunAction() final override;
 
   /// Interface method at the begin of the run
   /// @note resets the event action
@@ -42,7 +42,7 @@ class RunAction final : public G4UserRunAction {
 
  private:
   /// Instance of the EventAction
-  static RunAction* s_instance;
+  static MaterialRunAction* s_instance;
 };
 
 }  // namespace ActsExamples::Geant4

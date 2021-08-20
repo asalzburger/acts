@@ -13,7 +13,10 @@
 
 namespace ActsExamples {
 
+using SimBarcode = ::ActsFatras::Barcode;
+
 using SimHit = ::ActsFatras::Hit;
+
 /// Store hits ordered by geometry identifier.
 using SimHitContainer = GeometryIdMultiset<::ActsFatras::Hit>;
 

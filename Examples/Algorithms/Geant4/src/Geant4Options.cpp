@@ -50,10 +50,10 @@ void ActsExamples::Options::addGeant4Options(
       "or eta");
 }
 
-ActsExamples::GeantinoRecording::Config
-ActsExamples::Options::readGeantinoRecordingConfig(
+ActsExamples::Geant4MaterialRecording::Config
+ActsExamples::Options::readGeant4MaterialRecordingConfig(
     const ActsExamples::Options::Variables& variables) {
-  ActsExamples::GeantinoRecording::Config gRecConfig;
+  ActsExamples::Geant4MaterialRecording::Config gRecConfig;
 
   gRecConfig.tracksPerEvent = variables["g4-pg-nparticles"].as<unsigned int>();
   gRecConfig.generationConfig.randomSeed1 =

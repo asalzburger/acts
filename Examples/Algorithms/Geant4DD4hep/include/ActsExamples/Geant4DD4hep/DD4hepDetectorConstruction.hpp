@@ -28,6 +28,7 @@ class DD4hepDetectorConstruction final : public G4VUserDetectorConstruction {
 
  private:
   dd4hep::Detector& m_detector;
+  G4VPhysicalVolume* m_world = nullptr;
 };
 
 }  // namespace ActsExamples

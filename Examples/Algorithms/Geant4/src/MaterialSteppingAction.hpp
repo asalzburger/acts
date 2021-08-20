@@ -18,21 +18,21 @@
 
 namespace ActsExamples::Geant4 {
 
-/// @class SteppingAction
+/// @class MaterialSteppingAction
 ///
 /// @brief Collects the RecordedMaterialSlab entities
 ///
 /// The SteppingAction class is the implementation of the
 /// Geant4 class SteppingAction. It extracts the weighted material
 /// of every step and collects all material steps.
-class SteppingAction final : public G4UserSteppingAction {
+class MaterialSteppingAction final : public G4UserSteppingAction {
  public:
   /// Static access method to the instance
-  static SteppingAction* instance();
+  static MaterialSteppingAction* instance();
 
   /// Construct the action and ensure singleton usage.
-  SteppingAction();
-  ~SteppingAction() final override;
+  MaterialSteppingAction();
+  ~MaterialSteppingAction() final override;
 
   /// @brief Interface Method doing the step
   /// @note it creates and collects the MaterialInteraction entities
@@ -54,7 +54,7 @@ class SteppingAction final : public G4UserSteppingAction {
 
  private:
   /// Instance of the SteppingAction
-  static SteppingAction* s_instance;
+  static MaterialSteppingAction* s_instance;
 
   /// The collected Acts::MaterialInteraction entities
   std::vector<Acts::MaterialInteraction> m_materialSteps;

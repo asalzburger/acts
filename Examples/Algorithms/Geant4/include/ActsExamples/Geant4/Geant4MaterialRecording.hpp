@@ -14,7 +14,7 @@
 #include "Acts/Utilities/PolymorphicValue.hpp"
 #include "ActsExamples/Framework/BareAlgorithm.hpp"
 #include "ActsExamples/Framework/ProcessCode.hpp"
-#include "ActsExamples/Geant4/PrimaryGeneratorAction.hpp"
+#include "ActsExamples/Geant4/MaterialGeneratorAction.hpp"
 
 #include <memory>
 #include <mutex>
@@ -35,7 +35,7 @@ using RecordedMaterialTrack =
 ///
 /// This initiates the Geant4 simulation, and creates and writes out
 /// the MaterialTrack entities which are needed for material mapping.
-class GeantinoRecording final : public BareAlgorithm {
+class Geant4MaterialRecording final : public BareAlgorithm {
  public:
   struct Config {
     /// Output collection for the generated material tracks.
@@ -45,11 +45,11 @@ class GeantinoRecording final : public BareAlgorithm {
     /// The number of tracks per event.
     size_t tracksPerEvent = 0;
     /// Configuration of the generator action
-    Geant4::PrimaryGeneratorAction::Config generationConfig;
+    Geant4::MaterialGeneratorAction::Config generationConfig;
   };
 
-  GeantinoRecording(Config config, Acts::Logging::Level level);
-  ~GeantinoRecording();
+  Geant4MaterialRecording(Config config, Acts::Logging::Level level);
+  ~Geant4MaterialRecording();
 
   ActsExamples::ProcessCode execute(
       const ActsExamples::AlgorithmContext& ctx) const final override;

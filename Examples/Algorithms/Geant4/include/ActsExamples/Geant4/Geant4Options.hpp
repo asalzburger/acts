@@ -12,7 +12,7 @@
 #include "Acts/Utilities/Logger.hpp"
 #include "ActsExamples/Utilities/OptionsFwd.hpp"
 
-#include "GeantinoRecording.hpp"
+#include "Geant4MaterialRecording.hpp"
 
 namespace ActsExamples {
 
@@ -23,14 +23,14 @@ namespace Options {
 /// @param desc The option descrion forward
 void addGeant4Options(Description& desc);
 
-/// Read the Geatn4 options and @return a GeantinoRecording::Config
+/// Read the Geatn4 options and @return a Geant4MaterialRecording::Config
 ///
 /// @tparam vmap_t is the Type of the Parameter map to be read out
 ///
 /// @param variables is the parameter map for the options
 ///
-/// @returns a Config object for the GeantinoRecording
-GeantinoRecording::Config readGeantinoRecordingConfig(
+/// @returns a Config object for the Geant4MaterialRecording
+Geant4MaterialRecording::Config readGeant4MaterialRecordingConfig(
     const Variables& variables);
 
 }  // namespace Options

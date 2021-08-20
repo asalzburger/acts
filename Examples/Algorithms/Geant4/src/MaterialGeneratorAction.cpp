@@ -6,7 +6,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "ActsExamples/Geant4/PrimaryGeneratorAction.hpp"
+#include "ActsExamples/Geant4/MaterialGeneratorAction.hpp"
 
 #include <stdexcept>
 
@@ -20,19 +20,19 @@
 
 namespace ActsExamples::Geant4 {
 
-PrimaryGeneratorAction* PrimaryGeneratorAction::s_instance = nullptr;
+MaterialGeneratorAction* MaterialGeneratorAction::s_instance = nullptr;
 
-PrimaryGeneratorAction* PrimaryGeneratorAction::instance() {
+MaterialGeneratorAction* MaterialGeneratorAction::instance() {
   return s_instance;
 }
 
-PrimaryGeneratorAction::PrimaryGeneratorAction(const Config& cfg)
+MaterialGeneratorAction::MaterialGeneratorAction(const Config& cfg)
     : G4VUserPrimaryGeneratorAction(),
       m_cfg(cfg),
       m_particleGun(std::make_unique<G4ParticleGun>(1)) {
   if (s_instance) {
     throw std::logic_error(
-        "Attempted to duplicate the PrimaryGeneratorAction singleton");
+        "Attempted to duplicate the MaterialGeneratorAction singleton");
   } else {
     s_instance = this;
   }
@@ -50,11 +50,11 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(const Config& cfg)
                                             m_cfg.randomSeed2);
 }
 
-PrimaryGeneratorAction::~PrimaryGeneratorAction() {
+MaterialGeneratorAction::~MaterialGeneratorAction() {
   s_instance = nullptr;
 }
 
-void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
+void MaterialGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
   // this function is called at the begining of event
   G4double phi =
       m_cfg.phiRange.first +
