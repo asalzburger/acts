@@ -23,7 +23,7 @@ using namespace UnitLiterals;
 
 namespace Test {
 
-BOOST_AUTO_TEST_SUITE(Geometry)
+BOOST_AUTO_TEST_SUITE(Experimental)
 
 /// Unit tests for Polyderon construction & operator +=
 BOOST_AUTO_TEST_CASE(GeometricExtentTest) {
