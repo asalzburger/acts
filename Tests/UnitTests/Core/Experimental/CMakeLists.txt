@@ -1,1 +1,2 @@
+add_unittest(DetectorEnvironment DetectorEnvironmentTests.cpp)
 add_unittest(GeometricExtent GeometricExtentTests.cpp)
