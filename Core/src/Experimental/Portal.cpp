@@ -58,3 +58,16 @@ Acts::DetectorEnvironment Acts::Portal::next(
 void Acts::Portal::assignGeometryId(const GeometryIdentifier& geometryId) {
   m_surface->assignGeometryId(geometryId);
 }
+
+void Acts::Portal::updatePortalLink(PortalLink&& portalLink,
+                                    NavigationDirection nDir,
+                                    std::shared_ptr<void> portalLinkImpl) {
+  if (nDir == forward) {
+    m_alongNormal = std::move(portalLink);
+  } else {
+    m_oppositeNormal = std::move(portalLink);
+  }
+  if (portalLinkImpl != nullptr) {
+    m_linkImplStore.insert(portalLinkImpl);
+  }
+}

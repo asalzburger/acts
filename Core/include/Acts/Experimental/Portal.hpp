@@ -20,6 +20,7 @@
 #include <array>
 #include <limits>
 #include <memory>
+#include <set>
 #include <vector>
 
 /// @note this file is foreseen for the 'Geometry' module & replace BoundarySurfaceT
@@ -30,40 +31,6 @@ class ISurfaceMaterial;
 class DetectorVolume;
 class Portal;
 class Surface;
-
-/// Definition of a SurfaceLinks via the Delegate<> schema
-///
-/// This direction provides a list of surface candidates when entering
-/// a volume (or on global request within the volume), and expects
-///
-/// @param gctx is the current geometry context
-/// @param volume the current volume (entering or inside)
-/// @param position is the current position on a portal
-/// @param direction is the current direction at that portal
-/// @param absMomentum is the absolute mommentum value
-/// @param charge is the charge of the particle
-/// @param bCheck is the boundary check for the surface candidate search
-/// @param pathRange is the min/max path range restriction
-/// @param provideAll is a flag to switch on test-all navigation
-///
-/// @return the list of surface intersections
-using SurfaceLinks = Delegate<std::vector<SurfaceIntersection>(
-    const GeometryContext& gctx, const DetectorVolume& volume,
-    const Vector3& position, const Vector3& direction, ActsScalar absMomentum,
-    ActsScalar charge, const BoundaryCheck& bCheck,
-    const std::array<ActsScalar, 2>& pathRange, bool provideAll)>;
-
-/// Definition of a VolumeLink via the Delegate<> schema
-///
-/// This link is to provide the associated volume in a container
-/// and is only dependent on the position of the request call
-///
-/// @param volume is the (mother) volume
-/// @param position is the query position
-///
-/// @return a Detector Volume
-using VolumeLink = Delegate<const DetectorVolume*(const DetectorVolume& volume,
-                                                  const Vector3& position)>;
 
 /// Definition of portal link via the Delegate<> schema, it uses
 /// the surface link and volume link to establish the detector environment
@@ -135,7 +102,9 @@ class Portal {
   ///
   /// @param portalLink the volume link to be updated
   /// @param nDir the navigation direction
-  void updatePortalLink(PortalLink&& portalLink, NavigationDirection nDir);
+  /// @param portalLinkImple the (optional) link implementation
+  void updatePortalLink(PortalLink&& portalLink, NavigationDirection nDir,
+                        std::shared_ptr<void> portalLinkImpl = nullptr);
 
   /// Retrieve the portalLink given the navigation direction
   ///
@@ -176,19 +145,12 @@ class Portal {
   PortalLink m_alongNormal;
   /// The entry link opposite the surfacea normal direction
   PortalLink m_oppositeNormal;
+  /// The link implementation store
+  std::set<std::shared_ptr<void>> m_linkImplStore;
 };
 
 inline const Surface& Portal::surfaceRepresentation() const {
   return *(m_surface.get());
-}
-
-inline void Portal::updatePortalLink(PortalLink&& portalLink,
-                                     NavigationDirection nDir) {
-  if (nDir == forward) {
-    m_alongNormal = std::move(portalLink);
-  } else {
-    m_oppositeNormal = std::move(portalLink);
-  }
 }
 
 inline const PortalLink& Portal::portalLink(NavigationDirection nDir) const {

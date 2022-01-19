@@ -136,6 +136,36 @@ BOOST_AUTO_TEST_CASE(Portal_) {
                                     directionAtPortal, 100, 1., true);
   BOOST_CHECK(detectorEnvironment.surfaces.size() == 10);
   BOOST_CHECK(detectorEnvironment.portals.size() == 4);
+
+  // Hide behind scope to check ownership survival
+  {
+    // Create another round of portal link implementations as shared_ptr
+    auto oppositeLinkImplPtr =
+        std::make_shared<TestPortalLink>(TestPortalLink{2, 3});
+    auto alongLinkImplPtr =
+        std::make_shared<TestPortalLink>(TestPortalLink{11, 4});
+
+    PortalLink oppositeLinkPtr;
+    oppositeLinkPtr.connect<&TestPortalLink::link>(oppositeLinkImplPtr.get());
+    PortalLink alongLinkPtr;
+    alongLinkPtr.connect<&TestPortalLink::link>(alongLinkImplPtr.get());
+
+    // & update the portal links
+    portal.updatePortalLink(std::move(oppositeLinkPtr), backward,
+                            oppositeLinkImplPtr);
+    portal.updatePortalLink(std::move(alongLinkPtr), forward, alongLinkImplPtr);
+  }
+
+  detectorEnvironment = portal.next(geoContext, positionAtPortal,
+                                    -directionAtPortal, 100, 1., true);
+  BOOST_CHECK(detectorEnvironment.surfaces.size() == 2);
+  BOOST_CHECK(detectorEnvironment.portals.size() == 3);
+
+  detectorEnvironment = portal.next(geoContext, positionAtPortal,
+                                    directionAtPortal, 100, 1., true);
+  BOOST_CHECK(detectorEnvironment.surfaces.size() == 11);
+  BOOST_CHECK(detectorEnvironment.portals.size() == 4);
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
