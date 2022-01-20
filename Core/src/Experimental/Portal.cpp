@@ -71,3 +71,47 @@ void Acts::Portal::updatePortalLink(PortalLink&& portalLink,
     m_linkImplStore.insert(portalLinkImpl);
   }
 }
+
+std::vector<Acts::PortalIntersection> Acts::Portal::portalCandidates(
+    const GeometryContext& gctx, const std::vector<const Portal*>& portals,
+    const Vector3& position, const Vector3& direction,
+    const std::array<ActsScalar, 2>& pathRange) {
+  // The portal intersections
+  std::vector<PortalIntersection> pIntersections;
+  // Get all the portals
+  pIntersections.reserve(portals.size());
+  // Loop over portals an intersect
+  for (const auto& p : portals) {
+    // Get the intersection
+    auto pIntersection = p->intersect(gctx, position, direction);
+    // Re-order if necessary
+    if (pIntersection.intersection.pathLength + s_onSurfaceTolerance <
+            pathRange[0] and
+        pIntersection.alternative.pathLength + s_onSurfaceTolerance >
+            pathRange[0] and
+        pIntersection.alternative.status >= Intersection3D::Status::reachable) {
+      // Let's swap the solutions
+      pIntersection.swapSolutions();
+    }
+    // Exclude on-portal solution
+    if (std::abs(pIntersection.intersection.pathLength) <
+        s_onSurfaceTolerance) {
+      continue;
+    }
+    pIntersections.push_back(pIntersection);
+  }
+  // Sort and non-allowed solutions to the end
+  std::sort(
+      pIntersections.begin(), pIntersections.end(),
+      [&](const auto& a, const auto& b) {
+        if (a.intersection.pathLength + s_onSurfaceTolerance < pathRange[0]) {
+          return false;
+        } else if (b.intersection.pathLength + s_onSurfaceTolerance <
+                   pathRange[0]) {
+          return true;
+        }
+        return a.intersection.pathLength < b.intersection.pathLength;
+      });
+  // Return the sorted solutions
+  return pIntersections;
+};

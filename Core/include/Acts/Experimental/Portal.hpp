@@ -138,6 +138,21 @@ class Portal {
   /// @param geometryId the geometry identifier to be assigned
   void assignGeometryId(const GeometryIdentifier& geometryId);
 
+  /// Static Helper function to get the portal candidates from a volume
+  ///
+  /// @param gctx is the current geometry conbtext
+  /// @param portals is the volume for which the portals are intersected
+  /// @param position is the position at the query
+  /// @param direction is the direction at the query
+  /// @param pathRange is the allowed path range for this search
+  ///
+  /// @note onSurface solutions are ranked last
+  static std::vector<PortalIntersection> portalCandidates(
+      const GeometryContext& gctx, const std::vector<const Portal*>& portals,
+      const Vector3& position, const Vector3& direction,
+      const std::array<ActsScalar, 2>& pathRange = {
+          0., std::numeric_limits<ActsScalar>::infinity()});
+
  private:
   /// The surface representation of this portal
   std::shared_ptr<Surface> m_surface;
