@@ -49,36 +49,40 @@ struct TestPortalLink {
 
 BOOST_AUTO_TEST_SUITE(Experimental)
 
-/// Unit tests for Polyderon construction & operator +=
+/// Unit tests for Portal construction and link setting
 BOOST_AUTO_TEST_CASE(Portal_) {
   // First we create a surface
   auto surface =
       Surface::makeShared<CylinderSurface>(Transform3::Identity(), 10., 200.);
   // Then a portal
-  Portal portal(surface);
+  auto portal = Portal::makeShared(surface);
   // & check if the surface is properly set
-  BOOST_CHECK(&portal.surfaceRepresentation() == surface.get());
+  BOOST_CHECK(&portal->surfaceRepresentation() == surface.get());
+
+  // Check if you get the shared pointer back
+  const Portal& portalRef = *(portal.get());
+  BOOST_CHECK(portalRef.getSharedPtr() == portal);
 
   // Assign material to the portal
   auto material = std::make_shared<HomogeneousSurfaceMaterial>();
-  portal.assignSurfaceMaterial(material);
+  portal->assignSurfaceMaterial(material);
   // & check it is not zero
-  BOOST_CHECK(portal.surfaceRepresentation().surfaceMaterial() != nullptr);
+  BOOST_CHECK(portal->surfaceRepresentation().surfaceMaterial() != nullptr);
   // & check it is properly set
-  BOOST_CHECK(portal.surfaceRepresentation().surfaceMaterial() ==
+  BOOST_CHECK(portal->surfaceRepresentation().surfaceMaterial() ==
               material.get());
 
   // Assign the geometetry ID
-  portal.assignGeometryId(GeometryIdentifier().setLayer(2));
+  portal->assignGeometryId(GeometryIdentifier().setLayer(2));
   // & check that is is properly set
-  BOOST_CHECK(portal.surfaceRepresentation().geometryId().layer() == 2);
+  BOOST_CHECK(portal->surfaceRepresentation().geometryId().layer() == 2);
 
   // Test the portal intersection, let's start a bit off (0,0,0)
   Vector3 start(0.1, 0.0, 0.);
   Vector3 direction = Vector3(1., 1., 1.).normalized();
   GeometryContext geoContext;
   // Intersect portal first
-  auto portalIntersection = portal.intersect(geoContext, start, direction);
+  auto portalIntersection = portal->intersect(geoContext, start, direction);
   // Then intersect the surface
   auto surfaceIntersection =
       surface->intersect(geoContext, start, direction, true);
@@ -91,13 +95,13 @@ BOOST_AUTO_TEST_CASE(Portal_) {
   Vector3 forwardDirection = Vector3(1., 1., 500.).normalized();
   // Intersect portal to create an outside intersection
   auto portalOutsideIntersection =
-      portal.intersect(geoContext, start, forwardDirection);
+      portal->intersect(geoContext, start, forwardDirection);
   // & check that the intersection is indeed not valid
   BOOST_CHECK(not portalOutsideIntersection);
 
   // Unset portal gives unset detector environment
   auto detectorEnvironment =
-      portal.next(geoContext, start, direction, 100, 1., true);
+      portal->next(geoContext, start, direction, 100, 1., true);
   // & test that it is indeed unset
   BOOST_CHECK(detectorEnvironment.currentSurface == nullptr);
   BOOST_CHECK(detectorEnvironment.currentVolume == nullptr);
@@ -105,8 +109,8 @@ BOOST_AUTO_TEST_CASE(Portal_) {
   BOOST_CHECK(detectorEnvironment.portals.empty());
 
   // Check that portal delegates are not connected
-  BOOST_CHECK(not portal.portalLink(backward).connected());
-  BOOST_CHECK(not portal.portalLink(forward).connected());
+  BOOST_CHECK(not portal->portalLink(backward).connected());
+  BOOST_CHECK(not portal->portalLink(forward).connected());
 
   // Create portal links, connect to delegates & check
   TestPortalLink oppositeLinkImpl{1, 3};
@@ -117,23 +121,23 @@ BOOST_AUTO_TEST_CASE(Portal_) {
   PortalLink alongLink;
   alongLink.connect<&TestPortalLink::link>(&alongLinkImpl);
   // & update the portal links
-  portal.updatePortalLink(std::move(oppositeLink), backward);
-  portal.updatePortalLink(std::move(alongLink), forward);
+  portal->updatePortalLink(std::move(oppositeLink), backward);
+  portal->updatePortalLink(std::move(alongLink), forward);
 
   // Check that portal delegates are indeed connected now
-  BOOST_CHECK(portal.portalLink(backward).connected());
-  BOOST_CHECK(portal.portalLink(forward).connected());
+  BOOST_CHECK(portal->portalLink(backward).connected());
+  BOOST_CHECK(portal->portalLink(forward).connected());
 
   // We are at the portal & let's check if the links work
   Vector3 positionAtPortal(10., 0., 0.);
   Vector3 directionAtPortal(1., 0., 0.);
-  detectorEnvironment = portal.next(geoContext, positionAtPortal,
-                                    -directionAtPortal, 100, 1., true);
+  detectorEnvironment = portal->next(geoContext, positionAtPortal,
+                                     -directionAtPortal, 100, 1., true);
   BOOST_CHECK(detectorEnvironment.surfaces.size() == 1);
   BOOST_CHECK(detectorEnvironment.portals.size() == 3);
 
-  detectorEnvironment = portal.next(geoContext, positionAtPortal,
-                                    directionAtPortal, 100, 1., true);
+  detectorEnvironment = portal->next(geoContext, positionAtPortal,
+                                     directionAtPortal, 100, 1., true);
   BOOST_CHECK(detectorEnvironment.surfaces.size() == 10);
   BOOST_CHECK(detectorEnvironment.portals.size() == 4);
 
@@ -151,21 +155,21 @@ BOOST_AUTO_TEST_CASE(Portal_) {
     alongLinkPtr.connect<&TestPortalLink::link>(alongLinkImplPtr.get());
 
     // & update the portal links
-    portal.updatePortalLink(std::move(oppositeLinkPtr), backward,
-                            oppositeLinkImplPtr);
-    portal.updatePortalLink(std::move(alongLinkPtr), forward, alongLinkImplPtr);
+    portal->updatePortalLink(std::move(oppositeLinkPtr), backward,
+                             oppositeLinkImplPtr);
+    portal->updatePortalLink(std::move(alongLinkPtr), forward,
+                             alongLinkImplPtr);
   }
 
-  detectorEnvironment = portal.next(geoContext, positionAtPortal,
-                                    -directionAtPortal, 100, 1., true);
+  detectorEnvironment = portal->next(geoContext, positionAtPortal,
+                                     -directionAtPortal, 100, 1., true);
   BOOST_CHECK(detectorEnvironment.surfaces.size() == 2);
   BOOST_CHECK(detectorEnvironment.portals.size() == 3);
 
-  detectorEnvironment = portal.next(geoContext, positionAtPortal,
-                                    directionAtPortal, 100, 1., true);
+  detectorEnvironment = portal->next(geoContext, positionAtPortal,
+                                     directionAtPortal, 100, 1., true);
   BOOST_CHECK(detectorEnvironment.surfaces.size() == 11);
   BOOST_CHECK(detectorEnvironment.portals.size() == 4);
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()

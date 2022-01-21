@@ -14,6 +14,14 @@
 Acts::Portal::Portal(std::shared_ptr<Surface> surface)
     : m_surface(std::move(surface)) {}
 
+std::shared_ptr<Acts::Portal> Acts::Portal::getSharedPtr() {
+  return shared_from_this();
+}
+
+std::shared_ptr<const Acts::Portal> Acts::Portal::getSharedPtr() const {
+  return shared_from_this();
+}
+
 void Acts::Portal::assignSurfaceMaterial(
     std::shared_ptr<const ISurfaceMaterial> material) {
   return m_surface->assignSurfaceMaterial(material);
@@ -70,6 +78,22 @@ void Acts::Portal::updatePortalLink(PortalLink&& portalLink,
   if (portalLinkImpl != nullptr) {
     m_linkImplStore.insert(portalLinkImpl);
   }
+}
+
+std::shared_ptr<Acts::Portal> Acts::Portal::connect(Portal& rhs) const {
+  if (rhs.m_alongNormal.connected() and rhs.m_oppositeNormal.connected()) {
+    throw std::invalid_argument(
+        "\n *** Portal: trying to connect an already fully connected portal.");
+  }
+  if (rhs.m_alongNormal.connected() and m_oppositeNormal.connected()) {
+    rhs.m_oppositeNormal = m_oppositeNormal;
+  } else if (rhs.m_oppositeNormal.connected() and m_alongNormal.connected()) {
+    rhs.m_alongNormal = m_alongNormal;
+  } else {
+    throw std::invalid_argument(
+        "\n *** Portal: connect() call would leave incomplete portal.");
+  }
+  return rhs.getSharedPtr();
 }
 
 std::vector<Acts::PortalIntersection> Acts::Portal::portalCandidates(

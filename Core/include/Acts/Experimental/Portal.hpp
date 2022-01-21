@@ -60,15 +60,46 @@ using PortalLink = Delegate<DetectorEnvironment(
 /// The surface can also carry material to allow mapping onto
 /// portal positions.
 ///
-class Portal {
+class Portal : public std::enable_shared_from_this<Portal> {
+ protected:
+  /// Constructor from surface
+  ///
+  /// @param surface is the representing surface
+  Portal(std::shared_ptr<Surface> surface);
+ 
  public:
   /// Declare the DetectorVolume friend for portal setting
   friend class DetectorVolume;
 
-  /// Constructor with argument
+  /// Factory for producing memory managed instances of Surface.
+  /// Will forward all parameters and will attempt to find a suitable
+  /// constructor.
+  template <typename... Args>
+  static std::shared_ptr<Portal> makeShared(Args&&... args) {
+    return std::shared_ptr<Portal>(new Portal(std::forward<Args>(args)...));
+  }
+
+  /// Retrieve a @c std::shared_ptr for this surface (non-const version)
   ///
-  /// @param surface is the representing surface
-  Portal(std::shared_ptr<Surface> surface);
+  /// @note Will error if this was not created through the @c makeShared factory
+  ///       since it needs access to the original reference. In C++14 this is
+  ///       undefined behavior (but most likely implemented as a @c bad_weak_ptr
+  ///       exception), in C++17 it is defined as that exception.
+  /// @note Only call this if you need shared ownership of this object.
+  ///
+  /// @return The shared pointer
+  std::shared_ptr<Portal> getSharedPtr();
+
+  /// Retrieve a @c std::shared_ptr for this surface (const version)
+  ///
+  /// @note Will error if this was not created through the @c makeShared factory
+  ///       since it needs access to the original reference. In C++14 this is
+  ///       undefined behavior, but most likely implemented as a @c bad_weak_ptr
+  ///       exception, in C++17 it is defined as that exception.
+  /// @note Only call this if you need shared ownership of this object.
+  ///
+  /// @return The shared pointer
+  std::shared_ptr<const Portal> getSharedPtr() const;
 
   Portal() = delete;
   virtual ~Portal() = default;
@@ -113,6 +144,19 @@ class Portal {
   /// @return the portal link as a const object
   const PortalLink& portalLink(NavigationDirection nDir) const;
 
+  /// Conntect the two portals of same size
+  ///
+  /// This method takes the rhs portal, attaches the missing 
+  /// portal links from *this* and returns the shared ptr of
+  /// rhs.
+  ///
+  /// @param rhs the other portal with which this one is connected
+  /// 
+  /// The intention here is to overwrite a portal with a connected one
+  /// @note this throws an exception if the surface bounds are not 
+  /// comparable and the @param rhs portal is already fully connected
+  std::shared_ptr<Portal> connect(Portal& rhs) const noexcept(false);
+
   /// Get the next detector environment once you have reached a portal
   ///
   /// @param gctx is the current geometry context object, e.g. alignment
@@ -152,6 +196,8 @@ class Portal {
       const Vector3& position, const Vector3& direction,
       const std::array<ActsScalar, 2>& pathRange = {
           0., std::numeric_limits<ActsScalar>::infinity()});
+
+ 
 
  private:
   /// The surface representation of this portal
