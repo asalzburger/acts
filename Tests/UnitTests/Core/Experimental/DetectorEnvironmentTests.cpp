@@ -12,8 +12,6 @@
 
 #include "Acts/Experimental/DetectorEnvironment.hpp"
 
-#include <iostream>
-
 namespace Acts {
 
 namespace Test {

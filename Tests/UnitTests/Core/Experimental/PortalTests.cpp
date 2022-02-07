@@ -36,12 +36,11 @@ struct TestPortalLink {
                            const std::array<ActsScalar, 2>&, bool) const {
     DetectorEnvironment dEnv;
     if (surfaceCandidates > 0) {
-      dEnv.surfaces = std::vector<SurfaceIntersection>(surfaceCandidates,
-                                                       SurfaceIntersection());
+      dEnv.surfaces =
+          SurfaceCandidates(surfaceCandidates, SurfaceIntersection());
     }
     if (portalCandidates > 0) {
-      dEnv.portals = std::vector<PortalIntersection>(portalCandidates,
-                                                     PortalIntersection());
+      dEnv.portals = PortalCandidates(portalCandidates, PortalIntersection());
     }
     return dEnv;
   }

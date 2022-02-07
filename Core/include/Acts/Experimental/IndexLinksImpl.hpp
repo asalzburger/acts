@@ -184,12 +184,10 @@ struct SymmetricNeighbors {
 };
 
 /// A Grid based index link implementation based on a a @tparam grid_t
-/// that returns a
 ///
-/// It allows if necessary to turn the grid
-/// entry into a different formal by the @tparam provider_t template
-///
-/// @note that neighbor indices are not filled
+/// It allows if necessary to turn the grid entry into a different format
+/// given through the @tparam return_container_t via dedicated convert<>
+/// methods.
 template <typename grid_t,
           typename return_container_t = typename grid_t::value_type>
 struct GridEntryImpl {

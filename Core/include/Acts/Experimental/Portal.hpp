@@ -66,7 +66,7 @@ class Portal : public std::enable_shared_from_this<Portal> {
   ///
   /// @param surface is the representing surface
   Portal(std::shared_ptr<Surface> surface);
- 
+
  public:
   /// Declare the DetectorVolume friend for portal setting
   friend class DetectorVolume;
@@ -146,14 +146,14 @@ class Portal : public std::enable_shared_from_this<Portal> {
 
   /// Conntect the two portals of same size
   ///
-  /// This method takes the rhs portal, attaches the missing 
+  /// This method takes the rhs portal, attaches the missing
   /// portal links from *this* and returns the shared ptr of
   /// rhs.
   ///
   /// @param rhs the other portal with which this one is connected
-  /// 
+  ///
   /// The intention here is to overwrite a portal with a connected one
-  /// @note this throws an exception if the surface bounds are not 
+  /// @note this throws an exception if the surface bounds are not
   /// comparable and the @param rhs portal is already fully connected
   std::shared_ptr<Portal> connect(Portal& rhs) const noexcept(false);
 
@@ -191,13 +191,11 @@ class Portal : public std::enable_shared_from_this<Portal> {
   /// @param pathRange is the allowed path range for this search
   ///
   /// @note onSurface solutions are ranked last
-  static std::vector<PortalIntersection> portalCandidates(
+  static PortalCandidates portalCandidates(
       const GeometryContext& gctx, const std::vector<const Portal*>& portals,
       const Vector3& position, const Vector3& direction,
       const std::array<ActsScalar, 2>& pathRange = {
           0., std::numeric_limits<ActsScalar>::infinity()});
-
- 
 
  private:
   /// The surface representation of this portal

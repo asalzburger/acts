@@ -96,12 +96,12 @@ std::shared_ptr<Acts::Portal> Acts::Portal::connect(Portal& rhs) const {
   return rhs.getSharedPtr();
 }
 
-std::vector<Acts::PortalIntersection> Acts::Portal::portalCandidates(
+Acts::PortalCandidates Acts::Portal::portalCandidates(
     const GeometryContext& gctx, const std::vector<const Portal*>& portals,
     const Vector3& position, const Vector3& direction,
     const std::array<ActsScalar, 2>& pathRange) {
   // The portal intersections
-  std::vector<PortalIntersection> pIntersections;
+  PortalCandidates pIntersections;
   // Get all the portals
   pIntersections.reserve(portals.size());
   // Loop over portals an intersect

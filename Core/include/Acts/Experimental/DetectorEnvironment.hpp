@@ -11,8 +11,9 @@
 #include "Acts/Utilities/Intersection.hpp"
 
 #include <vector>
+#include <boost/container/small_vector.hpp>
 
-/// @note this is forseen for the 'Geometry' module
+/// @note this is foreseen for the 'Geometry' module
 
 namespace Acts {
 
@@ -22,6 +23,10 @@ class Surface;
 
 using SurfaceIntersection = ObjectIntersection<Surface>;
 using PortalIntersection = ObjectIntersection<Portal, Surface>;
+
+using SurfaceCandidates = boost::container::small_vector<SurfaceIntersection, 8>;
+using PortalCandidates = boost::container::small_vector<PortalIntersection, 8>;
+
 
 /// A pure navigation struct, that describes the current
 /// environment, it is provided/updated by the portal at
@@ -43,12 +48,12 @@ struct DetectorEnvironment {
   const Surface* currentSurface = nullptr;
 
   /// That are the candidate surfaces to process
-  std::vector<SurfaceIntersection> surfaces = {};
-  std::vector<SurfaceIntersection>::iterator surfaceCandidate = surfaces.end();
+  SurfaceCandidates surfaces = {};
+  SurfaceCandidates::iterator surfaceCandidate = surfaces.end();
 
   /// That are the portals for leaving that environment
-  std::vector<PortalIntersection> portals = {};
-  std::vector<PortalIntersection>::iterator portalCandidate = portals.end();
+  PortalCandidates portals = {};
+  PortalCandidates::iterator portalCandidate = portals.end();
 
   /// Indicate the status of this environment
   Status status = eUninitialized;

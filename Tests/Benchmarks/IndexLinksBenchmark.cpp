@@ -116,8 +116,8 @@ int main(int argc, char** argv) {
 
   /// In these tests we always assume a return container either
   /// a) std::vector<> with duplicate removal
-  /// b) small_vector<> with duplicate removal
-  /// c) set
+  /// b) boost::container::small_vector<> with duplicate removal
+  /// c) std::set
   /// as this is what is expected in the navigation, the number
   /// of candidate surfaces is not known at start
 
