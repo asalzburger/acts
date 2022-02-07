@@ -1,2 +1,6 @@
 add_unittest(DetectorEnvironment DetectorEnvironmentTests.cpp)
+add_unittest(CylindricalDetectorVolume CylindricalDetectorVolumeTests.cpp)
 add_unittest(GeometricExtent GeometricExtentTests.cpp)
+add_unittest(IndexLinksImpl IndexLinksImplTests.cpp)
+add_unittest(Portal PortalTests.cpp)
+
