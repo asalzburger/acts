@@ -49,9 +49,11 @@ class GeometricExtent {
   /// @param vtx the vertex to be used for extending
   /// @param bValues the binning values
   /// @param applyEnv boolean to steer if envelope should be applied
+  /// @param fillHistograms is a boolean flag to steer whether the values
+  ///        to fill this extent should be stored
   void extend(const Vector3& vtx,
               const std::vector<BinningValue>& bValues = s_binningValues,
-              bool applyEnv = true);
+              bool applyEnv = true, bool fillHistograms = false);
 
   /// Extend with a set of vectors by iterators
   ///
@@ -59,12 +61,14 @@ class GeometricExtent {
   /// @param end the end iterator of the loop
   /// @param bValues the binning values
   /// @param applyEnv boolean to steer if envelope should be applied
+  /// @param fillHistograms is a boolean flag to steer whether the values
+  ///        to fill this extent should be stored
   template <typename vector_iterator_t>
   void extend(const vector_iterator_t& start, const vector_iterator_t& end,
               const std::vector<BinningValue>& bValues = s_binningValues,
-              bool applyEnv = true) {
+              bool applyEnv = true, bool fillHistograms = false) {
     for (vector_iterator_t vIt = start; vIt < end; ++vIt) {
-      extend(*vIt, bValues, applyEnv);
+      extend(*vIt, bValues, applyEnv, fillHistograms);
     }
   }
 
@@ -80,6 +84,8 @@ class GeometricExtent {
   /// @param applyEnv boolean to steer if envelope should be applied
   ///        on the constraint values, if only an envelope is given
   ///        but the value not constraint, then it is always applied
+  ///
+  /// @note that the histogram values can not be filled in this call
   void extend(const GeometricExtent& rhs,
               const std::vector<BinningValue>& bValues = s_binningValues,
               bool applyEnv = true);
@@ -120,6 +126,9 @@ class GeometricExtent {
 
   /// Return the envelope
   const ExtentEnvelope& envelope() const;
+
+  /// Return the histogram store
+  const std::array<std::vector<ActsScalar>, binValues>& valueHistograms() const;
 
   /// Access the minimum parameter
   ///
@@ -168,9 +177,14 @@ class GeometricExtent {
   std::ostream& toStream(std::ostream& sl) const;
 
  private:
+  /// A bitset that remembers the constraint values
   std::bitset<binValues> m_constrains{0};
+  /// The actual range store
   RangeXD<binValues, ActsScalar> m_range;
+  /// A potential envenelope
   ExtentEnvelope m_envelope = zeroEnvelopes;
+  /// (Optional) Value histograms for bin detection
+  std::array<std::vector<ActsScalar>, binValues> m_valueHistograms;
 };
 
 inline const RangeXD<binValues, ActsScalar> GeometricExtent::range() const {
@@ -179,6 +193,11 @@ inline const RangeXD<binValues, ActsScalar> GeometricExtent::range() const {
 
 inline const ExtentEnvelope& GeometricExtent::envelope() const {
   return m_envelope;
+}
+
+inline const std::array<std::vector<ActsScalar>, binValues>&
+GeometricExtent::valueHistograms() const {
+  return m_valueHistograms;
 }
 
 /// Overload of << operator for std::ostream for debug output

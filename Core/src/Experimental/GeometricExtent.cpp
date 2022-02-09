@@ -24,9 +24,14 @@ Acts::GeometricExtent::GeometricExtent(
 
 void Acts::GeometricExtent::extend(const Vector3& vtx,
                                    const std::vector<BinningValue>& bValues,
-                                   bool applyEnv) {
+                                   bool applyEnv, bool fillHistograms) {
   auto adapt = [&](BinningValue bValue) {
+    // Get the casted value given the binnin value description
     ActsScalar cValue = VectorHelpers::cast(vtx, bValue);
+    if (fillHistograms) {
+      m_valueHistograms[bValue].push_back(cValue);
+    }
+    // Apply envelope as suggested
     ActsScalar lEnv = applyEnv ? m_envelope[bValue][0] : 0.;
     ActsScalar hEnv = applyEnv ? m_envelope[bValue][1] : 0.;
     ActsScalar mValue = cValue - lEnv;

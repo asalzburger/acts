@@ -53,6 +53,19 @@ BOOST_AUTO_TEST_CASE(GeometricExtentTest) {
   CHECK_CLOSE_ABS(gExt.min(binPhi), phiMin, 1e-6);
   CHECK_CLOSE_ABS(gExt.max(binPhi), phiMax, 1e-6);
 
+  // Call with histogram filling
+  GeometricExtent gExtHist;
+  for (const auto& v : vertices) {
+    gExtHist.extend(v, {binX}, false, true);
+  }
+  const auto& vHist = gExtHist.valueHistograms();
+  auto xVals = vHist[binX];
+
+  BOOST_CHECK(xVals.size() == 6u);
+  std::vector<ActsScalar> reference = {15_mm, 18_mm, 15_mm,
+                                       15_mm, 18_mm, 15_mm};
+  BOOST_CHECK(xVals == reference);
+
   // Call with ieterator range
   GeometricExtent gExtItr;
   gExtItr.extend(vertices.begin(), vertices.end());
