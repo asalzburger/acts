@@ -1,4 +1,9 @@
 target_sources(
   ActsCore
   PRIVATE
-  GeometricExtent.cpp)
+  CylindricalPortalGenerators.cpp
+  CylindricalSurfaceLinksGenerators.cpp
+  GridBinningDetection.cpp
+  DetectorVolume.cpp
+  GeometricExtent.cpp
+  Portal.cpp)
