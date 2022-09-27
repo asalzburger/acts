@@ -94,6 +94,7 @@ void addGenerators(Context& ctx);
 void addTruthTracking(Context& ctx);
 void addTrackFitting(Context& ctx);
 void addTrackFinding(Context& ctx);
+void addTutorial(Context& ctx);
 void addVertexing(Context& ctx);
 
 // Plugins
@@ -245,6 +246,7 @@ PYBIND11_MODULE(ActsPythonBindings, m) {
   addInput(ctx);
   addGenerators(ctx);
   addTruthTracking(ctx);
+  addTutorial(ctx);
   addTrackFitting(ctx);
   addTrackFinding(ctx);
   addVertexing(ctx);
