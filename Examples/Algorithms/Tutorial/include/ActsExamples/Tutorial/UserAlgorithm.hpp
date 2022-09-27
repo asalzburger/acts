@@ -21,6 +21,9 @@ class UserAlgorithm final : public BareAlgorithm {
   struct Config {
     /// Simple message
     std::string message = "Hello world";
+
+    /// Propagation step collection
+    std::string inputStepCollection = "propgation_steps";
   };
 
   /// Construct the user algorithm.

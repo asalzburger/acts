@@ -8,19 +8,36 @@
 
 #include "ActsExamples/Tutorial/UserAlgorithm.hpp"
 
+#include "Acts/Propagator/detail/SteppingLogger.hpp"
+#include "ActsExamples/Framework/WhiteBoard.hpp"
+
 #include <stdexcept>
 
 ActsExamples::UserAlgorithm::UserAlgorithm(
     ActsExamples::UserAlgorithm::Config cfg, Acts::Logging::Level lvl)
-    : ActsExamples::BareAlgorithm("UserAlgorithm", lvl),
-      m_cfg(std::move(cfg)) {
-
+    : ActsExamples::BareAlgorithm("UserAlgorithm", lvl), m_cfg(std::move(cfg)) {
+  if (m_cfg.inputStepCollection.empty()) {
+    throw std::invalid_argument("Missing space point input collections");
+  }
 }
 
 ActsExamples::ProcessCode ActsExamples::UserAlgorithm::execute(
     const AlgorithmContext& ctx) const {
+  using PropagationStepCollection =
+      std::vector<std::vector<Acts::detail::Step>>;
 
   ACTS_INFO(m_cfg.message);
-  
+  auto propagationSteps =
+      ctx.eventStore.get<PropagationStepCollection>(m_cfg.inputStepCollection);
+
+  unsigned int totalSteps = 0;
+  for (auto prop : propagationSteps) {
+    totalSteps += prop.size();
+  }
+
+  ACTS_INFO("Successfully retrieved " << propagationSteps.size()
+                                      << " propgation_step collections with "
+                                      << totalSteps << " steps in total.");
+
   return ActsExamples::ProcessCode::SUCCESS;
 }

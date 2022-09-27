@@ -39,6 +39,7 @@ void addTutorial(Context& ctx) {
     auto c = py::class_<Config>(alg, "Config").def(py::init<>());
     ACTS_PYTHON_STRUCT_BEGIN(c, Config);
     ACTS_PYTHON_MEMBER(message);
+    ACTS_PYTHON_MEMBER(inputStepCollection);
     ACTS_PYTHON_STRUCT_END();
   }
 
