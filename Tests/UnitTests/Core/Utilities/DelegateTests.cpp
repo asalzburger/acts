@@ -12,6 +12,7 @@
 #include "Acts/Tests/CommonHelpers/FloatComparisons.hpp"
 #include "Acts/Utilities/Delegate.hpp"
 
+#include <array>
 #include <numeric>
 #include <optional>
 #include <random>
@@ -197,6 +198,40 @@ BOOST_AUTO_TEST_CASE(StatefullLambdas) {
 
   // This should not compile because of deleted && overloads
   // d.connect([&](int a){ v.push_back(a); return v.size(); });
+}
+
+/// @brief  Helper delegate with payload
+struct ProviderImpl : public IManagedDelegateImpl {
+  std::array<ActsScalar, 2u> payload = {0., 1.};
+  /// @brief Return function of the payload
+  /// @return a std::array as reference
+  const std::array<ActsScalar, 2u>& give() const { return payload; }
+};
+
+BOOST_AUTO_TEST_CASE(ManagedDelegateTests) {
+  auto pImpl = std::make_shared<ProviderImpl>();
+
+  using ProviderDelegate = Delegate<const std::array<ActsScalar, 2u>&()>;
+  using ManagedProviderDelegate =
+      ManagedDelegate<const std::array<ActsScalar, 2u>&()>;
+
+  ProviderDelegate pDel;
+  pDel.connect<&ProviderImpl::give>(pImpl.get());
+
+  ManagedProviderDelegate mpDel{pDel, pImpl};
+
+  std::array<ActsScalar, 2u> expected = {0., 1.};
+
+  // Test of the managed delegate
+  BOOST_CHECK(pDel() == expected);
+  BOOST_CHECK(mpDel() == expected);
+
+  // Check the cast back
+  auto pImplRaw = std::static_pointer_cast<ProviderImpl>(mpDel.implementation);
+
+  BOOST_CHECK(pImplRaw != nullptr);
+
+  BOOST_CHECK(pImplRaw->payload == expected);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

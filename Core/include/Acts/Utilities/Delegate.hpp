@@ -189,4 +189,34 @@ class Delegate<R(Args...)> {
   /// Stores the function pointer wrapping the compile time function pointer given in @c connect().
   function_type m_function{nullptr};
 };
+
+/// This is a simple holder class for managed delegates that allows to
+/// downcast into actual types if needed for persistency or other type erasure
+class IManagedDelegateImpl {};
+
+template <typename>
+class ManagedDelegate;
+
+/// Memory managed delegate to guarantee the lifetime
+/// of eventual unterlying delegate memory and the
+/// delegate function.
+///
+/// This allows to delegate to carry some payload
+/// and it enables dynamic_cast operations to certain delegates
+template <typename R, typename... Args>
+class ManagedDelegate<R(Args...)> {
+ public:
+  using return_type = R;
+
+  Delegate<R(Args...)> delegate;
+  std::shared_ptr<IManagedDelegateImpl> implementation = nullptr;
+
+  /// The call operator that forwards to the @c Delegate type.
+  /// @param args The arguments to call the contained function with
+  /// @return Return value of the contained function
+  return_type operator()(Args... args) const {
+    return delegate(std::forward<Args>(args)...);
+  }
+};
+
 }  // namespace Acts
