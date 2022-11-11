@@ -295,16 +295,10 @@ class DetectorVolume : public std::enable_shared_from_this<DetectorVolume> {
   /// Const access to the volume amterial
   const IVolumeMaterial* volumeMaterial() const;
 
-  /// Lock the geometry, this sets the GeometryIdentifier
-  /// of the sub surfaces
+  /// Assign the GeometryId
   ///
-  /// @param geometryId is the geometry base identifier of
-  /// this detector volume
-  void lock(
-      const GeometryIdentifier& geometryId = GeometryIdentifier().setVolume(1));
-
-  /// @return the name of the volume
-  const std::string& name() const;
+  /// @param geoID the ID to be assigned to this volume
+  void assignGeometryId(const GeometryIdentifier& geoID);
 
   /// @return the geometry identifier
   const GeometryIdentifier& geometryId() const;
@@ -315,6 +309,9 @@ class DetectorVolume : public std::enable_shared_from_this<DetectorVolume> {
 
   /// Const access to the detector
   const Detector* detector() const;
+
+  /// @return the name of the volume
+  const std::string& name() const;
 
  private:
   /// Internal construction method that calls the portal generator
@@ -420,6 +417,10 @@ inline std::shared_ptr<IVolumeMaterial> DetectorVolume::volumeMaterialPtr() {
 
 inline const IVolumeMaterial* DetectorVolume::volumeMaterial() const {
   return m_volumeMaterial.get();
+}
+
+inline void DetectorVolume::assignGeometryId(const GeometryIdentifier& geoID) {
+  m_geometryId = geoID;
 }
 
 inline const GeometryIdentifier& DetectorVolume::geometryId() const {
