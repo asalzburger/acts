@@ -3,8 +3,10 @@ target_sources(
   PRIVATE
     CylindricalDetectorHelper.cpp
     Detector.cpp
+    DetectorBuilder.cpp
     DetectorHelper.cpp
     DetectorVolume.cpp
     Portal.cpp
     ProtoDetector.cpp
+    ProtoVolumeConverter.cpp
 )

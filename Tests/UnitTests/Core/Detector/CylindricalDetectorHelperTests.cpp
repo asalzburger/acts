@@ -32,6 +32,7 @@
 #include <memory>
 
 using namespace Acts::Experimental;
+using namespace Acts::Experimental::CylindricalDetector;
 
 Acts::Logging::Level logLevel = Acts::Logging::INFO;
 

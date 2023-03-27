@@ -32,7 +32,7 @@ class Portal;
 using DetectorVolumes = std::vector<std::shared_ptr<DetectorVolume>>;
 /// Current shell (i.e. outside portals)
 using ProtoContainer = std::map<unsigned int, std::shared_ptr<Portal>>;
-/// Current block (volumes and shell)
+/// Current building block (volumes and shell)
 using DetectorBlock = std::tuple<DetectorVolumes, ProtoContainer>;
 
 /// The detector builder function

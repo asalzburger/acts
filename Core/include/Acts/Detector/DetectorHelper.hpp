@@ -33,36 +33,28 @@ using ProtoContainer = std::map<unsigned int, std::shared_ptr<Portal>>;
 /// expects fully harmonized input
 ///
 /// @param gctx The geometry context
-/// @param bValue the binning value - for the connection
-/// @param volumes the volumes
-/// @param selectedOnly switch only selected boundaries
+/// @param bValues the binning values - for the connection
+/// @param volumes the volumes to be connected
 /// @param logLevel is the screen logging level
-///
-/// @note no checking for consistency is done at this stage
 ///
 /// @returns the proto container surfaces of a Proto container
 ProtoContainer connectDetectorVolumes(
-    const GeometryContext& gctx, BinningValue bValue,
+    const GeometryContext& gctx, const std::vector<BinningValue>& bValues,
     std::vector<std::shared_ptr<DetectorVolume>>& volumes,
-    const std::vector<unsigned int>& selectedOnly = {},
     Acts::Logging::Level logLevel = Acts::Logging::INFO);
 
 /// @brief Connect containers with a given binning,
 /// expects fully harmonized input
 ///
 /// @param gctx The geometry context
-/// @param bValue the binning value - for the connection
-/// @param containers the containers
-/// @param selectedOnly switch only selected boundaries
+/// @param bValues the binning values - for the connection
+/// @param containers the containers to be connected
 /// @param logLevel is the screen logging level
-///
-/// @note no checking for consistency is done at this stage
 ///
 /// @returns the proto container surfaces of a Proto container
 ProtoContainer connectContainers(
-    const GeometryContext& gctx, BinningValue bValue,
+    const GeometryContext& gctx, const std::vector<BinningValue>& bValue,
     const std::vector<ProtoContainer>& containers,
-    const std::vector<unsigned int>& selectedOnly = {},
     Acts::Logging::Level logLevel = Acts::Logging::INFO);
 
 }  // namespace Experimental

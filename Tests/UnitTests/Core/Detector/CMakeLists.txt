@@ -1,7 +1,9 @@
 add_unittest(CylindricalDetectorHelper CylindricalDetectorHelperTests.cpp)
 add_unittest(Detector DetectorTests.cpp)
+add_unittest(DetectorBuilder DetectorBuilderTests.cpp)
 add_unittest(DetectorVolume DetectorVolumeTests.cpp)
 add_unittest(ProtoDetector ProtoDetectorTests.cpp)
+add_unittest(ProtoVolumeConverter ProtoVolumeConverterTests.cpp)
 add_unittest(Portal PortalTests.cpp)
 add_unittest(PortalGenerators PortalGeneratorsTests.cpp)
 

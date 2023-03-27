@@ -27,6 +27,8 @@ class Portal;
 
 using ProtoContainer = std::map<unsigned int, std::shared_ptr<Portal>>;
 
+namespace CylindricalDetector {
+
 /// @brief Connect detector volumes in R
 ///
 /// @param gctx The geometry context
@@ -154,5 +156,6 @@ std::array<std::vector<ActsScalar>, 3u> rzphiBoundaries(
     const std::vector<const DetectorVolume*>& volumes,
     Acts::Logging::Level logLevel = Acts::Logging::INFO);
 
+}  // namespace CylindricalDetector
 }  // namespace Experimental
 }  // namespace Acts

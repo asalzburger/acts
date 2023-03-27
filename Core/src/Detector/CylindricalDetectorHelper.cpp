@@ -329,7 +329,7 @@ void checkBounds(
 }  // namespace
 
 Acts::Experimental::ProtoContainer
-Acts::Experimental::connectDetectorVolumesInR(
+Acts::Experimental::CylindricalDetector::connectDetectorVolumesInR(
     const GeometryContext& gctx,
     std::vector<std::shared_ptr<Experimental::DetectorVolume>>& volumes,
     const std::vector<unsigned int>& selectedOnly,
@@ -455,7 +455,7 @@ Acts::Experimental::connectDetectorVolumesInR(
 }
 
 Acts::Experimental::ProtoContainer
-Acts::Experimental::connectDetectorVolumesInZ(
+Acts::Experimental::CylindricalDetector::connectDetectorVolumesInZ(
     const Acts::GeometryContext& gctx,
     std::vector<std::shared_ptr<Acts::Experimental::DetectorVolume>>& volumes,
     const std::vector<unsigned int>& selectedOnly,
@@ -656,7 +656,7 @@ Acts::Experimental::connectDetectorVolumesInZ(
 }
 
 Acts::Experimental::ProtoContainer
-Acts::Experimental::connectDetectorVolumesInPhi(
+Acts::Experimental::CylindricalDetector::connectDetectorVolumesInPhi(
     const Acts::GeometryContext& gctx,
     std::vector<std::shared_ptr<Acts::Experimental::DetectorVolume>>& volumes,
     const std::vector<unsigned int>& /*selectedOnly*/,
@@ -766,7 +766,8 @@ Acts::Experimental::connectDetectorVolumesInPhi(
   return protoContainer;
 }
 
-Acts::Experimental::ProtoContainer Acts::Experimental::wrapDetectorVolumesInZR(
+Acts::Experimental::ProtoContainer
+Acts::Experimental::CylindricalDetector::wrapDetectorVolumesInZR(
     const Acts::GeometryContext& gctx,
     std::vector<std::shared_ptr<Acts::Experimental::DetectorVolume>>& volumes,
     Acts::Logging::Level logLevel) {
@@ -843,7 +844,8 @@ Acts::Experimental::ProtoContainer Acts::Experimental::wrapDetectorVolumesInZR(
   return protoContainer;
 }
 
-Acts::Experimental::ProtoContainer Acts::Experimental::connectContainersInR(
+Acts::Experimental::ProtoContainer
+Acts::Experimental::CylindricalDetector::connectContainersInR(
     const GeometryContext& gctx, const std::vector<ProtoContainer>& containers,
     const std::vector<unsigned int>& selectedOnly,
     Acts::Logging::Level logLevel) noexcept(false) {
@@ -902,7 +904,8 @@ Acts::Experimental::ProtoContainer Acts::Experimental::connectContainersInR(
   return protoContainer;
 }
 
-Acts::Experimental::ProtoContainer Acts::Experimental::connectContainersInZ(
+Acts::Experimental::ProtoContainer
+Acts::Experimental::CylindricalDetector::connectContainersInZ(
     const GeometryContext& gctx, const std::vector<ProtoContainer>& containers,
     const std::vector<unsigned int>& selectedOnly,
     Acts::Logging::Level logLevel) noexcept(false) {
@@ -965,7 +968,8 @@ Acts::Experimental::ProtoContainer Acts::Experimental::connectContainersInZ(
   return protoContainer;
 }
 
-Acts::Experimental::ProtoContainer Acts::Experimental::wrapContainerInZR(
+Acts::Experimental::ProtoContainer
+Acts::Experimental::CylindricalDetector::wrapContainerInZR(
     [[maybe_unused]] const GeometryContext& gctx,
     ProtoContainer& innerContainer, DetectorVolume& wrappingVolume,
     Acts::Logging::Level logLevel) {
@@ -1044,7 +1048,7 @@ Acts::Experimental::ProtoContainer Acts::Experimental::wrapContainerInZR(
 }
 
 std::array<std::vector<Acts::ActsScalar>, 3u>
-Acts::Experimental::rzphiBoundaries(
+Acts::Experimental::CylindricalDetector::rzphiBoundaries(
     const GeometryContext& gctx,
     const std::vector<const Acts::Experimental::DetectorVolume*>& volumes,
     Acts::Logging::Level logLevel) {

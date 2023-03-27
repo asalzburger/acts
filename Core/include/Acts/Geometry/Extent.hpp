@@ -174,6 +174,13 @@ class Extent {
     return 0.5 * (m_range[bValue].min() + m_range[bValue].max());
   }
 
+  /// Return the absp;ite range
+  ///
+  /// @param bValue the binning identification
+  ActsScalar absRange(BinningValue bValue) const {
+    return m_range[bValue].max() - m_range[bValue].min();
+  }
+
   /// Access the parameter internval
   ///
   /// @param bValue the binning identification
