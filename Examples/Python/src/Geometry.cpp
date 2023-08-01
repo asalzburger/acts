@@ -18,16 +18,23 @@
 #include "Acts/Detector/interface/IDetectorComponentBuilder.hpp"
 #include "Acts/Detector/interface/IExternalStructureBuilder.hpp"
 #include "Acts/Detector/interface/IInternalStructureBuilder.hpp"
+#include "Acts/Geometry/CylinderLayer.hpp"
 #include "Acts/Geometry/CylinderVolumeBounds.hpp"
 #include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/Geometry/GeometryHierarchyMap.hpp"
 #include "Acts/Geometry/GeometryIdentifier.hpp"
+#include "Acts/Geometry/LayerArrayCreator.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/Geometry/Volume.hpp"
 #include "Acts/Geometry/VolumeBounds.hpp"
+#include "Acts/Material/ProtoSurfaceMaterial.hpp"
 #include "Acts/Plugins/Python/Utilities.hpp"
+#include "Acts/Surfaces/CylinderBounds.hpp"
+#include "Acts/Surfaces/CylinderSurface.hpp"
 #include "Acts/Surfaces/Surface.hpp"
 #include "Acts/Surfaces/SurfaceArray.hpp"
+#include "Acts/Utilities/BinUtility.hpp"
+#include "Acts/Utilities/Logger.hpp"
 
 #include <array>
 #include <memory>
@@ -129,6 +136,48 @@ void addGeometry(Context& ctx) {
           hook->callable = callable;
           return hook;
         }));
+  }
+
+  {
+    m.def("createSingleCylinderGeometry",
+          [](ActsScalar r, ActsScalar hZ, unsigned binsZ,
+             unsigned binsPhi) -> std::shared_ptr<Acts::TrackingGeometry> {
+            // Create the cylindrical layer bounds, this defines the shape
+            // of the single cylinder
+            auto cylinderBounds = std::make_shared<CylinderBounds>(r, hZ);
+
+            // Create the cylindrical layer, this creates the cylindrical
+            // representation
+            auto cylinderLayer = CylinderLayer::create(
+                Transform3::Identity(), cylinderBounds, nullptr, 1.);
+
+            // Create the Material proxy for the mapping, this is a description
+            // how the material should be binned for the mapping
+            BinUtility zPhiUtility = BinUtility(binsZ, -hZ, +hZ, open, binZ);
+            zPhiUtility += BinUtility(binsPhi, -M_PI, M_PI, closed, binPhi);
+            auto protoMaterial =
+                std::make_shared<ProtoSurfaceMaterial>(zPhiUtility);
+            cylinderLayer->assignSurfaceMaterial(protoMaterial);
+
+            // Create the cylinder volume bounds
+            auto volumeBounds =
+                std::make_shared<CylinderVolumeBounds>(0., 2. * r, 1.25 * hZ);
+
+            // Create the layerArray
+            auto layerArrayCreator = LayerArrayCreator(
+                LayerArrayCreator::Config(),
+                getDefaultLogger("LayerArrayCreator", Logging::VERBOSE));
+            auto layerArray = layerArrayCreator.layerArray(
+                GeometryContext(), {cylinderLayer}, 0, 2. * r, arbitrary, binR);
+
+            // Create the tracking volume, this is the top level container
+            // for the geometry
+            auto cylindricalVolume = TrackingVolume::create(
+                Transform3::Identity(), volumeBounds, nullptr,
+                std::move(layerArray), nullptr, {}, "SingleCylinderVolume");
+
+            return std::make_shared<TrackingGeometry>(cylindricalVolume);
+          });
   }
 }
 
