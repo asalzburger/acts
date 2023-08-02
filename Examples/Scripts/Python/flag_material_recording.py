@@ -14,6 +14,7 @@ from acts.examples import (
 
 import acts.examples.dd4hep
 import acts.examples.geant4
+import acts.examples.geant4.dd4hep
 from common import getOpenDataDetectorDirectory
 from acts.examples.odd import getOpenDataDetector
 
@@ -85,9 +86,12 @@ def runMaterialRecording(
 
 
 if "__main__" == __name__:
+    detector, trackingGeometry, decorators = getOpenDataDetector(
+        getOpenDataDetectorDirectory()
+    )
 
     detectorConstructionFactory = (
-        acts.examples.geant4.GdmlDetectorConstructionFactory('ODD_Pixel_l0.gdml')
+        acts.examples.geant4.dd4hep.DDG4DetectorConstructionFactory(detector)
     )
 
     runMaterialRecording(
