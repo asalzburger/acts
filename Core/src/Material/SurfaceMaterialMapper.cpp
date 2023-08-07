@@ -299,6 +299,15 @@ void Acts::SurfaceMaterialMapper::mapInteraction(
 
   // Assign the recorded ones, break if you hit an end
   while (rmIter != rMaterial.end() && sfIter != mappingSurfaces.end()) {
+
+    // Skip if the rMiter is not accepted
+    auto mSlab = rmIter->materialSlab;
+    ActsScalar mZ = mSlab.material().Z();
+    if (mZ < m_cfg.ezRange[0] or mZ > m_cfg.ezRange[1]) {
+      ++rmIter;
+      continue;
+    }
+
     // Material not inside current volume
     if (volIter != mappingVolumes.end() &&
         !volIter->volume->inside(rmIter->position)) {
@@ -393,7 +402,7 @@ void Acts::SurfaceMaterialMapper::mapInteraction(
     }
     // Now assign the material for the accumulation process
     auto tBin = currentAccMaterial->second.accumulate(
-        currentPos, rmIter->materialSlab, currentPathCorrection);
+        currentPos, mSlab, currentPathCorrection);
     if (touchedMapBins.find(&(currentAccMaterial->second)) ==
         touchedMapBins.end()) {
       touchedMapBins.insert(MapBin(&(currentAccMaterial->second), tBin));

@@ -37,6 +37,7 @@ def runMaterialMapping(
     readCachedSurfaceInformation=False,
     mappingStep=1,
     s=None,
+    ezRange = [ 0., 1000.],
 ):
     s = s or Sequencer(numThreads=1)
 
@@ -81,7 +82,10 @@ def runMaterialMapping(
             resolvePassive=True,
         )
         propagator = Propagator(stepper, navigator)
-        mapper = SurfaceMaterialMapper(level=acts.logging.INFO, propagator=propagator)
+        
+        mapperCfg = SurfaceMaterialMapper.Config()
+        mapperCfg.ezRange = ezRange
+        mapper = SurfaceMaterialMapper(config = mapperCfg, level=acts.logging.INFO, propagator=propagator)
         mmAlgCfg.materialSurfaceMapper = mapper
 
     if mapVolume:
@@ -131,13 +135,20 @@ def runMaterialMapping(
 
 
 if "__main__" == __name__:
-  
-    trackingGeometry = acts.createSingleCylinderGeometry(34, 400, 100, 36)
+
+    # Restrict
+    elementRange = [ 13.5 , 14.]
+    materialMap = "material-map-Z14"
+
+    # Create a single layer tracking geometry, parameters are r, hz, binsZ, binzPhi, material decorator
+    trackingGeometry = acts.createSingleCylinderGeometry(34, 400, 100, 36, None)
 
     runMaterialMapping(
         trackingGeometry,
         decorators = [],
         outputDir=os.getcwd(),
         inputDir=os.getcwd(),
+        mapName=materialMap,
         readCachedSurfaceInformation=False,
+        ezRange=elementRange,
     ).run()

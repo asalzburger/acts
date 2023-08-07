@@ -139,6 +139,7 @@ void addMaterial(Context& ctx) {
                  .def(py::init<>());
     ACTS_PYTHON_STRUCT_BEGIN(c, SurfaceMaterialMapper::Config);
     ACTS_PYTHON_MEMBER(etaRange);
+    ACTS_PYTHON_MEMBER(ezRange);
     ACTS_PYTHON_MEMBER(emptyBinCorrection);
     ACTS_PYTHON_MEMBER(mapperDebugOutput);
     ACTS_PYTHON_MEMBER(computeVariance);

@@ -90,6 +90,8 @@ class SurfaceMaterialMapper {
   struct Config {
     /// Mapping range
     std::array<double, 2> etaRange = {{-6., 6.}};
+    /// Material restriction by Element Z - test version for FLAG
+    std::array<ActsScalar, 2> ezRange = {{0., 1000.}};
     /// Correct for empty bins (recommended)
     bool emptyBinCorrection = true;
     /// Mapping output to debug stream

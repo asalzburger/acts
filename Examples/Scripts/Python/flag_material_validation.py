@@ -64,6 +64,7 @@ if "__main__" == __name__:
 
     matDeco = acts.IMaterialDecorator.fromFile("material-map.json")
 
+    # Create a single layer tracking geometry, parameters are r, hz, binsZ, binzPhi, material decorator
     trackingGeometry = acts.createSingleCylinderGeometry(34, 550, 100, 36, matDeco)
 
     field = acts.ConstantBField(acts.Vector3(0, 0, 2 * acts.UnitConstants.T))
