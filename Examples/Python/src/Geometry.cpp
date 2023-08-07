@@ -140,8 +140,9 @@ void addGeometry(Context& ctx) {
 
   {
     m.def("createSingleCylinderGeometry",
-          [](ActsScalar r, ActsScalar hZ, unsigned binsZ,
-             unsigned binsPhi) -> std::shared_ptr<Acts::TrackingGeometry> {
+          [](ActsScalar r, ActsScalar hZ, unsigned binsZ, unsigned binsPhi,
+             std::shared_ptr<const IMaterialDecorator> materialDecorator =
+                 nullptr) -> std::shared_ptr<Acts::TrackingGeometry> {
             // Create the cylindrical layer bounds, this defines the shape
             // of the single cylinder
             auto cylinderBounds = std::make_shared<CylinderBounds>(r, hZ);
@@ -176,7 +177,10 @@ void addGeometry(Context& ctx) {
                 Transform3::Identity(), volumeBounds, nullptr,
                 std::move(layerArray), nullptr, {}, "SingleCylinderVolume");
 
-            return std::make_shared<TrackingGeometry>(cylindricalVolume);
+            return std::make_shared<TrackingGeometry>(
+                cylindricalVolume,
+                (materialDecorator == nullptr ? nullptr
+                                              : materialDecorator.get()));
           });
   }
 }

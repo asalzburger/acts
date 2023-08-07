@@ -64,13 +64,10 @@ if "__main__" == __name__:
 
     matDeco = acts.IMaterialDecorator.fromFile("material-map.json")
 
-    trackingGeometry = acts.createSingleCylinderGeometry(34, 400, 100, 36)
+    trackingGeometry = acts.createSingleCylinderGeometry(34, 550, 100, 36, matDeco)
 
-    runMaterialMapping(
-        trackingGeometry,
-        decorators = [ matDeco ],
-        outputDir=os.getcwd(),
-        inputDir=os.getcwd(),
-        readCachedSurfaceInformation=False,
+    field = acts.ConstantBField(acts.Vector3(0, 0, 2 * acts.UnitConstants.T))
+
+    runMaterialValidation(
+        trackingGeometry, [], field, outputDir=os.getcwd()
     ).run()
-
