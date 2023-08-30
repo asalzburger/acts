@@ -38,6 +38,7 @@ target_link_libraries(ActsPythonBindings PUBLIC
   ActsExamplesDetectorGeneric
   ActsExamplesDetectorContextual
   ActsExamplesDetectorTGeo
+  ActsExamplesDetectorNNbar
   ActsExamplesMagneticField
   ActsExamplesIoRoot
   ActsExamplesIoNuclearInteractions

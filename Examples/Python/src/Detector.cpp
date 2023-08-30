@@ -14,6 +14,7 @@
 #include "ActsExamples/ContextualDetector/AlignedDetector.hpp"
 #include "ActsExamples/Framework/IContextDecorator.hpp"
 #include "ActsExamples/GenericDetector/GenericDetector.hpp"
+#include "ActsExamples/NNbarDetector/NNbarDetector.hpp"
 #include "ActsExamples/TGeoDetector/TGeoDetector.hpp"
 #include "ActsExamples/TelescopeDetector/TelescopeDetector.hpp"
 #include "ActsExamples/Utilities/Options.hpp"
@@ -221,6 +222,32 @@ void addDetector(Context& ctx) {
     ACTS_PYTHON_STRUCT_END();
 
     patchKwargsConstructor(c);
+  }
+
+  {
+    using Config = ActsExamples::NNbar::NNbarDetector::Config;
+
+    auto d =
+        py::class_<ActsExamples::NNbar::NNbarDetector,
+                   std::shared_ptr<ActsExamples::NNbar::NNbarDetector>>(
+            mex, "NNbarDetector")
+            .def(py::init<const Config&>())
+            .def(
+                "trackingGeometry",
+                &ActsExamples::NNbar::NNbarDetector::constructTrackingGeometry);
+
+    auto c = py::class_<Config, std::shared_ptr<Config>>(d, "Config")
+                 .def(py::init<>());
+    ACTS_PYTHON_STRUCT_BEGIN(c, Config);
+    ACTS_PYTHON_MEMBER(name);
+    ACTS_PYTHON_MEMBER(gdmlFile);
+    ACTS_PYTHON_MEMBER(logLevel);
+    ACTS_PYTHON_MEMBER(innerSensitiveMatches);
+    ACTS_PYTHON_MEMBER(innerPassiveMatches);
+    ACTS_PYTHON_MEMBER(tpcSensitiveMatches);
+    ACTS_PYTHON_MEMBER(tpcPassiveMatches);
+    /// Logging
+    ACTS_PYTHON_STRUCT_END();
   }
 }
 
