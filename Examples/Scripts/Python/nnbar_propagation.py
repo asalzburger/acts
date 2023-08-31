@@ -75,7 +75,6 @@ if "__main__" == __name__:
 
     seq = acts.examples.Sequencer(events=100, numThreads=1)
 
-
     runPropagation(
         trackingGeometry, 
         field, 
