@@ -50,7 +50,8 @@ class DetectorElementStub : public DetectorElementBase {
       : DetectorElementBase(),
         m_elementTransform(transform),
         m_elementThickness(thickness) {
-    m_elementSurface = Surface::makeShared<CylinderSurface>(cBounds, *this);
+    m_elementSurface =
+        Surface::makeShared<CylinderSurface>(std::move(cBounds), *this);
     m_elementSurface->assignSurfaceMaterial(std::move(material));
   }
 
@@ -68,7 +69,8 @@ class DetectorElementStub : public DetectorElementBase {
       : DetectorElementBase(),
         m_elementTransform(transform),
         m_elementThickness(thickness) {
-    m_elementSurface = Surface::makeShared<PlaneSurface>(pBounds, *this);
+    m_elementSurface =
+        Surface::makeShared<PlaneSurface>(std::move(pBounds), *this);
     m_elementSurface->assignSurfaceMaterial(std::move(material));
   }
 
@@ -86,7 +88,8 @@ class DetectorElementStub : public DetectorElementBase {
       : DetectorElementBase(),
         m_elementTransform(transform),
         m_elementThickness(thickness) {
-    m_elementSurface = Surface::makeShared<LineSurfaceStub>(lBounds, *this);
+    m_elementSurface =
+        Surface::makeShared<LineSurfaceStub>(std::move(lBounds), *this);
     m_elementSurface->assignSurfaceMaterial(std::move(material));
   }
 

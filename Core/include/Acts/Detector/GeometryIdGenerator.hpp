@@ -75,7 +75,7 @@ class GeometryIdGenerator final : public IGeometryIdGenerator {
                           "GeometryIdGenerator", Logging::INFO))
       : m_cfg(cfg), m_logger(std::move(mlogger)) {}
 
-  ~GeometryIdGenerator() = default;
+  ~GeometryIdGenerator() override = default;
 
   /// @brief Interface method to generata a geometry id cache
   /// @return a geometry id cache decorated in a std::any object
