@@ -18,8 +18,20 @@ namespace Experimental {
 /// such a builder could be a simple detector volume builder, with
 /// or without internal structure, or more complicated objects.
 ///
+/// Overall, the detector building can be seen as a tree structure,
+/// where the top level builder is the root that branches to the sub
+/// builders.
+///
+/// In order to aid this tree structure, the builder interface allows
+/// the definition of branch connections
 class IDetectorComponentBuilder {
  public:
+  /// @brief Nested branch connection struct
+  struct BranchConnection {
+    std::string targetName = "";
+    std::shared_ptr<IDetectorComponentBuilder> targetBuilder = nullptr;
+  };
+
   virtual ~IDetectorComponentBuilder() = default;
 
   /// The interface method to be implemented by all detector
@@ -29,6 +41,18 @@ class IDetectorComponentBuilder {
   ///
   /// @return an outgoing detector component
   virtual DetectorComponent construct(const GeometryContext& gctx) const = 0;
+
+  /// Write/read access to parent connections
+  BranchConnection& parent() { return m_parent; }
+
+  /// Write/read access to child connections
+  BranchConnection& child() { return m_child; }
+
+ private:
+  /// The parent connection
+  BranchConnection m_parent;
+  /// The child connection
+  BranchConnection m_child;
 };
 
 }  // namespace Experimental
