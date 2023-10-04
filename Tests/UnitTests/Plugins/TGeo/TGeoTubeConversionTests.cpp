@@ -61,8 +61,8 @@ BOOST_AUTO_TEST_CASE(TGeoTube_to_CylinderSurface) {
   double rmin = 10.;
   double rmax = 11;
   double hz = 40.;
-  double phimin = -45.;
-  double phimax = 45.;
+  double phimin = 0.;
+  double phimax = 90.;
 
   new TGeoManager("trd1", "poza9");
   TGeoMaterial *mat = new TGeoMaterial("Al", 26.98, 13, 2.7);
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(TGeoTube_to_CylinderSurface) {
       CHECK_CLOSE_ABS(bR, 10.5, s_epsilon);
       CHECK_CLOSE_ABS(bhZ, hz, s_epsilon);
       CHECK_CLOSE_ABS(hphi, 0.25 * M_PI, s_epsilon);
-      CHECK_CLOSE_ABS(mphi, 0., s_epsilon);
+      CHECK_CLOSE_ABS(mphi, 0.25 * M_PI, s_epsilon);
       GeometryView3D::drawSurface(objVis, *cylinderSegment, tgContext);
       GeometryView3D::drawArrowForward(
           objVis, center, center + 1.2 * bR * rotation.col(0), 4., 2.5, red);
@@ -160,8 +160,8 @@ BOOST_AUTO_TEST_CASE(TGeoTube_to_DiscSurface) {
   double rmin = 5.;
   double rmax = 25;
   double hz = 2.;
-  double phimin = -45.;
-  double phimax = 45.;
+  double phimin = 45.;
+  double phimax = -45.;
 
   new TGeoManager("trd1", "poza9");
   TGeoMaterial *mat = new TGeoMaterial("Al", 26.98, 13, 2.7);

@@ -257,9 +257,7 @@ Acts::TGeoSurfaceConverter::discComponents(const TGeoShape& tgShape,
           if (not boost::starts_with(axes, "X")) {
             throw std::invalid_argument(
                 "TGeoShape -> CylinderSurface (sectorial): can only be "
-                "converted "
-                "with "
-                "'(X)(y/Y)(*)' axes.");
+                "converted with '(X)(y/Y)(*)' axes.");
           }
           halfPhi = 0.5 * (std::max(phi1, phi2) - std::min(phi1, phi2));
           avgPhi = 0.5 * (phi1 + phi2);
