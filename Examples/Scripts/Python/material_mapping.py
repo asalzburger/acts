@@ -18,39 +18,27 @@ from acts import (
     Vector4,
     UnitConstants as u,
     SurfaceMaterialMapper,
-    VolumeMaterialMapper,
-    Navigator,
-    Propagator,
-    StraightLineStepper,
     MaterialMapJsonConverter,
+)
+from acts.examples.dd4hep import (
+    DD4hepDetector,
+    DD4hepDetectorOptions,
+    DD4hepGeometryService,
 )
 from common import getOpenDataDetectorDirectory
 from acts.examples.odd import getOpenDataDetector
 
 
 def runMaterialMapping(
-    trackingGeometry,
-    decorators,
+    detector,
     outputDir,
     inputDir,
     mapName="material-map",
-    mapSurface=True,
-    mapVolume=True,
-    readCachedSurfaceInformation=False,
-    mappingStep=1,
-    s=None,
 ):
-    s = s or Sequencer(numThreads=1)
-
-    for decorator in decorators:
-        s.addContextDecorator(decorator)
-
+    s = Sequencer(numThreads=1)
     wb = WhiteBoard(acts.logging.INFO)
 
     context = AlgorithmContext(0, 0, wb)
-
-    for decorator in decorators:
-        assert decorator.decorate(context) == ProcessCode.SUCCESS
 
     # Read material step information from a ROOT TTRee
     s.addReader(
@@ -60,95 +48,48 @@ def runMaterialMapping(
             fileList=[
                 os.path.join(
                     inputDir,
-                    mapName + "_tracks.root"
-                    if readCachedSurfaceInformation
-                    else "geant4_material_tracks.root",
+                    "geant4_material_tracks.root",
                 )
             ],
-            readCachedSurfaceInformation=readCachedSurfaceInformation,
+            readCachedSurfaceInformation=False,
         )
     )
+    materialSurfaces = acts.examples.extractMaterialSurfaces(detector)
+    print(len(materialSurfaces))
 
-    stepper = StraightLineStepper()
+    # Make a material mapper
+    smmConfig = SurfaceMaterialMapper.Config(surfaces=materialSurfaces)
+    smm = SurfaceMaterialMapper(config=smmConfig, level=acts.logging.INFO)
 
-    mmAlgCfg = MaterialMapping.Config(context.geoContext, context.magFieldContext)
-    mmAlgCfg.trackingGeometry = trackingGeometry
+    # Make 
+    mmAlgCfg = MaterialMapping.Config()
+    mmAlgCfg.materialMapper = smm
     mmAlgCfg.collection = "material-tracks"
-
-    if mapSurface:
-        navigator = Navigator(
-            trackingGeometry=trackingGeometry,
-            resolveSensitive=True,
-            resolveMaterial=True,
-            resolvePassive=True,
-        )
-        propagator = Propagator(stepper, navigator)
-        mapperConfig = SurfaceMaterialMapper.Config()
-        mapperConfig.trackingGeometry = trackingGeometry
-        mapper = SurfaceMaterialMapper(
-            config=mapperConfig, level=acts.logging.INFO, propagator=propagator
-        )
-        mmAlgCfg.materialSurfaceMapper = mapper
-
-    if mapVolume:
-        navigator = Navigator(
-            trackingGeometry=trackingGeometry,
-        )
-        propagator = Propagator(stepper, navigator)
-        mapperConfig = VolumeMaterialMapper.Config()
-        mapperConfig.trackingGeometry = trackingGeometry
-        mapperConfig.mappingStep = mappingStep
-        mapper = VolumeMaterialMapper(
-            config=mapperConfig, level=acts.logging.INFO, propagator=propagator
-        )
-        mmAlgCfg.materialVolumeMapper = mapper
-
-    jmConverterCfg = MaterialMapJsonConverter.Config(
-        processSensitives=True,
-        processApproaches=True,
-        processRepresenting=True,
-        processBoundaries=True,
-        processVolumes=True,
-        context=context.geoContext,
-    )
-
-    jmw = JsonMaterialWriter(
-        level=acts.logging.VERBOSE,
-        converterCfg=jmConverterCfg,
-        fileName=os.path.join(outputDir, mapName),
-        writeFormat=JsonFormat.Json,
-    )
-
-    mmAlgCfg.materialWriters = [jmw]
-
     s.addAlgorithm(MaterialMapping(level=acts.logging.INFO, config=mmAlgCfg))
-
-    s.addWriter(
-        RootMaterialTrackWriter(
-            level=acts.logging.INFO,
-            collection=mmAlgCfg.mappingMaterialCollection,
-            filePath=os.path.join(
-                outputDir,
-                mapName + "_tracks.root",
-            ),
-            storeSurface=True,
-            storeVolume=True,
-        )
-    )
 
     return s
 
 
 if "__main__" == __name__:
-    matDeco = acts.IMaterialDecorator.fromFile("geometry-map.json")
-    detector, trackingGeometry, decorators = getOpenDataDetector(
-        getOpenDataDetectorDirectory(), matDeco
-    )
+    odd_xml = getOpenDataDetectorDirectory() / "xml" / "OpenDataDetector.xml"
+
+    print("Using the following xml file: ", odd_xml)
+
+    # Create the dd4hep geometry service and detector
+    dd4hepConfig = DD4hepGeometryService.Config()
+    dd4hepConfig.logLevel = acts.logging.INFO
+    dd4hepConfig.xmlFileNames = [str(odd_xml)]
+    dd4hepGeometryService = DD4hepGeometryService(dd4hepConfig)
+    dd4hepDetector = DD4hepDetector(dd4hepGeometryService)
+
+    cOptions = DD4hepDetectorOptions(logLevel=acts.logging.INFO, emulateToGraph="")
+
+    # Context and options
+    geoContext = acts.GeometryContext()
+    [detector, contextors, store] = dd4hepDetector.finalize(geoContext, cOptions)
 
     runMaterialMapping(
-        trackingGeometry,
-        decorators,
+        detector,
         outputDir=os.getcwd(),
         inputDir=os.getcwd(),
-        readCachedSurfaceInformation=False,
     ).run()

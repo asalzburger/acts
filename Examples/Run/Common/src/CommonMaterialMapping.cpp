@@ -9,7 +9,8 @@
 #include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/MagneticField/MagneticFieldContext.hpp"
-#include "Acts/Material/SurfaceMaterialMapper.hpp"
+#include "Acts/Material/LegacySurfaceMaterialMapper.hpp"
+#include "Acts/Material/LegacyVolumeMaterialMapper.hpp"
 #include "Acts/Plugins/Json/MaterialMapJsonConverter.hpp"
 #include "Acts/Propagator/Navigator.hpp"
 #include "Acts/Propagator/Propagator.hpp"
@@ -21,7 +22,7 @@
 #include "ActsExamples/Io/Root/RootMaterialTrackReader.hpp"
 #include "ActsExamples/Io/Root/RootMaterialTrackWriter.hpp"
 #include "ActsExamples/Io/Root/RootMaterialWriter.hpp"
-#include "ActsExamples/MaterialMapping/MaterialMapping.hpp"
+#include "ActsExamples/MaterialMapping/LegacyMaterialMapping.hpp"
 #include "ActsExamples/MaterialMapping/MaterialMappingOptions.hpp"
 #include "ActsExamples/Options/CommonOptions.hpp"
 #include "ActsExamples/Propagation/PropagationOptions.hpp"
@@ -118,7 +119,7 @@ int runMaterialMapping(int argc, char* argv[],
   }
 
   /// The material mapping algorithm
-  ActsExamples::MaterialMapping::Config mmAlgConfig{geoContext, mfContext};
+  ActsExamples::LegacyMaterialMapping::Config mmAlgConfig{};
   mmAlgConfig.collection = ActsExamples::Simulation::kMaterialTracks;
   if (mapSurface) {
     // Get a Navigator
@@ -127,10 +128,10 @@ int runMaterialMapping(int argc, char* argv[],
     SlStepper stepper;
     Propagator propagator(stepper, std::move(navigator));
     /// The material surface mapper
-    Acts::SurfaceMaterialMapper::Config smmConfig;
-    auto smm = std::make_shared<Acts::SurfaceMaterialMapper>(
+    Acts::LegacySurfaceMaterialMapper::Config smmConfig;
+    auto smm = std::make_shared<Acts::LegacySurfaceMaterialMapper>(
         smmConfig, std::move(propagator),
-        Acts::getDefaultLogger("SurfaceMaterialMapper", logLevel));
+        Acts::getDefaultLogger("LegacySurfaceMaterialMapper", logLevel));
     mmAlgConfig.materialSurfaceMapper = smm;
   }
   if (mapVolume) {
@@ -140,11 +141,11 @@ int runMaterialMapping(int argc, char* argv[],
     SlStepper stepper;
     Propagator propagator(stepper, std::move(navigator));
     /// The material volume mapper
-    Acts::VolumeMaterialMapper::Config vmmConfig;
+    Acts::LegacyVolumeMaterialMapper::Config vmmConfig;
     vmmConfig.mappingStep = volumeStep;
-    auto vmm = std::make_shared<Acts::VolumeMaterialMapper>(
+    auto vmm = std::make_shared<Acts::LegacyVolumeMaterialMapper>(
         vmmConfig, std::move(propagator),
-        Acts::getDefaultLogger("VolumeMaterialMapper", logLevel));
+        Acts::getDefaultLogger("LegacyVolumeMaterialMapper", logLevel));
     mmAlgConfig.materialVolumeMapper = vmm;
   }
   mmAlgConfig.trackingGeometry = tGeometry;
@@ -215,7 +216,7 @@ int runMaterialMapping(int argc, char* argv[],
   }
 
   // Create the material mapping
-  auto mmAlg = std::make_shared<ActsExamples::MaterialMapping>(mmAlgConfig);
+  auto mmAlg = std::make_shared<ActsExamples::LegacyMaterialMapping>(mmAlgConfig);
 
   // Append the Algorithm
   sequencer.addAlgorithm(mmAlg);

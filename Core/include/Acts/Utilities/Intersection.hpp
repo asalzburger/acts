@@ -81,6 +81,15 @@ class Intersection {
     return a < b;
   }
 
+  /// Comparison function for forward order i.e. intersection closest to -inf
+  /// will be first.
+  constexpr static bool closestForwardOrder(const Intersection& aIntersection,
+                                     const Intersection& bIntersection) {
+    auto a = aIntersection.pathLength();
+    auto b = bIntersection.pathLength();
+    return a * b >= 0 ? std::abs(a) < std::abs(b) : a > b;
+  }
+
   /// Comparison function for closest order i.e. intersection closest to 0 will
   /// be first.
   constexpr static bool closestOrder(const Intersection& aIntersection,
@@ -160,12 +169,18 @@ class ObjectIntersection {
   constexpr static bool forwardOrder(const ObjectIntersection& aIntersection,
                                      const ObjectIntersection& bIntersection) {
     return Intersection3D::forwardOrder(aIntersection.intersection(),
-                                        bIntersection.intersection());
+                                        bIntersection.intersection());                                        
   }
 
   constexpr static bool closestOrder(const ObjectIntersection& aIntersection,
                                      const ObjectIntersection& bIntersection) {
     return Intersection3D::closestOrder(aIntersection.intersection(),
+                                        bIntersection.intersection());
+  }
+
+  constexpr static bool closestForwardOrder(const ObjectIntersection& aIntersection,
+                                     const ObjectIntersection& bIntersection) {
+    return Intersection3D::closestForwardOrder(aIntersection.intersection(),
                                         bIntersection.intersection());
   }
 
@@ -216,6 +231,13 @@ class ObjectMultiIntersection {
     return *std::min_element(splitIntersections.begin(),
                              splitIntersections.end(),
                              ObjectIntersection<object_t>::closestOrder);
+  }
+
+  constexpr ObjectIntersection<object_t> closestForward() const {
+    auto splitIntersections = split();
+    return *std::min_element(splitIntersections.begin(),
+                             splitIntersections.end(),
+                             ObjectIntersection<object_t>::closestForwardOrder);                             
   }
 
  private:

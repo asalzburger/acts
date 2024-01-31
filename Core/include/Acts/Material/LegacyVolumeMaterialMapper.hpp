@@ -30,6 +30,7 @@
 #include "Acts/Utilities/BinUtility.hpp"
 #include "Acts/Utilities/Logger.hpp"
 
+#include <array>
 #include <functional>
 #include <map>
 #include <memory>
@@ -43,7 +44,7 @@ class IVolumeMaterial;
 class TrackingGeometry;
 
 //
-/// @brief VolumeMaterialMapper
+/// @brief LegacyVolumeMaterialMapper
 ///
 /// This is the main feature tool to map material information
 /// from a 3D geometry onto the TrackingGeometry with its surface
@@ -66,7 +67,7 @@ class TrackingGeometry;
 ///
 ///  3) Each 'hit' bin per event is counted and averaged at the end of the run
 
-class VolumeMaterialMapper final : public IMaterialMapper {
+class LegacyVolumeMaterialMapper final : public IMaterialMapper {
  public:
   using StraightLinePropagator = Propagator<StraightLineStepper, Navigator>;
 
@@ -85,9 +86,8 @@ class VolumeMaterialMapper final : public IMaterialMapper {
   /// Nested State struct which is used for the mapping prococess
   class State final : public IMaterialMapper::State {
    public:
-    /// Constructor of the State with contexts
-    State(const GeometryContext& gctx, const MagneticFieldContext& mctx)
-        : geoContext(gctx), magFieldContext(mctx) {}
+    /// Constructor of the State
+    State() = default;
 
     /// The recorded material per geometry ID
     std::map<const GeometryIdentifier, Acts::AccumulatedVolumeMaterial>
@@ -112,36 +112,26 @@ class VolumeMaterialMapper final : public IMaterialMapper {
 
     /// The binning for each geometry ID
     std::map<const GeometryIdentifier, BinUtility> materialBin = {};
-
-    /// Reference to the geometry context for the mapping
-    std::reference_wrapper<const GeometryContext> geoContext;
-
-    /// Reference to the magnetic field context
-    std::reference_wrapper<const MagneticFieldContext> magFieldContext;
   };
 
   /// Delete the Default constructor
-  VolumeMaterialMapper() = delete;
+  LegacyVolumeMaterialMapper() = delete;
 
   /// Constructor with config object
   ///
   /// @param cfg Configuration struct
   /// @param propagator The straight line propagator
   /// @param slogger The logger
-  VolumeMaterialMapper(const Config& cfg, StraightLinePropagator propagator,
+  LegacyVolumeMaterialMapper(const Config& cfg, StraightLinePropagator propagator,
                        std::unique_ptr<const Logger> slogger = getDefaultLogger(
-                           "VolumeMaterialMapper", Logging::INFO));
+                           "LegacyVolumeMaterialMapper", Logging::INFO));
 
   /// @brief helper method that creates the cache for the mapping
-  ///
-  /// @param[in] gctx The geometry context to use
-  /// @param[in] mctx The magnetic field context to use
   ///
   /// This method takes a TrackingGeometry from the configuration,
   /// finds all volumes with material proxis
   /// and returns you a Cache object tO be used
-  std::unique_ptr<IMaterialMapper::State> createState(
-      const GeometryContext& gctx, const MagneticFieldContext& mctx) const;
+  std::unique_ptr<IMaterialMapper::State> createState() const;
 
   /// @brief Method to finalize the maps
   ///
@@ -157,14 +147,17 @@ class VolumeMaterialMapper final : public IMaterialMapper {
   /// Process/map a single track
   ///
   /// @param imState The current state map
+  /// @param gctx The geometry context - in case propagation is needed
+  /// @param mctx The magnetic field context - in case propagation is needed
   /// @param mTrack The material track to be mapped
   ///
   /// @note the RecordedMaterialSlab of the track are assumed
   /// to be ordered from the starting position along the starting direction
   ///
   /// @returns the unmapped (remaining) material track
-  RecordedMaterialTrack mapMaterialTrack(
-      IMaterialMapper::State& imState,
+  std::array<RecordedMaterialTrack, 2u> mapMaterialTrack(
+      IMaterialMapper::State& imState, const GeometryContext& gctx,
+      const MagneticFieldContext& mctx,
       const RecordedMaterialTrack& mTrack) const;
 
  private:

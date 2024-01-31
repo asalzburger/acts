@@ -21,7 +21,7 @@
 #include "Acts/Geometry/TrackingVolumeArrayCreator.hpp"
 #include "Acts/MagneticField/MagneticFieldContext.hpp"
 #include "Acts/Material/ProtoSurfaceMaterial.hpp"
-#include "Acts/Material/SurfaceMaterialMapper.hpp"
+#include "Acts/Material/LegacySurfaceMaterialMapper.hpp"
 #include "Acts/Propagator/Navigator.hpp"
 #include "Acts/Propagator/StraightLineStepper.hpp"
 #include "Acts/Utilities/BinUtility.hpp"
@@ -110,23 +110,23 @@ BOOST_AUTO_TEST_CASE(SurfaceMaterialMapper_tests) {
   /// We need a Navigator, Stepper to build a Propagator
   Navigator navigator({tGeometry});
   StraightLineStepper stepper;
-  SurfaceMaterialMapper::StraightLinePropagator propagator(
+  LegacySurfaceMaterialMapper::StraightLinePropagator propagator(
       stepper, std::move(navigator));
 
   /// The config object
-  SurfaceMaterialMapper::Config smmConfig;
+  LegacySurfaceMaterialMapper::Config smmConfig;
   smmConfig.trackingGeometry = tGeometry;
-  SurfaceMaterialMapper smMapper(smmConfig, std::move(propagator));
+  LegacySurfaceMaterialMapper smMapper(smmConfig, std::move(propagator));
 
   /// Create some contexts
   GeometryContext gCtx;
   MagneticFieldContext mfCtx;
 
   /// Now create the mapper state
-  auto imState = smMapper.createState(gCtx, mfCtx);
+  auto imState = smMapper.createState();
 
-  SurfaceMaterialMapper::State* mState =
-      static_cast<SurfaceMaterialMapper::State*>(imState.get());
+  LegacySurfaceMaterialMapper::State* mState =
+      static_cast<LegacySurfaceMaterialMapper::State*>(imState.get());
 
   /// Test if this is not null
   BOOST_CHECK_EQUAL(mState->accumulatedMaterial.size(), 3u);

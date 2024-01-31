@@ -10,25 +10,39 @@
 
 #include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/MagneticField/MagneticFieldContext.hpp"
-#include "Acts/Material/DetectorMaterial.hpp"
-#include "Acts/Material/MaterialInteraction.hpp"
+#include "Acts/Material/interface/IMaterialMapper.hpp"
 
-#include <array>
+#include <memory>
 
 namespace Acts {
 
-/// @brief Interface for material mappin tools
+/// @brief SequentialMaterialMapper
 ///
-/// Surface and volume based mappers should extend this
-/// interface, and implement a suitable State extentsion
-class IMaterialMapper {
+/// This material mapper is designed to run a single or a sequence
+/// of material mappers in a sequential order.
+class SequentialMaterialMapper final : public IMaterialMapper {
  public:
-  // The state object as a base class that allows to chain
-  // material mappers of different type.
-  class State {
-   public:
-    virtual ~State() = default;
+  /// @brief nested configuration struct
+  struct Config {
+    std::vector<std::shared_ptr<const IMaterialMapper>> mappers = {};
   };
+
+  /// @brief nested state chachine class
+  class State : public IMaterialMapper::State {
+   public:
+    /// Default constructor
+    State() = default;
+    /// @brief Shorthand for the mapper and state
+    using MapperAndState = std::tuple<const IMaterialMapper *,
+                                      std::unique_ptr<IMaterialMapper::State>>;
+    /// The vector of mappers and states
+    std::vector<MapperAndState> mappersAndStates = {};
+  };
+
+  /// @brief Constructor
+  ///
+  /// @param cfg is the configuration struct
+  SequentialMaterialMapper(const Config &cfg);
 
   /// @brief Interface method to create a caching state
   ///
@@ -36,7 +50,7 @@ class IMaterialMapper {
   /// state to store information for the material mapping
   ///
   /// @return a state object
-  virtual std::unique_ptr<State> createState() const = 0;
+  virtual std::unique_ptr<IMaterialMapper::State> createState() const final;
 
   /// @brief Interface mtheod to Process/map a single track
   ///
@@ -50,9 +64,9 @@ class IMaterialMapper {
   ///
   /// @returns the mapped & unmapped material track (in this order)
   virtual std::array<RecordedMaterialTrack, 2u> mapMaterialTrack(
-      State& mState, const GeometryContext& gctx,
-      const MagneticFieldContext& mctx,
-      const RecordedMaterialTrack& mTrack) const = 0;
+      IMaterialMapper::State &mState, const GeometryContext &gctx,
+      const MagneticFieldContext &mctx,
+      const RecordedMaterialTrack &mTrack) const final;
 
   /// @brief Method to finalize the maps
   ///
@@ -60,9 +74,15 @@ class IMaterialMapper {
   /// the recorded and accummulated material into the final
   /// representation
   ///
-  /// @param mState
+  /// @param mState The current state map
   ///
-  /// @return detector material maps
-  virtual DetectorMaterialMaps finalizeMaps(State& mState) const = 0;
+  /// @return the final detector material
+  virtual DetectorMaterialMaps finalizeMaps(
+      IMaterialMapper::State &mState) const final;
+
+ private:
+  /// The configuration
+  Config m_cfg;
 };
+
 }  // namespace Acts

@@ -6,7 +6,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "Acts/Material/VolumeMaterialMapper.hpp"
+#include "Acts/Material/LegacyVolumeMaterialMapper.hpp"
 
 #include "Acts/Definitions/Direction.hpp"
 #include "Acts/Definitions/Tolerance.hpp"
@@ -48,7 +48,7 @@ namespace Acts {
 struct EndOfWorldReached;
 }  // namespace Acts
 
-Acts::VolumeMaterialMapper::VolumeMaterialMapper(
+Acts::LegacyVolumeMaterialMapper::LegacyVolumeMaterialMapper(
     const Config& cfg, StraightLinePropagator propagator,
     std::unique_ptr<const Logger> slogger)
     : m_cfg(cfg),
@@ -60,18 +60,16 @@ Acts::VolumeMaterialMapper::VolumeMaterialMapper(
 }
 
 std::unique_ptr<Acts::IMaterialMapper::State>
-Acts::VolumeMaterialMapper::createState(
-    const GeometryContext& gctx, const MagneticFieldContext& mctx) const {
+Acts::LegacyVolumeMaterialMapper::createState() const {
   // Parse the geometry and find all surfaces with material proxies
   auto world = m_cfg.trackingGeometry->highestTrackingVolume();
-
   // The Surface material mapping state
-  auto mState = std::make_unique<State>(gctx, mctx);
+  auto mState = std::make_unique<State>();
   resolveMaterialVolume(*mState, *world);
   return mState;
 }
 
-void Acts::VolumeMaterialMapper::resolveMaterialVolume(
+void Acts::LegacyVolumeMaterialMapper::resolveMaterialVolume(
     State& mState, const TrackingVolume& tVolume) const {
   ACTS_VERBOSE("Checking volume '" << tVolume.volumeName()
                                    << "' for material surfaces.")
@@ -95,7 +93,7 @@ void Acts::VolumeMaterialMapper::resolveMaterialVolume(
   }
 }
 
-void Acts::VolumeMaterialMapper::checkAndInsert(
+void Acts::LegacyVolumeMaterialMapper::checkAndInsert(
     State& mState, const TrackingVolume& volume) const {
   auto volumeMaterial = volume.volumeMaterial();
   // Check if the volume has a proxy
@@ -181,7 +179,7 @@ void Acts::VolumeMaterialMapper::checkAndInsert(
   }
 }
 
-void Acts::VolumeMaterialMapper::createExtraHits(
+void Acts::LegacyVolumeMaterialMapper::createExtraHits(
     State& mState,
     std::pair<const GeometryIdentifier, BinUtility>& currentBinning,
     Acts::MaterialSlab properties, const Vector3& position,
@@ -256,7 +254,7 @@ void Acts::VolumeMaterialMapper::createExtraHits(
   }
 }
 
-Acts::DetectorMaterialMaps Acts::VolumeMaterialMapper::finalizeMaps(
+Acts::DetectorMaterialMaps Acts::LegacyVolumeMaterialMapper::finalizeMaps(
     IMaterialMapper::State& imState) const {
   State& mState = static_cast<State&>(imState);
 
@@ -309,8 +307,10 @@ Acts::DetectorMaterialMaps Acts::VolumeMaterialMapper::finalizeMaps(
   return detectorMaterial;
 }
 
-Acts::RecordedMaterialTrack Acts::VolumeMaterialMapper::mapMaterialTrack(
+std::array<Acts::RecordedMaterialTrack, 2u> Acts::LegacyVolumeMaterialMapper::mapMaterialTrack(
     IMaterialMapper::State& imState,
+    const GeometryContext& gctx,
+    const MagneticFieldContext& mctx,
     const RecordedMaterialTrack& mTrack) const {
   auto mState = static_cast<State&>(imState);
 
@@ -330,8 +330,7 @@ Acts::RecordedMaterialTrack Acts::VolumeMaterialMapper::mapMaterialTrack(
   using ActionList = ActionList<BoundSurfaceCollector, MaterialVolumeCollector>;
   using AbortList = AbortList<EndOfWorldReached>;
 
-  PropagatorOptions<ActionList, AbortList> options(mState.geoContext,
-                                                   mState.magFieldContext);
+  PropagatorOptions<ActionList, AbortList> options(gctx, mctx);
 
   // Now collect the material volume by using the straight line propagator
   const auto& result = m_propagator.propagate(start, options).value();
@@ -460,5 +459,5 @@ Acts::RecordedMaterialTrack Acts::VolumeMaterialMapper::mapMaterialTrack(
     }
     ++rmIter;
   }
-  return rTrack;
+  return { rTrack, rTrack };
 }

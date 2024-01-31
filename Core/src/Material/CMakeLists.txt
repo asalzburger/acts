@@ -1,10 +1,13 @@
 target_sources(
   ActsCore
   PRIVATE
+    detail/AverageMaterials.cpp
+    detail/DistanceAssociaters.cpp
+    detail/TryAllSurfacesPredicter.cpp
     AccumulatedMaterialSlab.cpp
     AccumulatedSurfaceMaterial.cpp
     AccumulatedVolumeMaterial.cpp
-    AverageMaterials.cpp
+    detail/AverageMaterials.cpp
     BinnedSurfaceMaterial.cpp
     HomogeneousSurfaceMaterial.cpp
     HomogeneousVolumeMaterial.cpp
@@ -14,6 +17,8 @@ target_sources(
     MaterialMapUtils.cpp
     MaterialSlab.cpp
     ProtoVolumeMaterial.cpp
+    SequentialMaterialMapper.cpp
+    LegacySurfaceMaterialMapper.cpp
+    LegacyVolumeMaterialMapper.cpp
     SurfaceMaterialMapper.cpp
-    VolumeMaterialMapper.cpp
 )

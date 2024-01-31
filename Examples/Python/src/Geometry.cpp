@@ -37,6 +37,8 @@
 #include "Acts/Utilities/RangeXD.hpp"
 #include "ActsExamples/Geometry/VolumeAssociationTest.hpp"
 
+#include <set>
+#include <unordered_set>
 #include <array>
 #include <memory>
 #include <vector>
@@ -467,6 +469,30 @@ void addExperimentalGeometry(Context& ctx) {
     ACTS_PYTHON_MEMBER(geoIdGenerator);
     ACTS_PYTHON_MEMBER(auxiliary);
     ACTS_PYTHON_STRUCT_END();
+  }
+
+  {
+    struct MaterialSurfaceExtractor {
+      std::unordered_set<const Acts::Surface*> surfaces{};
+
+      void operator()(const Acts::Surface* surface) {
+        if (surface->surfaceMaterial() != nullptr) {
+          surfaces.insert(surface);
+        }
+      }
+    };
+    mex.def("extractMaterialSurfaces",
+            [&](const Acts::Experimental::Detector& detector) {
+              MaterialSurfaceExtractor extractor;
+              detector.visitSurfaces(extractor);
+
+              std::vector<const Acts::Surface*> surfaces;
+              surfaces.reserve(extractor.surfaces.size());
+              for (const auto& surface : extractor.surfaces) {
+                surfaces.push_back(surface);
+              }
+              return surfaces;
+            });
   }
 
   ACTS_PYTHON_DECLARE_ALGORITHM(ActsExamples::VolumeAssociationTest, mex,

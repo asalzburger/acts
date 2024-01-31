@@ -25,7 +25,7 @@
 #include "Acts/Material/MaterialGridHelper.hpp"
 #include "Acts/Material/MaterialSlab.hpp"
 #include "Acts/Material/ProtoVolumeMaterial.hpp"
-#include "Acts/Material/VolumeMaterialMapper.hpp"
+#include "Acts/Material/LegacyVolumeMaterialMapper.hpp"
 #include "Acts/Propagator/AbortList.hpp"
 #include "Acts/Propagator/ActionList.hpp"
 #include "Acts/Propagator/Navigator.hpp"
@@ -138,25 +138,25 @@ BOOST_AUTO_TEST_CASE(VolumeMaterialMapper_tests) {
   /// We need a Navigator, Stepper to build a Propagator
   Navigator navigator({tGeometry});
   StraightLineStepper stepper;
-  VolumeMaterialMapper::StraightLinePropagator propagator(stepper,
+  LegacyVolumeMaterialMapper::StraightLinePropagator propagator(stepper,
                                                           std::move(navigator));
 
   /// The config object
-  Acts::VolumeMaterialMapper::Config vmmConfig;
+  Acts::LegacyVolumeMaterialMapper::Config vmmConfig;
   vmmConfig.trackingGeometry = tGeometry;
-  Acts::VolumeMaterialMapper vmMapper(
+  Acts::LegacyVolumeMaterialMapper vmMapper(
       vmmConfig, std::move(propagator),
-      getDefaultLogger("VolumeMaterialMapper", Logging::VERBOSE));
+      getDefaultLogger("LegacyVolumeMaterialMapper", Logging::VERBOSE));
 
   /// Create some contexts
   GeometryContext gCtx;
   MagneticFieldContext mfCtx;
 
   /// Now create the mapper state
-  auto imState = vmMapper.createState(gCtx, mfCtx);
+  auto imState = vmMapper.createState();
 
-  Acts::VolumeMaterialMapper::State* mState =
-      static_cast<Acts::VolumeMaterialMapper::State*>(imState.get());
+  Acts::LegacyVolumeMaterialMapper::State* mState =
+      static_cast<Acts::LegacyVolumeMaterialMapper::State*>(imState.get());
 
   /// Test if this is not null
   BOOST_CHECK_EQUAL(mState->materialBin.size(), 3u);

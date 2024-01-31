@@ -9,28 +9,15 @@
 #pragma once
 
 #include "Acts/Geometry/GeometryContext.hpp"
-#include "Acts/Geometry/GeometryIdentifier.hpp"
-#include "Acts/MagneticField/MagneticFieldContext.hpp"
 #include "Acts/Material/DetectorMaterial.hpp"
-#include "Acts/Material/MaterialInteraction.hpp"
-#include "Acts/Material/SurfaceMaterialMapper.hpp"
-#include "Acts/Material/VolumeMaterialMapper.hpp"
+#include "Acts/Material/interface/IMaterialMapper.hpp"
 #include "Acts/Utilities/Logger.hpp"
 #include "ActsExamples/Framework/DataHandle.hpp"
 #include "ActsExamples/Framework/IAlgorithm.hpp"
 #include "ActsExamples/Framework/ProcessCode.hpp"
-#include "ActsExamples/MaterialMapping/IMaterialWriter.hpp"
 
-#include <climits>
-#include <cstddef>
-#include <cstdint>
-#include <functional>
-#include <map>
 #include <memory>
-#include <mutex>
 #include <string>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 namespace ActsExamples {
@@ -38,21 +25,13 @@ class IMaterialWriter;
 struct AlgorithmContext;
 }  // namespace ActsExamples
 
-namespace Acts {
-
-class TrackingGeometry;
-
-}  // namespace Acts
-
 namespace ActsExamples {
 
 /// @class MaterialMapping
 ///
-/// @brief Initiates and executes material mapping
-///
-/// The MaterialMapping reads in the MaterialTrack with a dedicated
-/// reader and uses the material mapper to project the material onto
-/// the tracking geometry
+/// @brief Initiates and executes material mapping in its most simple
+/// form. It takes a single material mapper, reads the material tracks,
+/// maps and writes mapped, unmapped tracks such as final maps.
 ///
 /// By construction, the material mapping needs inter-event information
 /// to build the material maps of accumulated single particle views.
@@ -66,30 +45,22 @@ class MaterialMapping : public IAlgorithm {
   /// @class nested Config class
   /// of the MaterialMapping algorithm
   struct Config {
-    // Geometry context for the state creation
-    std::reference_wrapper<const Acts::GeometryContext> geoContext;
+    using Mapper = std::shared_ptr<const Acts::IMaterialMapper>;
 
-    // MagneticField  context for the state creation
-    std::reference_wrapper<const Acts::MagneticFieldContext> magFieldContext;
-
-    /// Input collection
+    /// Input collection: input material maps
     std::string collection = "material_tracks";
 
-    /// The material collection to be stored
-    std::string mappingMaterialCollection = "mapped_material_tracks";
+    /// Output collection: mapped material tracks
+    std::string mappedMaterialCollection = "mapped_material_tracks";
 
-    /// The ACTS surface material mapper
-    std::shared_ptr<Acts::SurfaceMaterialMapper> materialSurfaceMapper =
-        nullptr;
+    /// Output collection: un-mapped material tracks
+    std::string unmappedMaterialCollection = "unmapped_material_tracks";
 
-    /// The ACTS volume material mapper
-    std::shared_ptr<Acts::VolumeMaterialMapper> materialVolumeMapper = nullptr;
+    /// The mappers which
+    std::shared_ptr<Acts::IMaterialMapper> materialMapper = nullptr;
 
     /// The writer of the material
     std::vector<std::shared_ptr<IMaterialWriter>> materialWriters{};
-
-    /// The TrackingGeometry to be mapped on
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry = nullptr;
   };
 
   /// Constructor
@@ -109,26 +80,19 @@ class MaterialMapping : public IAlgorithm {
   ActsExamples::ProcessCode execute(
       const AlgorithmContext& context) const override;
 
-  /// Return the parameters to optimised the material map for a given surface
-  /// Those parameters are the variance and the number of track for each bin
-  ///
-  /// @param surfaceID the ID of the surface of interest
-  std::vector<std::pair<double, int>> scoringParameters(uint64_t surfaceID);
-
-  /// Readonly access to the config
-  const Config& config() const { return m_cfg; }
-
  private:
-  Config m_cfg;  //!< internal config object
-  std::unique_ptr<Acts::IMaterialMapper::State> m_mappingState =
-      nullptr;  //!< Material mapping state
-  std::unique_ptr<Acts::IMaterialMapper::State> m_mappingStateVol =
-      nullptr;  //!< Material mapping state
+  Config m_cfg;
+
+  std::unique_ptr<Acts::IMaterialMapper::State> m_state = nullptr;
 
   ReadDataHandle<std::unordered_map<std::size_t, Acts::RecordedMaterialTrack>>
       m_inputMaterialTracks{this, "InputMaterialTracks"};
+
   WriteDataHandle<std::unordered_map<std::size_t, Acts::RecordedMaterialTrack>>
       m_outputMaterialTracks{this, "OutputMaterialTracks"};
+
+  WriteDataHandle<std::unordered_map<std::size_t, Acts::RecordedMaterialTrack>>
+      m_outputUnmappedMaterialTracks{this, "OutputUnmappedMaterialTracks"};
 };
 
 }  // namespace ActsExamples
