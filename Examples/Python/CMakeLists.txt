@@ -76,6 +76,13 @@ else()
   target_sources(ActsPythonBindings PRIVATE src/JsonStub.cpp)
 endif()
 
+if(ACTS_BUILD_PLUGIN_GEOMODEL)
+  target_link_libraries(ActsPythonBindings PUBLIC ActsPluginGeoModel)
+  target_sources(ActsPythonBindings PRIVATE src/GeoModel.cpp)
+else()
+  target_sources(ActsPythonBindings PRIVATE src/GeoModelStub.cpp)
+endif()
+
 if(ACTS_BUILD_PLUGIN_ACTSVG)
   target_link_libraries(ActsPythonBindings PUBLIC ActsExamplesIoSvg)
   target_sources(ActsPythonBindings PRIVATE src/Svg.cpp)

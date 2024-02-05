@@ -69,6 +69,7 @@ void addAmbiguityResolution(Context& ctx);
 // Plugins
 void addDigitization(Context& ctx);
 void addPythia8(Context& ctx);
+void addGeoModel(Context& ctx);
 void addJson(Context& ctx);
 void addHepMC3(Context& ctx);
 void addExaTrkXTrackFinding(Context& ctx);
@@ -120,6 +121,7 @@ PYBIND11_MODULE(ActsPythonBindings, m) {
   addDigitization(ctx);
   addPythia8(ctx);
   addJson(ctx);
+  addGeoModel(ctx);
   addHepMC3(ctx);
   addExaTrkXTrackFinding(ctx);
   addEDM4hep(ctx);
