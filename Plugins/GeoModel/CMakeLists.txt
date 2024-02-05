@@ -2,7 +2,8 @@ include(FetchContent)
 
 add_library(
   ActsPluginGeoModel SHARED
-  src/GeoModelReader.cpp)
+  src/GeoModelReader.cpp
+  src/GeoModelDetectorElement.cpp)
 target_include_directories(
     ActsPluginGeoModel
   PUBLIC

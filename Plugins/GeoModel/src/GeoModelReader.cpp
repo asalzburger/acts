@@ -8,19 +8,18 @@
 
 #include "Acts/Plugins/GeoModel/GeoModelReader.hpp"
 
-#include <GeoModelKernel/GeoFullPhysVol.h>
 #include <GeoModelDBManager/GMDBManager.h>
+#include <GeoModelKernel/GeoFullPhysVol.h>
 #include <GeoModelRead/ReadGeoModel.h>
 
-
-GeoVPhysVol* Acts::GeoModelReader::readFromDb(const std::string& dbPath) {
-
+Acts::GeoModelTree Acts::GeoModelReader::readFromDb(const std::string& dbPath) {
   // Data base manager
   GMDBManager* db = new GMDBManager(dbPath);
   if (!db->checkIsDBOpen()) {
     throw std::runtime_error("GeoModelReader: Could not open the database");
   }
-  // setup the GeoModel reader 
+  // Setup the GeoModel reader
   GeoModelIO::ReadGeoModel geoReader = GeoModelIO::ReadGeoModel(db);
-  return geoReader.buildGeoModel();
+  GeoModelTree geoModel{geoReader.buildGeoModel()};
+  return geoModel;
 }

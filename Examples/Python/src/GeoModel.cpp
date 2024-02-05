@@ -7,12 +7,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "Acts/Plugins/GeoModel/GeoModelReader.hpp"
+#include "Acts/Plugins/GeoModel/GeoModelTree.hpp"
 #include "Acts/Plugins/Python/Utilities.hpp"
-
-#include <GeoModelKernel/GeoFullPhysVol.h>
 
 #include <string>
 
+#include <GeoModelKernel/GeoFullPhysVol.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -22,6 +22,9 @@ using namespace pybind11::literals;
 namespace Acts::Python {
 void addGeoModel(Context& ctx) {
   auto m = ctx.get("main");
+
+  py::class_<Acts::GeoModelTree>(m, "GeoModelTree").def(py::init<>());
+
   {
     py::module m2 = m.def_submodule("GeoModelReader");
     m2.def("readFromDb", &Acts::GeoModelReader::readFromDb);
