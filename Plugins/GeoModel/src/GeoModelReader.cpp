@@ -19,7 +19,8 @@ Acts::GeoModelTree Acts::GeoModelReader::readFromDb(const std::string& dbPath) {
     throw std::runtime_error("GeoModelReader: Could not open the database");
   }
   // Setup the GeoModel reader
-  GeoModelIO::ReadGeoModel geoReader = GeoModelIO::ReadGeoModel(db);
-  GeoModelTree geoModel{geoReader.buildGeoModel()};
+  auto geoReader = std::make_shared<GeoModelIO::ReadGeoModel>(db);
+  // Read the GeoModel
+  GeoModelTree geoModel{geoReader, geoReader->buildGeoModel()};
   return geoModel;
 }

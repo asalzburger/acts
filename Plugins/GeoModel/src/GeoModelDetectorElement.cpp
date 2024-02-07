@@ -8,21 +8,31 @@
 
 #include "Acts/Plugins/GeoModel/GeoModelDetectorElement.hpp"
 
+#include "Acts/Surfaces/PlanarBounds.hpp"
+#include "Acts/Surfaces/PlaneSurface.hpp"
 #include "Acts/Surfaces/Surface.hpp"
 
 #include <utility>
 
+std::shared_ptr<Acts::GeoModelDetectorElement>
+Acts::GeoModelDetectorElement::createPlanarElement(
+    const GeoFullPhysVol& geoPhysVol, const std::shared_ptr<PlanarBounds> pBounds,
+    const Transform3& sfTransform, ActsScalar thickness) {
+  return std::make_shared<GeoModelDetectorElement>(
+      geoPhysVol, std::move(pBounds), sfTransform, thickness);
+}
+
 Acts::GeoModelDetectorElement::GeoModelDetectorElement(
-    std::shared_ptr<Acts::Surface> surface, const GeoVPhysVol& geoPhysVol,
-    const Acts::Transform3& toGlobal, Acts::ActsScalar thickness)
-    : m_surface(std::move(surface)),
-      m_geoPhysVol(&geoPhysVol),
-      m_toGlobal(toGlobal),
+    const GeoFullPhysVol& geoPhysVol, const std::shared_ptr<PlanarBounds> pBounds,
+    const Transform3& sfTransform, ActsScalar thickness)
+    : m_geoPhysVol(&geoPhysVol),
+      m_surface(Surface::makeShared<PlaneSurface>(sfTransform, pBounds)),
+      m_surfaceTransform(sfTransform),
       m_thickness(thickness) {}
 
 const Acts::Transform3& Acts::GeoModelDetectorElement::transform(
     const GeometryContext& /*gctx*/) const {
-  return m_toGlobal;
+  return m_surfaceTransform;
 }
 
 const Acts::Surface& Acts::GeoModelDetectorElement::surface() const {
@@ -37,6 +47,6 @@ Acts::ActsScalar Acts::GeoModelDetectorElement::thickness() const {
   return m_thickness;
 }
 
-const GeoVPhysVol& Acts::GeoModelDetectorElement::geoVPhysicalVolume() const {
+const GeoFullPhysVol& Acts::GeoModelDetectorElement::physicalVolume() const {
   return *m_geoPhysVol;
 }

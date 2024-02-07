@@ -15,7 +15,7 @@ class GeoVPhysVol;
 namespace Acts {
 
 struct GeoModelTree {
-  
+  std::shared_ptr<GeoModelIO::ReadGeoModel> geoReader = nullptr;
   GeoVPhysVol* worldVolume = nullptr;
 };
 }  // namespace Acts

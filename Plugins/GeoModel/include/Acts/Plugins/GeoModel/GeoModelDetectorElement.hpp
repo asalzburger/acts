@@ -15,30 +15,42 @@
 
 #include <memory>
 
-class GeoVPhysVol;
+class GeoFullPhysVol;
 
 namespace Acts {
 
 class ISurfaceMaterial;
 class Surface;
+class PlanarBounds;
 
 /// @class GeoModelDetectorElement
 ///
-/// Detector element representative for GeoModel based 
+/// Detector element representative for GeoModel based
 /// sensitive elements.
 class GeoModelDetectorElement : public DetectorElementBase {
  public:
   /// Broadcast the context type
   using ContextType = GeometryContext;
 
-  /// @brief  Constructor with arguments
-  /// @param surface the surface representing this detector element
-  /// @param geoPhysVol the physical volume representing this detector element
-  /// @param toGlobal the global transformation before the volume
-  /// @param thickness the thickness of this detector element
-  GeoModelDetectorElement(std::shared_ptr<Surface> surface,
-                        const GeoVPhysVol& geoPhysVol,
-                        const Transform3& toGlobal, ActsScalar thickness);
+  // Deleted default constructor
+  GeoModelDetectorElement() = delete;
+
+  /// @brief Factory to create a planar detector element with connected surfcace
+  ///
+  /// @param geoPhysVol reprsenting the physical volume
+  /// @param pBounds the planar bounds
+  /// @param sfTransform the surface transform
+  /// @param thickness the thickness of the detector element
+  /// @return
+  static std::shared_ptr<GeoModelDetectorElement> createPlanarElement(
+      const GeoFullPhysVol& geoPhysVol,
+                          const std::shared_ptr<PlanarBounds> pBounds,
+                          const Transform3& sfTransform, ActsScalar thickness);
+
+  /// Constructor
+  GeoModelDetectorElement(const GeoFullPhysVol& geoPhysVol,
+                          const std::shared_ptr<PlanarBounds> pBounds,
+                          const Transform3& sfTransform, ActsScalar thickness);
 
   /// Return local to global transform associated with this detector element
   ///
@@ -55,18 +67,17 @@ class GeoModelDetectorElement : public DetectorElementBase {
   ActsScalar thickness() const override;
 
   /// @return to the Geant4 physical volume
-  const GeoVPhysVol& geoVPhysicalVolume() const;
+  const GeoFullPhysVol& physicalVolume() const;
 
  private:
-  /// Corresponding Surface
+  /// The GeoModel full physical volume
+  const GeoFullPhysVol* m_geoPhysVol{nullptr};
+  /// The surface
   std::shared_ptr<Surface> m_surface;
-  /// The GEant4 physical volume
-  const GeoVPhysVol* m_geoPhysVol{nullptr};
   /// The global transformation before the volume
-  Transform3 m_toGlobal;
+  Transform3 m_surfaceTransform;
   ///  Thickness of this detector element
   ActsScalar m_thickness{0.};
 };
 
 }  // namespace Acts
-
