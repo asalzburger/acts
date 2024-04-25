@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/Detector/interface/IDetectorManipulator.hpp"
+#include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/Utilities/Logger.hpp"
 
 #include <memory>

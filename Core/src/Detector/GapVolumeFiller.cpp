@@ -9,10 +9,10 @@
 #include "Acts/Detector/GapVolumeFiller.hpp"
 
 #include "Acts/Detector/Detector.hpp"
+#include "Acts/Navigation/SurfaceCandidatesUpdaters.hpp"
 #include "Acts/Surfaces/CylinderBounds.hpp"
 #include "Acts/Surfaces/RadialBounds.hpp"
 #include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Navigation/SurfaceCandidatesUpdaters.hpp"
 #include "Acts/Utilities/Enumerate.hpp"
 
 #include <map>
@@ -62,23 +62,26 @@ void Acts::Experimental::GapVolumeFiller::apply(const GeometryContext& gctx,
                    << " already contains a surface, updating an existing local "
                       "navigation delegate is not supported.");
     } else {
-        // Make sure it exists
-        if (volumeSurfacesAssignments.find(volumePtr) == volumeSurfacesAssignments.end()) {
-            volumeSurfacesAssignments[volumePtr] = std::vector<std::shared_ptr<Surface>>();
-        }
-        volumeSurfacesAssignments[volumePtr].push_back(surface);
+      // Make sure it exists
+      if (volumeSurfacesAssignments.find(volumePtr) ==
+          volumeSurfacesAssignments.end()) {
+        volumeSurfacesAssignments[volumePtr] =
+            std::vector<std::shared_ptr<Surface>>();
+      }
+      volumeSurfacesAssignments[volumePtr].push_back(surface);
     }
   }
 
   // Finally assign the things
-    for (auto& [volume, surfaces] : volumeSurfacesAssignments) {
-        // Assign the geoIDs
-        for (auto [is, s] : enumerate(surfaces)) {
-            auto surfaceId = GeometryIdentifier(volume->geometryId()).setPassive(is+1);
-            volume->assignGeometryId(surfaceId);
-        }
-
-        volume->assignSurfaceCandidatesUpdater(tryAllPortalsAndSurfaces(), surfaces);
+  for (auto& [volume, surfaces] : volumeSurfacesAssignments) {
+    // Assign the geoIDs
+    for (auto [is, s] : enumerate(surfaces)) {
+      auto surfaceId =
+          GeometryIdentifier(volume->geometryId()).setPassive(is + 1);
+      s->assignGeometryId(surfaceId);
     }
 
+    volume->assignSurfaceCandidatesUpdater(tryAllPortalsAndSurfaces(),
+                                           surfaces);
+  }
 }

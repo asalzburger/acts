@@ -214,10 +214,13 @@ void addExperimentalGeometry(Context& ctx) {
 
   // Detector volume definition
   py::class_<DetectorVolume, std::shared_ptr<DetectorVolume>>(m,
-                                                              "DetectorVolume");
+                                                              "DetectorVolume")
+      .def("name", &DetectorVolume::name)
+      .def("geometryId", &DetectorVolume::geometryId);
 
   // Detector definition
   py::class_<Detector, std::shared_ptr<Detector>>(m, "Detector")
+      .def("volumes", &Detector::volumes)
       .def("numberVolumes",
            [](Detector& self) { return self.volumes().size(); })
       .def("extractMaterialSurfaces", [](Detector& self) {
@@ -608,7 +611,7 @@ void addExperimentalGeometry(Context& ctx) {
           {129, 575, 0., 250u, 1u},
           {185, 575, 0., 250u, 1u},
 
-          // Short Strips - barrels 
+          // Short Strips - barrels
           {237, 1180, 0., 150u, 1u},
           {337, 1180, 0., 150u, 1u},
           {477, 1180, 0., 150u, 1u},
@@ -631,7 +634,7 @@ void addExperimentalGeometry(Context& ctx) {
           {1000, 1180, 0., 100u, 1u},
 
           // Solenoid
-          { 1180, 3500., 0., 350u, 1u}
+          {1180, 3500., 0., 350u, 1u}
 
       };
 
@@ -660,8 +663,8 @@ void addExperimentalGeometry(Context& ctx) {
       */
 
       using DiscFormat =
-          std::tuple<ActsScalar, ActsScalar, std::array<ActsScalar, 2u>, std::vector<ActsScalar>,
-                     std::size_t, std::size_t>;
+          std::tuple<ActsScalar, ActsScalar, std::array<ActsScalar, 2u>,
+                     std::vector<ActsScalar>, std::size_t, std::size_t>;
 
       std::vector<DiscFormat> discs = {
 
@@ -687,7 +690,7 @@ void addExperimentalGeometry(Context& ctx) {
            {-1, 1},
            {1225, 1350, 1650, 1950, 2300, 2650, 3050},
            50u,
-           1u},          
+           1u},
 
       };
 
@@ -705,7 +708,7 @@ void addExperimentalGeometry(Context& ctx) {
           for (auto z : zpositions) {
             // Create the disc
             Transform3 transform = Transform3::Identity();
-            transform.pretranslate(Vector3(0., 0., s*z));
+            transform.pretranslate(Vector3(0., 0., s * z));
             auto disc =
                 Surface::makeShared<DiscSurface>(transform, radialBounds);
             // Add the material
