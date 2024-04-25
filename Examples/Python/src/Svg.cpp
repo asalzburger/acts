@@ -207,8 +207,11 @@ void addSvg(Context& ctx) {
 
   auto svg = m.def_submodule("svg");
 
-  // Some basics
+  // Some basics: svg object
   py::class_<actsvg::svg::object>(svg, "object");
+
+  // Some basics: svg file
+  svg.def("toFile", &Svg::toFile);
 
   // Core components, added as an acts.svg submodule
   {

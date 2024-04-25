@@ -3,6 +3,8 @@
 import json
 
 import acts
+from acts import GapVolumeFiller
+
 from acts.examples.dd4hep import (
     DD4hepDetector,
     DD4hepDetectorOptions,
@@ -23,7 +25,15 @@ if "__main__" == __name__:
     dd4hepGeometryService = DD4hepGeometryService(dd4hepConfig)
     dd4hepDetector = DD4hepDetector(dd4hepGeometryService)
 
+
+    # Detector manipulation - add material files
+    gvFillerConfig = GapVolumeFiller.Config()
+    gvFillerConfig.surfaces = acts.examples.constructMaterialSurfacesODD()
+
+    gvFiller = GapVolumeFiller(gvFillerConfig, "GapVolumeFillerODD", acts.logging.DEBUG)
+
     cOptions = DD4hepDetectorOptions(logLevel=acts.logging.INFO, emulateToGraph="")
+    cOptions.detectorManipulator = gvFiller
 
     # Uncomment if you want to use the geometry id mapping
     # This map can be produced with the 'geometry.py' script
@@ -47,6 +57,9 @@ if "__main__" == __name__:
     geoContext = acts.GeometryContext()
     [detector, contextors, store] = dd4hepDetector.finalize(geoContext, cOptions)
 
+    
+
+
     surfaceStyle = acts.svg.Style()
     surfaceStyle.fillColor = [5, 150, 245]
     surfaceStyle.fillOpacity = 0.5
@@ -58,25 +71,41 @@ if "__main__" == __name__:
     volumeOptions = acts.svg.DetectorVolumeOptions()
     volumeOptions.surfaceOptions = surfaceOptions
 
-    for ivol in range(detector.number_volumes()):
-        acts.svg.viewDetector(
-            geoContext,
-            detector,
-            "odd-xy",
-            [[ivol, volumeOptions]],
-            [["xy", ["sensitives"], viewRange]],
-            "vol_" + str(ivol),
+    # for ivol in range(detector.numberVolumes()):
+    #    acts.svg.viewDetector(
+    #        geoContext,
+    #        detector,
+    #        "odd-xy",
+    #        [[ivol, volumeOptions]],
+    #        [["xy", ["sensitives"], viewRange]],
+    #        "vol_" + str(ivol),
+    #    )
+
+    xyRange = acts.Extent([[acts.Binning.z, [-580, 580]]])
+    zrRange = acts.Extent([[acts.Binning.phi, [-0.1, 0.1]]])
+
+    materialSurfaces = detector.extractMaterialSurfaces()
+    print("Extracted number of material surfaces: ", len(materialSurfaces))
+
+    cOptions = acts.svg.SurfaceOptions()
+    svgMaterialSurfaces = []
+    for materialSurface in materialSurfaces:
+        svgMaterialSurfaces.append(
+            acts.svg.viewSurface(
+                acts.svg.convertSurface(geoContext, materialSurface, cOptions),
+                "msurface",
+                "zr",
+            )
         )
 
-    xyRange = acts.Extent([[acts.Binning.z, [-50, 50]]])
-    zrRange = acts.Extent([[acts.Binning.phi, [-0.1, 0.1]]])
+    acts.svg.toFile(svgMaterialSurfaces, "odd-material-surfaces.svg")
 
     acts.svg.viewDetector(
         geoContext,
         detector,
         "odd",
-        [[ivol, volumeOptions] for ivol in range(detector.number_volumes())],
-        [["xy", ["sensitives"], xyRange], ["zr", ["materials"], zrRange]],
+        [[ivol, volumeOptions] for ivol in range(detector.numberVolumes())],
+        [["xy", ["sensitives", "materials"], xyRange], ["zr", ["sensitives", "materials", "portals"], zrRange]],
         "detector",
     )
 

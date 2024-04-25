@@ -10,6 +10,7 @@
 
 #include "Acts/Detector/Detector.hpp"
 #include "Acts/Detector/DetectorVolume.hpp"
+#include "Acts/Detector/interface/IDetectorManipulator.hpp"
 #include "Acts/Detector/interface/IGeometryIdGenerator.hpp"
 #include "Acts/Navigation/DetectorVolumeFinders.hpp"
 
@@ -45,6 +46,12 @@ Acts::Experimental::DetectorBuilder::construct(
     });
   }
 
-  return Detector::makeShared(m_cfg.name, std::move(roots.volumes),
-                              std::move(roots.volumeFinder));
+  auto detector = Detector::makeShared(m_cfg.name, std::move(roots.volumes),
+                                       std::move(roots.volumeFinder));
+  if (m_cfg.manipulator != nullptr) {
+    ACTS_DEBUG("Manipulating the detector");
+    m_cfg.manipulator->apply(gctx, *detector);
+  }
+
+  return detector;
 }
