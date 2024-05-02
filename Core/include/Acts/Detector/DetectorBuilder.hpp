@@ -22,6 +22,7 @@ class IMaterialDecorator;
 namespace Experimental {
 
 class IGeometryIdGenerator;
+class IDetectorManipulator;
 
 /// @brief Standard generic Detector builder that calls
 /// the top level component builder and transfers the
@@ -42,6 +43,8 @@ class DetectorBuilder final : public IDetectorBuilder {
     std::shared_ptr<const IGeometryIdGenerator> geoIdGenerator = nullptr;
     /// A material decorator
     std::shared_ptr<const IMaterialDecorator> materialDecorator = nullptr;
+    /// A detector manipulator
+    std::shared_ptr<const IDetectorManipulator> manipulator = nullptr;
     /// Auxiliary information
     std::string auxiliary = "";
   };

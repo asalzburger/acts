@@ -92,6 +92,7 @@ Acts::Experimental::DD4hepDetectorStructure::construct(
                               ? options.geoIdGenerator
                               : dd4hepBlueprint->geoIdGenerator;
     dCfg.materialDecorator = options.materialDecorator;
+    dCfg.manipulator = options.detectorManipulator;
     detector = DetectorBuilder(dCfg, getDefaultLogger("DD4hepDetectorBuilder",
                                                       options.logLevel))
                    .construct(gctx);

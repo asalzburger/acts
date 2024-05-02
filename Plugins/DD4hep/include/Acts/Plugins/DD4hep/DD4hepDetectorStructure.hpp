@@ -10,6 +10,7 @@
 
 #include "Acts/Detector/Blueprint.hpp"
 #include "Acts/Detector/Detector.hpp"
+#include "Acts/Detector/interface/IDetectorManipulator.hpp"
 #include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/Plugins/DD4hep/DD4hepDetectorElement.hpp"
 #include "Acts/Utilities/Logger.hpp"
@@ -48,6 +49,8 @@ class DD4hepDetectorStructure {
     std::shared_ptr<const IGeometryIdGenerator> geoIdGenerator = nullptr;
     /// A Top level material decorator
     std::shared_ptr<const IMaterialDecorator> materialDecorator = nullptr;
+    /// A detector manipulator
+    std::shared_ptr<const IDetectorManipulator> detectorManipulator = nullptr;
   };
 
   /// Constructor with from file name
