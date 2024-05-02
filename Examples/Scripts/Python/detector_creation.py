@@ -60,7 +60,6 @@ if "__main__" == __name__:
     # Detector manipulation - add material files
     gvFillerConfig = GapVolumeFiller.Config()
     gvFillerConfig.surfaces = acts.examples.constructMaterialSurfacesODD()
-
     gvFiller = GapVolumeFiller(gvFillerConfig, "GapVolumeFillerODD", acts.logging.DEBUG)
 
     # Create the dd4hep geometry service and detector
@@ -97,10 +96,11 @@ if "__main__" == __name__:
 
     # JSON output
     if args.json_detray:
-        acts.examples.writeDetectorToJsonDetray(geoContext, detector, "odd-detray")
+            acts.examples.writeDetectorToJsonDetray(geoContext, detector, "odd-detray")
+
 
     # OBJ style output
-    if args.obj:
+    if args.obj :
         surfaces = []
         for vol in detector.volumePtrs():
             for surf in vol.surfacePtrs():
@@ -111,7 +111,7 @@ if "__main__" == __name__:
         )
 
     # SVG style output
-    if args.svg:
+    if args.svg :
         surfaceStyle = acts.svg.Style()
         surfaceStyle.fillColor = [5, 150, 245]
         surfaceStyle.fillOpacity = 0.5

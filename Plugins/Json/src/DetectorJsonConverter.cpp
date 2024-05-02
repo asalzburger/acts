@@ -19,6 +19,8 @@
 #include "Acts/Plugins/Json/PortalJsonConverter.hpp"
 #include "Acts/Utilities/Enumerate.hpp"
 #include "Acts/Utilities/Helpers.hpp"
+// Binned surface material
+#include "Acts/Material/BinnedSurfaceMaterial.hpp"
 
 #include <algorithm>
 #include <ctime>
@@ -172,8 +174,93 @@ nlohmann::json Acts::DetectorJsonConverter::toJsonDetray(
   jFile["surface_grids"] = jSurfaceGrids;
 
   // (3) material section
-  nlohmann::json jMaterial;
+  jCommonHeader["tag"] = "material_maps";
 
+  nlohmann::json jMaterial;
+  nlohmann::json jMaterialHeader;
+  nlohmann::json jMaterialData;
+  jMaterialHeader["common"] = jCommonHeader;
+
+  // Shared across all volumes
+  nlohmann::json jPhiAxis;
+  jPhiAxis["label"] = 0;
+  jPhiAxis["bounds"] = 2;
+  jPhiAxis["binning"] = 0;
+  jPhiAxis["bins"] = 1;
+  jPhiAxis["edges"] = std::array<double, 2>{-M_PI, M_PI};
+  // Non-azimutal axis
+  nlohmann::json jNonAzimutalAxis;
+  jNonAzimutalAxis["label"] = 1;
+  jNonAzimutalAxis["bounds"] = 1;
+  jNonAzimutalAxis["binning"] = 0;
+
+  nlohmann::json jMaterialGrids;
+  std::size_t nGrids = 0;
+  for (const auto [iv, volume] : enumerate(volumes)) {
+    // Create the material json
+    for (const auto [is, surface] : enumerate(volume->surfaces())) {
+      if (auto binnedMaterial = dynamic_cast<const BinnedSurfaceMaterial*>(
+              surface->surfaceMaterial());
+          binnedMaterial != nullptr) {
+
+
+        // Get the bin unitility
+        const BinUtility& bUtility = binnedMaterial->binUtility();
+        const auto& bDataVec = bUtility.binningData();
+
+        if (bDataVec.size() == 1u) {
+
+          // Grab the binning data
+          const BinningData& bData = bDataVec.front();
+          Acts::BinningValue bValue = bData.binvalue;
+          // The number of bins
+          jNonAzimutalAxis["bins"] = bData.bins();
+          jNonAzimutalAxis["edges"] = std::array<double,2>{bData.min, bData.max};
+
+          // Create the grid json
+          ++nGrids;
+          nlohmann::json jMaterialGrid;
+          jMaterialGrid["volume_link"] = iv;
+          // The axes 
+          jMaterialGrid["axes"] = {jPhiAxis, jNonAzimutalAxis};
+
+          // Grid link information
+          nlohmann::json jGridLink;
+          jGridLink["type"] = 3;
+          jGridLink["index"] = 0;
+
+          // Owner link
+          jMaterialGrid["owner_link"] = is;
+
+          // temporary code - to be extracted
+          nlohmann::json jAxes;
+
+          // The bins
+          nlohmann::json jBins;
+
+          for (unsigned int ib = 0; ib < bData.bins(); ++ib){
+            nlohmann::json jBin;
+            // Local index
+            std::array<unsigned int, 2u> locIndex = {0, ib};
+            jBin["loc_index"] = locIndex;
+
+            // The content
+            nlohmann::json jContent;
+
+          }
+
+
+          // The grid 
+          jMaterialGrids.push_back(jMaterialGrid);
+        }
+      }
+    }
+  }
+  jMaterialData["grids"] = jMaterialGrids;
+  // Fill the header
+  jMaterialHeader["grids"] = nGrids;
+  jMaterial["header"] = jMaterialHeader;
+  jMaterial["data"] = jMaterialData;
   jFile["material"] = jMaterial;
 
   return jFile;
