@@ -16,6 +16,7 @@ target_sources(
     DetectorBuilder.cpp
     DetectorVolume.cpp
     DetectorVolumeBuilder.cpp
+    GapVolumeFiller.cpp
     IndexedRootVolumeFinderBuilder.cpp
     LayerStructureBuilder.cpp
     Portal.cpp

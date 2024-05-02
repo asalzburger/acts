@@ -210,6 +210,9 @@ void addSvg(Context& ctx) {
   // Some basics
   py::class_<actsvg::svg::object>(svg, "object");
 
+  // Some basics: svg file
+  svg.def("toFile", &Svg::toFile);
+
   // Core components, added as an acts.svg submodule
   {
     auto c = py::class_<Svg::Style>(svg, "Style").def(py::init<>());

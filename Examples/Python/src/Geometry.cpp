@@ -13,6 +13,7 @@
 #include "Acts/Detector/DetectorBuilder.hpp"
 #include "Acts/Detector/DetectorVolume.hpp"
 #include "Acts/Detector/DetectorVolumeBuilder.hpp"
+#include "Acts/Detector/GapVolumeFiller.hpp"
 #include "Acts/Detector/GeometryIdGenerator.hpp"
 #include "Acts/Detector/IndexedRootVolumeFinderBuilder.hpp"
 #include "Acts/Detector/KdtSurfacesProvider.hpp"
@@ -32,7 +33,11 @@
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/Geometry/Volume.hpp"
 #include "Acts/Geometry/VolumeBounds.hpp"
+#include "Acts/Material/ProtoSurfaceMaterial.hpp"
 #include "Acts/Plugins/Python/Utilities.hpp"
+#include "Acts/Surfaces/CylinderSurface.hpp"
+#include "Acts/Surfaces/DiscSurface.hpp"
+#include "Acts/Surfaces/RadialBounds.hpp"
 #include "Acts/Surfaces/Surface.hpp"
 #include "Acts/Surfaces/SurfaceArray.hpp"
 #include "Acts/Utilities/RangeXD.hpp"
@@ -553,6 +558,170 @@ void addExperimentalGeometry(Context& ctx) {
     ACTS_PYTHON_MEMBER(materialDecorator);
     ACTS_PYTHON_MEMBER(auxiliary);
     ACTS_PYTHON_STRUCT_END();
+  }
+
+  {
+    py::class_<Acts::Experimental::IDetectorManipulator,
+               std::shared_ptr<Acts::Experimental::IDetectorManipulator>>(
+        m, "IDetectorManipulator");
+
+    auto gvFiller =
+        py::class_<Acts::Experimental::GapVolumeFiller,
+                   Acts::Experimental::IDetectorManipulator,
+                   std::shared_ptr<Acts::Experimental::GapVolumeFiller>>(
+            m, "GapVolumeFiller")
+            .def(py::init(
+                [](const Acts::Experimental::GapVolumeFiller::Config& config,
+                   const std::string& name, Acts::Logging::Level level) {
+                  return std::make_shared<Acts::Experimental::GapVolumeFiller>(
+                      config, getDefaultLogger(name, level));
+                }));
+
+    auto gvConfig = py::class_<Acts::Experimental::GapVolumeFiller::Config>(
+                        gvFiller, "Config")
+                        .def(py::init<>());
+
+    ACTS_PYTHON_STRUCT_BEGIN(gvConfig,
+                             Acts::Experimental::GapVolumeFiller::Config);
+    ACTS_PYTHON_MEMBER(surfaces);
+    ACTS_PYTHON_STRUCT_END();
+  }
+
+  {
+    mex.def("constructMaterialSurfacesODD", []() {
+      std::vector<std::shared_ptr<Acts::Surface>> surfaces;
+
+      /**
+       * Cylinder format
+       *
+      ActsScalar r = 800;
+      ActsScalar hz = 1150.;
+      ActsScalar z = 0.;
+      std::size_t nBinsZ = 100u;
+      std::size_t nBinsPhi = 1u;
+      **/
+      using CylinderFormat = std::tuple<ActsScalar, ActsScalar, ActsScalar,
+                                        std::size_t, std::size_t>;
+
+      std::vector<CylinderFormat> cylinders = {
+
+          // Pixels
+          {42, 575, 0., 250u, 1u},
+          {80, 575, 0., 250u, 1u},
+          {129, 575, 0., 250u, 1u},
+          {185, 575, 0., 250u, 1u},
+
+          // Short Strips - barrels
+          {237, 1180, 0., 150u, 1u},
+          {337, 1180, 0., 150u, 1u},
+          {477, 1180, 0., 150u, 1u},
+          {637, 1180, 0., 150u, 1u},
+
+          // Inter short / long strip endcap
+          {730, 90, -1460., 10u, 1u},
+          {730, 90, 1460., 10u, 1u},
+          {730, 100, -1760., 10u, 1u},
+          {730, 100, 1760., 10u, 1u},
+          {730, 110, -2080., 10u, 1u},
+          {730, 110, 2080., 10u, 1u},
+          {730, 120, -2430., 10u, 1u},
+          {730, 120, 2430., 10u, 1u},
+          {730, 130, -2790., 10u, 1u},
+          {730, 130, 2790., 10u, 1u},
+
+          // Long Strip section
+          {800, 1180, 0., 100u, 1u},
+          {1000, 1180, 0., 100u, 1u},
+
+          // Solenoid
+          {1180, 3500., 0., 350u, 1u}
+
+      };
+
+      for (auto [r, hz, z, binsZ, binsPhi] : cylinders) {
+        // Create the cylinder
+        Transform3 transform = Transform3::Identity();
+        transform.pretranslate(Vector3(0., 0., z));
+        auto cylinder = Surface::makeShared<CylinderSurface>(transform, r, hz);
+        // Add the material
+        BinUtility binUtility(binsZ, -hz, hz, open, binZ, transform);
+        if (binsPhi > 1) {
+          binUtility += BinUtility(binsPhi, -M_PI, M_PI, closed, binPhi);
+        }
+        auto protoMaterial = std::make_shared<ProtoSurfaceMaterial>(binUtility);
+        cylinder->assignSurfaceMaterial(protoMaterial);
+        surfaces.push_back(cylinder);
+      }
+
+      // Endcap format
+      /** ActsScalar ri ... inner radius
+          ActsScalar ro ... outer radius
+          array<ActsScalar, 2u> signs
+          vector<ActsScalar> z positions
+      std::size_t nBinsR= 100u;
+      std::size_t nBinsPhi = 1u;
+      */
+
+      using DiscFormat =
+          std::tuple<ActsScalar, ActsScalar, std::array<ActsScalar, 2u>,
+                     std::vector<ActsScalar>, std::size_t, std::size_t>;
+
+      std::vector<DiscFormat> discs = {
+
+          // Pixels
+          {33,
+           193,
+           {-1, 1},
+           {590, 640, 740, 860, 1000, 1140, 1340, 1540, 2000},
+           50u,
+           1u},
+
+          // Short Strips
+          {210,
+           710,
+           {-1, 1},
+           {1225, 1325, 1575, 1875, 2225, 2575, 2975},
+           50u,
+           1u},
+
+          // Long Strips
+          {740,
+           1120,
+           {-1, 1},
+           {1225, 1350, 1650, 1950, 2300, 2650, 3050},
+           50u,
+           1u},
+
+      };
+
+      // Add the discs
+      for (auto [rI, rO, signs, zpositions, binsR, binsPhi] : discs) {
+        // Bin utility to be done
+        BinUtility binUtility(binsR, rI, rO, open, binR);
+        if (binsPhi > 1) {
+          binUtility += BinUtility(binsPhi, -M_PI, M_PI, closed, binPhi);
+        }
+
+        auto radialBounds = std::make_shared<RadialBounds>(rI, rO);
+
+        for (auto s : signs) {
+          for (auto z : zpositions) {
+            // Create the disc
+            Transform3 transform = Transform3::Identity();
+            transform.pretranslate(Vector3(0., 0., s * z));
+            auto disc =
+                Surface::makeShared<DiscSurface>(transform, radialBounds);
+            // Add the material
+            auto protoMaterial =
+                std::make_shared<ProtoSurfaceMaterial>(binUtility);
+            disc->assignSurfaceMaterial(protoMaterial);
+            surfaces.push_back(disc);
+          }
+        }
+      }
+
+      return surfaces;
+    });
   }
 
   ACTS_PYTHON_DECLARE_ALGORITHM(ActsExamples::VolumeAssociationTest, mex,

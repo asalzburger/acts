@@ -10,6 +10,7 @@
 
 #include "Acts/Detector/Detector.hpp"
 #include "Acts/Detector/DetectorVolume.hpp"
+#include "Acts/Detector/interface/IDetectorManipulator.hpp"
 #include "Acts/Detector/interface/IGeometryIdGenerator.hpp"
 #include "Acts/Material/IMaterialDecorator.hpp"
 #include "Acts/Navigation/DetectorVolumeFinders.hpp"
@@ -37,16 +38,6 @@ Acts::Experimental::DetectorBuilder::construct(
 
   auto [volumes, portals, roots] = m_cfg.builder->construct(gctx);
 
-  // Decorate the volumes with material - Surface material only at this moment
-  if (m_cfg.materialDecorator != nullptr) {
-    ACTS_DEBUG("Decorating the detector with material");
-    std::for_each(volumes.begin(), volumes.end(), [&](auto& v) {
-      for (auto& sf : v->surfacePtrs()) {
-        m_cfg.materialDecorator->decorate(*sf);
-      }
-    });
-  }
-
   // Assign the geometry ids to the detector - if configured
   if (m_cfg.geoIdGenerator != nullptr) {
     ACTS_DEBUG("Assigning geometry ids to the detector");
@@ -57,6 +48,24 @@ Acts::Experimental::DetectorBuilder::construct(
     });
   }
 
-  return Detector::makeShared(m_cfg.name, std::move(roots.volumes),
-                              std::move(roots.volumeFinder));
+  auto detector = Detector::makeShared(m_cfg.name, std::move(roots.volumes),
+                                       std::move(roots.volumeFinder));
+
+  if (m_cfg.manipulator != nullptr) {
+    ACTS_DEBUG("Manipulating the detector");
+    m_cfg.manipulator->apply(gctx, *detector);
+  }
+
+  // Decorate the volumes with material - Surface material only at this moment
+  if (m_cfg.materialDecorator != nullptr) {
+    ACTS_DEBUG("Decorating the detector with material");
+    std::for_each(detector->volumePtrs().begin(), detector->volumePtrs().end(),
+                  [&](auto& v) {
+                    for (auto& sf : v->surfacePtrs()) {
+                      m_cfg.materialDecorator->decorate(*sf);
+                    }
+                  });
+  }
+
+  return detector;
 }

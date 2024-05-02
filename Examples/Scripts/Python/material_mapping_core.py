@@ -3,6 +3,8 @@
 import argparse
 
 import acts
+from acts import GapVolumeFiller
+
 from acts import (
     MaterialMapper,
     IntersectionMaterialAssigner,
@@ -156,6 +158,11 @@ if "__main__" == __name__:
     if args.experimental:
         odd_xml = getOpenDataDetectorDirectory() / "xml" / "OpenDataDetector.xml"
 
+        # Detector manipulation - add material files
+        gvFillerConfig = GapVolumeFiller.Config()
+        gvFillerConfig.surfaces = acts.examples.constructMaterialSurfacesODD()
+        gvFiller = GapVolumeFiller(gvFillerConfig, "GapVolumeFillerODD", acts.logging.DEBUG)
+
         # Create the dd4hep geometry service and detector
         dd4hepConfig = DD4hepGeometryService.Config()
         dd4hepConfig.logLevel = acts.logging.INFO
@@ -164,6 +171,7 @@ if "__main__" == __name__:
         dd4hepDetector = DD4hepDetector(dd4hepGeometryService)
 
         cOptions = DD4hepDetectorOptions(logLevel=acts.logging.INFO, emulateToGraph="")
+        cOptions.detectorManipulator = gvFiller
 
         # Context and options
         geoContext = acts.GeometryContext()
