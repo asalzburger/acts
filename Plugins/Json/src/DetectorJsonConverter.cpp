@@ -183,82 +183,121 @@ nlohmann::json Acts::DetectorJsonConverter::toJsonDetray(
 
   // Shared across all volumes
   nlohmann::json jPhiAxis;
-  jPhiAxis["label"] = 0;
   jPhiAxis["bounds"] = 2;
   jPhiAxis["binning"] = 0;
   jPhiAxis["bins"] = 1;
   jPhiAxis["edges"] = std::array<double, 2>{-M_PI, M_PI};
   // Non-azimutal axis
   nlohmann::json jNonAzimutalAxis;
-  jNonAzimutalAxis["label"] = 1;
   jNonAzimutalAxis["bounds"] = 1;
   jNonAzimutalAxis["binning"] = 0;
 
   nlohmann::json jMaterialGrids;
   std::size_t nGrids = 0;
   for (const auto [iv, volume] : enumerate(volumes)) {
+
+    nlohmann::json jMaterialVolumeGrids;
+    jMaterialVolumeGrids["volume_link"] = iv;
+
     // Create the material json
+    int gridIndexInVoume = 0;
+    nlohmann::json jMaterialVolumeGridsData;
     for (const auto [is, surface] : enumerate(volume->surfaces())) {
       if (auto binnedMaterial = dynamic_cast<const BinnedSurfaceMaterial*>(
               surface->surfaceMaterial());
           binnedMaterial != nullptr) {
-
-
         // Get the bin unitility
         const BinUtility& bUtility = binnedMaterial->binUtility();
         const auto& bDataVec = bUtility.binningData();
 
         if (bDataVec.size() == 1u) {
+          nlohmann::json jMaterialGrid;
+          // Create the grid json
+          ++nGrids;
+          nlohmann::json jMaterialGridData;
 
           // Grab the binning data
           const BinningData& bData = bDataVec.front();
           Acts::BinningValue bValue = bData.binvalue;
-          // The number of bins
-          jNonAzimutalAxis["bins"] = bData.bins();
-          jNonAzimutalAxis["edges"] = std::array<double,2>{bData.min, bData.max};
-
-          // Create the grid json
-          ++nGrids;
-          nlohmann::json jMaterialGrid;
-          jMaterialGrid["volume_link"] = iv;
-          // The axes 
-          jMaterialGrid["axes"] = {jPhiAxis, jNonAzimutalAxis};
 
           // Grid link information
           nlohmann::json jGridLink;
-          jGridLink["type"] = 3;
-          jGridLink["index"] = 0;
+          int gridIndexType = bValue == binZ ? 3 : 0;
+          jGridLink["type"] = gridIndexType;
+          jGridLink["index"] = gridIndexInVoume++;
+          jMaterialGridData["grid_link"] = jGridLink;
 
+          // The number of bins
+          jNonAzimutalAxis["bins"] = bData.bins();
+
+          // The axes
+          if (gridIndexType == 0) {
+            jPhiAxis["label"] = 1;
+            jNonAzimutalAxis["label"] = 0;
+            jNonAzimutalAxis["edges"] =
+                std::array<double, 2>{bData.min, bData.max};
+            jMaterialGridData["axes"] = {jNonAzimutalAxis, jPhiAxis};
+          } else {
+            // Concentric cylinder is used, we apply an offset in z
+            ActsScalar zOffset = surface->center(Acts::GeometryContext{}).z();
+            jNonAzimutalAxis["edges"] =
+                std::array<double, 2>{bData.min + zOffset, bData.max + zOffset};
+            jPhiAxis["label"] = 0;
+            jNonAzimutalAxis["label"] = 1;
+            jMaterialGridData["axes"] = {jPhiAxis, jNonAzimutalAxis};
+          }
           // Owner link
-          jMaterialGrid["owner_link"] = is;
-
-          // temporary code - to be extracted
-          nlohmann::json jAxes;
+          jMaterialGridData["owner_link"] = is;
 
           // The bins
           nlohmann::json jBins;
-
-          for (unsigned int ib = 0; ib < bData.bins(); ++ib){
+          auto materialMatrix = binnedMaterial->fullMaterial();
+          for (unsigned int ib = 0; ib < bData.bins(); ++ib) {
             nlohmann::json jBin;
             // Local index
-            std::array<unsigned int, 2u> locIndex = {0, ib};
-            jBin["loc_index"] = locIndex;
-
+            unsigned int b0 = gridIndexType == 0 ? ib : 0;
+            unsigned int b1 = gridIndexType == 0 ? 0 : ib;
+            jBin["loc_index"] = std::array<unsigned int, 2u>{b0, b1};
+            MaterialSlab slab = materialMatrix[0][ib];
+            const Material& material = slab.material();
             // The content
             nlohmann::json jContent;
-
+            // consists of thickness
+            jContent["thickness"] = slab.thickness();
+            // and the actual material
+            nlohmann::json jMaterialParams;
+            if (slab.thickness() > 0.) {
+              jMaterialParams["params"] = std::vector<double>{
+                  material.X0(),          material.L0(),          material.Ar(),
+                  material.Z(),           material.massDensity(), 0,
+                  material.molarDensity()};
+            } else {
+              jMaterialParams["params"] =
+                  std::vector<double>{0., 0., 0., 0., 0., 0., 0.};
+            }
+            jContent["material"] = jMaterialParams;
+            jContent["type"]  = 6;
+            jContent["surface_idx"] = is;
+            nlohmann::json jContentVector;
+            jContentVector.push_back(jContent);
+            jBin["content"] = jContentVector;
+            jBins.push_back(jBin);
           }
-
-
-          // The grid 
-          jMaterialGrids.push_back(jMaterialGrid);
+          // Add the actual material bins
+          jMaterialGridData["bins"] = jBins;
+          // Add the data to the grid
+          jMaterialVolumeGridsData.push_back(jMaterialGridData);
         }
       }
+    }
+    if (!jMaterialVolumeGridsData.empty()) {
+      jMaterialVolumeGrids["grid_data"] = { jMaterialVolumeGridsData };
+      jMaterialGrids.push_back(jMaterialVolumeGrids);
     }
   }
   jMaterialData["grids"] = jMaterialGrids;
   // Fill the header
-  jMaterialHeader["grids"] = nGrids;
+  jMaterialHeader["grid_count"] = nGrids;
   jMaterial["header"] = jMaterialHeader;
   jMaterial["data"] = jMaterialData;
   jFile["material"] = jMaterial;
