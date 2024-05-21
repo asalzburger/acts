@@ -18,7 +18,6 @@ import acts.examples.geant4
 import acts.examples.geant4.dd4hep
 import acts.examples.geant4.geomodel
 from acts.examples.odd import getOpenDataDetector
-from acts.examples import geomodel
 
 u = acts.UnitConstants
 
@@ -110,17 +109,18 @@ def main():
 
         detectorConstructionFactory = (
             acts.examples.geant4.dd4hep.DDG4DetectorConstructionFactory(detector)
-        )        
+        )
     elif args.input.endswith(".gdml"):
         detectorConstructionFactory = (
             acts.examples.geant4.GdmlDetectorConstructionFactory(args.input)
         )
     elif args.input.endswith(".sqlite") or args.input.endswith(".db"):
-        geoModelTree = geomodel.readFromSqlite(args.input)
+        geoModelTree = acts.examples.geomodel.readFromSqlite(args.input)
         detectorConstructionFactory = (
-            acts.examples.geant4.geomodel.GeoModelDetectorConstructionFactory(geoModelTree)
+            acts.examples.geant4.geomodel.GeoModelDetectorConstructionFactory(
+                geoModelTree
+            )
         )
-
 
     runMaterialRecording(
         detectorConstructionFactory=detectorConstructionFactory,

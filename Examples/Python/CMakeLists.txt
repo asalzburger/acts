@@ -143,6 +143,9 @@ if(ACTS_BUILD_EXAMPLES_GEANT4)
       ActsPythonUtilities
       ActsExamplesGeant4)
     add_dependencies(ActsPythonBindings ActsPythonBindingsGeoModelG4)
+    install(TARGETS ActsPythonBindingsGeoModelG4 DESTINATION ${_python_install_dir})
+
+    list(APPEND py_files examples/geant4/geomodel.py)
   endif()
 
   if(ACTS_BUILD_EXAMPLES_HEPMC3)

@@ -1,6 +1,6 @@
 // This file is part of the Acts project.
 //
-// Copyright (C) 2021-2024 CERN for the benefit of the Acts project
+// Copyright (C) 2024 CERN for the benefit of the Acts project
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,7 +28,7 @@ PYBIND11_MODULE(ActsPythonBindingsGeoModelG4, m) {
 
   py::class_<GeoModelDetectorConstructionFactory, DetectorConstructionFactory,
              std::shared_ptr<GeoModelDetectorConstructionFactory>>(
-      m, "GeoModelDetectorConstruction")
+      m, "GeoModelDetectorConstructionFactory")
       .def(py::init<const Acts::GeoModelTree&,
                     std::vector<std::shared_ptr<RegionCreator>>>(),
            py::arg("geoModelTree"),

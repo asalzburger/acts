@@ -28,7 +28,6 @@ void addGeoModel(Context& ctx) {
 
   auto gm = mex.def_submodule("geomodel");
 
-
   py::class_<Acts::GeoModelDetectorElement,
              std::shared_ptr<Acts::GeoModelDetectorElement>>(
       gm, "GeoModelDetectorElement");
