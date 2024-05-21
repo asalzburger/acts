@@ -26,7 +26,6 @@ Acts::GeoModelSurfaceConverter::convertToSensitiveSurface(
   const auto& transform = geoPhysVol.getAbsoluteTransform(nullptr);
   auto fullPhysVol = dynamic_cast<const GeoFullPhysVol*>(&geoPhysVol);
 
-
   if (logVol != nullptr) {
     const GeoShape* geoShape = logVol->getShape();
     if (geoShape != nullptr) {
@@ -39,7 +38,6 @@ Acts::GeoModelSurfaceConverter::convertToSensitiveSurface(
       // Try if its a box
       auto geoBox = dynamic_cast<const GeoBox*>(geoShape);
       if (geoBox != nullptr) {
-
         std::vector<ActsScalar> halfLengths = {geoBox->getXHalfLength(),
                                                geoBox->getYHalfLength(),
                                                geoBox->getZHalfLength()};
@@ -55,7 +53,7 @@ Acts::GeoModelSurfaceConverter::convertToSensitiveSurface(
         Vector3 colZ = rotation.col(zIndex);
         rotation.col(0) = colX;
         rotation.col(1) = colY;
-        rotation.col(2) = colZ;        
+        rotation.col(2) = colZ;
         surfaceTransform.linear() = rotation;
 
         // Create the surface
@@ -66,7 +64,8 @@ Acts::GeoModelSurfaceConverter::convertToSensitiveSurface(
             std::make_shared<Acts::RectangleBounds>(halfX, halfY);
 
         auto detectorElement = std::make_shared<Acts::GeoModelDetectorElement>(
-            geoPhysVol, rectangleBounds, surfaceTransform, 2 * halfLengths[zIndex]);
+            geoPhysVol, rectangleBounds, surfaceTransform,
+            2 * halfLengths[zIndex]);
         auto surface = detectorElement->surface().getSharedPtr();
         return std::make_tuple(detectorElement, surface);
       }

@@ -15,6 +15,7 @@
 #include <string>
 
 #include <GeoModelKernel/GeoFullPhysVol.h>
+#include <GeoModelKernel/GeoVPhysVol.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -23,24 +24,24 @@ using namespace pybind11::literals;
 
 namespace Acts::Python {
 void addGeoModel(Context& ctx) {
-  auto m = ctx.get("main");
+  auto [m, mex] = ctx.get("main", "examples");
+
+  auto gm = mex.def_submodule("geomodel");
+
 
   py::class_<Acts::GeoModelDetectorElement,
              std::shared_ptr<Acts::GeoModelDetectorElement>>(
-      m, "GeoModelDetectorElement");
+      gm, "GeoModelDetectorElement");
 
-  py::class_<Acts::GeoModelTree>(m, "GeoModelTree").def(py::init<>());
+  py::class_<Acts::GeoModelTree>(gm, "GeoModelTree").def(py::init<>());
 
-  {
-    py::module m2 = m.def_submodule("GeoModelReader");
-    m2.def("readFromDb", &Acts::GeoModelReader::readFromDb);
-  }
+  gm.def("readFromSqlite", &Acts::GeoModelReader::readFromDb);
 
   {
     auto f =
         py::class_<Acts::GeoModelDetectorSurfaceFactory,
                    std::shared_ptr<Acts::GeoModelDetectorSurfaceFactory>>(
-            m, "GeoModelDetectorSurfaceFactory")
+            gm, "GeoModelDetectorSurfaceFactory")
             .def(py::init([](Acts::Logging::Level level) {
               return std::make_shared<Acts::GeoModelDetectorSurfaceFactory>(
                   Acts::getDefaultLogger("GeoModelDetectorSurfaceFactory",

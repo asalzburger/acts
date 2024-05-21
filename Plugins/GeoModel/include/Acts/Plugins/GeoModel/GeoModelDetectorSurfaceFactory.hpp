@@ -11,10 +11,10 @@
 #include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/Utilities/Logger.hpp"
 
-#include <tuple>
-#include <vector>
 #include <memory>
 #include <string>
+#include <tuple>
+#include <vector>
 
 namespace Acts {
 
@@ -24,7 +24,7 @@ class Surface;
 
 /// A factory to convert GeoModel volume into sensitive
 /// or passive surfaces which are filled into a Cache object,
-/// also the create GeoModelDetectorElements which are also 
+/// also the create GeoModelDetectorElements which are also
 /// returned.
 class GeoModelDetectorSurfaceFactory {
  public:

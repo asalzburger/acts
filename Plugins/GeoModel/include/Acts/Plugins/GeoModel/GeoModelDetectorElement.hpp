@@ -44,8 +44,8 @@ class GeoModelDetectorElement : public DetectorElementBase {
   /// @return
   static std::shared_ptr<GeoModelDetectorElement> createPlanarElement(
       const GeoFullPhysVol& geoPhysVol,
-                          const std::shared_ptr<PlanarBounds> pBounds,
-                          const Transform3& sfTransform, ActsScalar thickness);
+      const std::shared_ptr<PlanarBounds> pBounds,
+      const Transform3& sfTransform, ActsScalar thickness);
 
   /// Constructor
   GeoModelDetectorElement(const GeoFullPhysVol& geoPhysVol,

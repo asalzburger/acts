@@ -137,6 +137,14 @@ if(ACTS_BUILD_EXAMPLES_GEANT4)
     list(APPEND py_files examples/geant4/dd4hep.py)
   endif()
 
+  if(ACTS_BUILD_PLUGIN_GEOMODEL)
+    pybind11_add_module(ActsPythonBindingsGeoModelG4 src/Geant4GeoModelComponent.cpp)
+    target_link_libraries(ActsPythonBindingsGeoModelG4 PUBLIC
+      ActsPythonUtilities
+      ActsExamplesGeant4)
+    add_dependencies(ActsPythonBindings ActsPythonBindingsGeoModelG4)
+  endif()
+
   if(ACTS_BUILD_EXAMPLES_HEPMC3)
     target_link_libraries(ActsPythonBindingsGeant4 PUBLIC ActsExamplesEventRecording)
     target_sources(ActsPythonBindingsGeant4 PRIVATE src/Geant4HepMC3.cpp)

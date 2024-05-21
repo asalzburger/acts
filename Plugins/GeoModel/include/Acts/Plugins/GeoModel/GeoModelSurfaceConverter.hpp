@@ -20,7 +20,6 @@ using GeoModelSensitiveSurface =
 
 namespace GeoModelSurfaceConverter {
 
-
 /// @brief conversion to sensitive surface
 ///
 /// @param geoPhysVol the geoPhysVol to convert
@@ -28,5 +27,5 @@ namespace GeoModelSurfaceConverter {
 /// @return a detector element and a surface
 GeoModelSensitiveSurface convertToSensitiveSurface(
     const GeoFullPhysVol& geoPhysVol);
-}
+}  // namespace GeoModelSurfaceConverter
 }  // namespace Acts
