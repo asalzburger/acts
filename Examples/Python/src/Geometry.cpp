@@ -276,7 +276,22 @@ void addExperimentalGeometry(Context& ctx) {
                       const std::vector<Acts::ActsScalar>&, std::size_t>())
         .def(py::init<Acts::BinningValue, Acts::AxisBoundaryType,
                       Acts::ActsScalar, Acts::ActsScalar, std::size_t,
+                      std::size_t>())
+        .def(py::init<Acts::BinningValue, Acts::AxisBoundaryType, std::size_t,
                       std::size_t>());
+
+    py::class_<BinningDescription>(m, "BinningDescription")
+        .def(py::init([](const std::vector<ProtoBinning>& binnings){
+          BinningDescription bDesc;
+          bDesc.binning = binnings;
+          return bDesc;
+        }))
+        .def_static("fromBinUtility",
+                    &BinningDescription::fromBinUtility,
+                    "binUtility"_a)
+        .def("toBinUtility", &BinningDescription::toBinUtility);
+        
+
   }
 
   {
@@ -468,6 +483,7 @@ void addExperimentalGeometry(Context& ctx) {
     ACTS_PYTHON_MEMBER(name);
     ACTS_PYTHON_MEMBER(internalsBuilder);
     ACTS_PYTHON_MEMBER(externalsBuilder);
+    ACTS_PYTHON_MEMBER(portalMaterialBinning);
     ACTS_PYTHON_MEMBER(geoIdGenerator);
     ACTS_PYTHON_MEMBER(auxiliary);
     ACTS_PYTHON_STRUCT_END();

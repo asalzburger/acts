@@ -14,6 +14,7 @@
 #include "Acts/Plugins/Python/Utilities.hpp"
 #include "Acts/Utilities/AxisFwd.hpp"
 #include "Acts/Utilities/BinningData.hpp"
+#include "Acts/Utilities/BinUtility.hpp"
 #include "Acts/Utilities/CalibrationContext.hpp"
 #include "Acts/Utilities/Logger.hpp"
 
@@ -298,6 +299,8 @@ void addAlgebra(Acts::Python::Context& ctx) {
 void addBinning(Context& ctx) {
   auto& m = ctx.get("main");
   auto binning = m.def_submodule("Binning", "");
+
+  py::class_<Acts::BinUtility>(binning, "BinUtility");
 
   auto binningValue = py::enum_<Acts::BinningValue>(binning, "BinningValue")
                           .value("x", Acts::BinningValue::binX)

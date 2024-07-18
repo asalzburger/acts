@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="12" Z="6" name="C120x1c85a10">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C130x1c85a60">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="Carbon0x1c858b0">
+      <fraction n="0.9893" ref="C120x1c85a10"/>
+      <fraction n="0.0107" ref="C130x1c85a60"/>
+    </element>
+    <material name="CarbonFoam0x1c8d3d0" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="81"/>
+      <D unit="g/cm3" value="0.5"/>
+      <fraction n="1" ref="Carbon0x1c858b0"/>
+    </material>
+    <isotope N="28" Z="14" name="Si280xe9dd20">
+      <atom unit="g/mole" value="27.9769"/>
+    </isotope>
+    <isotope N="29" Z="14" name="Si290xe9dcd0">
+      <atom unit="g/mole" value="28.9765"/>
+    </isotope>
+    <isotope N="30" Z="14" name="Si300xe9e260">
+      <atom unit="g/mole" value="29.9738"/>
+    </isotope>
+    <element name="Si0xe9e2e0">
+      <fraction n="0.922296077703922" ref="Si280xe9dd20"/>
+      <fraction n="0.0468319531680468" ref="Si290xe9dcd0"/>
+      <fraction n="0.0308719691280309" ref="Si300xe9e260"/>
+    </element>
+    <material name="Silicon0xe9e130" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="173"/>
+      <D unit="g/cm3" value="2.33"/>
+      <fraction n="1" ref="Si0xe9e2e0"/>
+    </material>
+    <isotope N="14" Z="7" name="N140xe949c0">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N150xe94a60">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="Nitrogen0xe94880">
+      <fraction n="0.99632" ref="N140xe949c0"/>
+      <fraction n="0.00368" ref="N150xe94a60"/>
+    </element>
+    <isotope N="16" Z="8" name="O160xe94c70">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O170xe94cc0">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O180xe94d10">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="Oxygen0xe94b30">
+      <fraction n="0.99757" ref="O160xe94c70"/>
+      <fraction n="0.00038" ref="O170xe94cc0"/>
+      <fraction n="0.00205" ref="O180xe94d10"/>
+    </element>
+    <material name="Air200xeaa720" state="gas">
+      <T unit="K" value="293"/>
+      <MEE unit="eV" value="85.7030667332999"/>
+      <D unit="g/cm3" value="0.001205"/>
+      <fraction n="0.7" ref="Nitrogen0xe94880"/>
+      <fraction n="0.3" ref="Oxygen0xe94b30"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="solidAlpidFrm0x1c8b4a0" x="300" y="300" z="5"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="solidAlpidFrm4hole0x1c8ec10" rmax="4.24" rmin="0" startphi="0" z="10"/>
+    <subtraction name="solidAlpidFrm_hole0x1c8ed40">
+      <first ref="solidAlpidFrm0x1c8b4a0"/>
+      <second ref="solidAlpidFrm4hole0x1c8ec10"/>
+    </subtraction>
+    <box lunit="mm" name="solidAlpidHole0x1c8b420" x="125" y="130" z="10"/>
+    <subtraction name="solidAlpidFrm_SqrHole00x1c8eeb0">
+      <first ref="solidAlpidFrm_hole0x1c8ed40"/>
+      <second ref="solidAlpidHole0x1c8b420"/>
+      <position name="solidAlpidFrm_SqrHole00x1c8eeb0_pos" unit="mm" x="72.5" y="65" z="0"/>
+    </subtraction>
+    <subtraction name="solidAlpidFrm_SqrHole10x1c8f0c0">
+      <first ref="solidAlpidFrm_SqrHole00x1c8eeb0"/>
+      <second ref="solidAlpidHole0x1c8b420"/>
+      <position name="solidAlpidFrm_SqrHole10x1c8f0c0_pos" unit="mm" x="-62.5" y="75" z="0"/>
+    </subtraction>
+    <subtraction name="solidAlpidFrm_SqrHole20x1c8f2d0">
+      <first ref="solidAlpidFrm_SqrHole10x1c8f0c0"/>
+      <second ref="solidAlpidHole0x1c8b420"/>
+      <position name="solidAlpidFrm_SqrHole20x1c8f2d0_pos" unit="mm" x="-72.5" y="-65" z="0"/>
+    </subtraction>
+    <subtraction name="solidAlpidFrm_SqrHole30x1c8f4e0">
+      <first ref="solidAlpidFrm_SqrHole20x1c8f2d0"/>
+      <second ref="solidAlpidHole0x1c8b420"/>
+      <position name="solidAlpidFrm_SqrHole30x1c8f4e0_pos" unit="mm" x="62.5" y="-75" z="0"/>
+    </subtraction>
+    <box lunit="mm" name="solidAlpidTrk0x1c8f7a0" x="146.9" y="146.9" z="0.05"/>
+    <box lunit="mm" name="solidAlpidContainer0x1c8f970" x="300" y="300" z="0.05"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="solidIPContainer0x1c8dbc0" rmax="500" rmin="0" startphi="0" z="400"/>
+    <box lunit="mm" name="World0x1096b20" x="30000" y="30000" z="50000"/>
+  </solids>
+
+  <structure>
+    <volume name="logicAlpidFrm0x1c8f6f0">
+      <materialref ref="CarbonFoam0x1c8d3d0"/>
+      <solidref ref="solidAlpidFrm_SqrHole30x1c8f4e0"/>
+    </volume>
+    <volume name="logicAlpidTrk0x1c8f820">
+      <materialref ref="Silicon0xe9e130"/>
+      <solidref ref="solidAlpidTrk0x1c8f7a0"/>
+    </volume>
+    <volume name="logicPixStnContainer00x1c8fa50">
+      <materialref ref="Air200xeaa720"/>
+      <solidref ref="solidAlpidContainer0x1c8f970"/>
+      <physvol name="PixSensor00x1c8fb30">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor00x1c8fb30_pos" unit="mm" x="76.55" y="70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="PixSensor00x1c8fc20">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor00x1c8fc20_pos" unit="mm" x="-70.55" y="76.55" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="PixSensor00x1c8fcd0">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor00x1c8fcd0_pos" unit="mm" x="-76.55" y="-70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="PixSensor00x1c8fd90">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor00x1c8fd90_pos" unit="mm" x="70.55" y="-76.55" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="logicPixStnContainer10x1c905d0">
+      <materialref ref="Air200xeaa720"/>
+      <solidref ref="solidAlpidContainer0x1c8f970"/>
+      <physvol name="PixSensor10x1c906b0">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor10x1c906b0_pos" unit="mm" x="76.55" y="70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="PixSensor10x1c90780">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor10x1c90780_pos" unit="mm" x="-70.55" y="76.55" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="PixSensor10x1c90810">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor10x1c90810_pos" unit="mm" x="-76.55" y="-70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="PixSensor10x1c908d0">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor10x1c908d0_pos" unit="mm" x="70.55" y="-76.55" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="logicPixStnContainer20x1c90b50">
+      <materialref ref="Air200xeaa720"/>
+      <solidref ref="solidAlpidContainer0x1c8f970"/>
+      <physvol name="PixSensor20x1c90c30">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor20x1c90c30_pos" unit="mm" x="76.55" y="70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="PixSensor20x1c90d00">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor20x1c90d00_pos" unit="mm" x="-70.55" y="76.55" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="PixSensor20x1c90d90">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor20x1c90d90_pos" unit="mm" x="-76.55" y="-70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="PixSensor20x1c90e50">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor20x1c90e50_pos" unit="mm" x="70.55" y="-76.55" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="logicPixStnContainer30x1c910c0">
+      <materialref ref="Air200xeaa720"/>
+      <solidref ref="solidAlpidContainer0x1c8f970"/>
+      <physvol name="PixSensor30x1c911a0">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor30x1c911a0_pos" unit="mm" x="76.55" y="70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="PixSensor30x1c91270">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor30x1c91270_pos" unit="mm" x="-70.55" y="76.55" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="PixSensor30x1c91300">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor30x1c91300_pos" unit="mm" x="-76.55" y="-70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="PixSensor30x1c913c0">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor30x1c913c0_pos" unit="mm" x="70.55" y="-76.55" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="logicPixStnContainer40x1c91610">
+      <materialref ref="Air200xeaa720"/>
+      <solidref ref="solidAlpidContainer0x1c8f970"/>
+      <physvol name="PixSensor40x1c916f0">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor40x1c916f0_pos" unit="mm" x="76.55" y="70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="PixSensor40x1c917c0">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor40x1c917c0_pos" unit="mm" x="-70.55" y="76.55" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="PixSensor40x1c91850">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor40x1c91850_pos" unit="mm" x="-76.55" y="-70.55" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="PixSensor40x1c91910">
+        <volumeref ref="logicAlpidTrk0x1c8f820"/>
+        <position name="PixSensor40x1c91910_pos" unit="mm" x="70.55" y="-76.55" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="logicIPContainer0x1c8dcd0">
+      <materialref ref="Air200xeaa720"/>
+      <solidref ref="solidIPContainer0x1c8dbc0"/>
+      <physvol name="PixStnFrame00x1c8fe20">
+        <volumeref ref="logicAlpidFrm0x1c8f6f0"/>
+        <position name="PixStnFrame00x1c8fe20_pos" unit="mm" x="0" y="73.7" z="0"/>
+        <rotation name="PixStnFrame00x1c8fe20_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol name="PixStnLayer00x1c904a0">
+        <volumeref ref="logicPixStnContainer00x1c8fa50"/>
+        <position name="PixStnLayer00x1c904a0_pos" unit="mm" x="0" y="71.175" z="0"/>
+        <rotation name="PixStnLayer00x1c904a0_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="PixStnFrame10x1c90960">
+        <volumeref ref="logicAlpidFrm0x1c8f6f0"/>
+        <position name="PixStnFrame10x1c90960_pos" unit="mm" x="0" y="153.7" z="0"/>
+        <rotation name="PixStnFrame10x1c90960_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="PixStnLayer10x1c90a20">
+        <volumeref ref="logicPixStnContainer10x1c905d0"/>
+        <position name="PixStnLayer10x1c90a20_pos" unit="mm" x="0" y="151.175" z="0"/>
+        <rotation name="PixStnLayer10x1c90a20_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="PixStnFrame20x1c90ee0">
+        <volumeref ref="logicAlpidFrm0x1c8f6f0"/>
+        <position name="PixStnFrame20x1c90ee0_pos" unit="mm" x="0" y="203.7" z="0"/>
+        <rotation name="PixStnFrame20x1c90ee0_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="PixStnLayer20x1c90fc0">
+        <volumeref ref="logicPixStnContainer20x1c90b50"/>
+        <position name="PixStnLayer20x1c90fc0_pos" unit="mm" x="0" y="201.175" z="0"/>
+        <rotation name="PixStnLayer20x1c90fc0_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="PixStnFrame30x1c91450">
+        <volumeref ref="logicAlpidFrm0x1c8f6f0"/>
+        <position name="PixStnFrame30x1c91450_pos" unit="mm" x="0" y="253.7" z="0"/>
+        <rotation name="PixStnFrame30x1c91450_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="PixStnLayer30x1c914e0">
+        <volumeref ref="logicPixStnContainer30x1c910c0"/>
+        <position name="PixStnLayer30x1c914e0_pos" unit="mm" x="0" y="251.175" z="0"/>
+        <rotation name="PixStnLayer30x1c914e0_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="4" name="PixStnFrame40x1c919a0">
+        <volumeref ref="logicAlpidFrm0x1c8f6f0"/>
+        <position name="PixStnFrame40x1c919a0_pos" unit="mm" x="0" y="383.7" z="0"/>
+        <rotation name="PixStnFrame40x1c919a0_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="4" name="PixStnLayer40x1c91ac0">
+        <volumeref ref="logicPixStnContainer40x1c91610"/>
+        <position name="PixStnLayer40x1c91ac0_pos" unit="mm" x="0" y="381.175" z="0"/>
+        <rotation name="PixStnLayer40x1c91ac0_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="World0x1c78900">
+      <materialref ref="Air200xeaa720"/>
+      <solidref ref="World0x1096b20"/>
+      <physvol name="IPContainer0x1c8d6a0">
+        <volumeref ref="logicIPContainer0x1c8dcd0"/>
+        <rotation name="IPContainer0x1c8d6a0_rot" unit="deg" x="-90" y="0" z="0"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="World0x1c78900"/>
+  </setup>
+
+</gdml>
