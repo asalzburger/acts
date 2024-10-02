@@ -63,7 +63,7 @@ class GeoModelBlueprintCreater {
   /// The Blueprint return object
   struct Blueprint {
     std::string name;
-    std::unique_ptr<Acts::Experimental::Blueprint::Node> topNode;
+    std::shared_ptr<Acts::Experimental::Blueprint::Node> topNode;
 
     /// Access to the top node
     const Acts::Experimental::Blueprint::Node& node() const {
@@ -119,7 +119,7 @@ class GeoModelBlueprintCreater {
   /// @param motherExtent an extent given from external parameters (e.g. mother volume)
   ///
   /// @return a newly created node
-  std::unique_ptr<Experimental::Blueprint::Node> createNode(
+  std::shared_ptr<Experimental::Blueprint::Node> createNode(
       Cache& cache, const GeometryContext& gctx, const TableEntry& entry,
       const std::map<std::string, TableEntry>& tableEntryMap,
       const Extent& motherExtent = Extent()) const;
