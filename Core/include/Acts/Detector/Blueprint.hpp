@@ -52,7 +52,7 @@ struct Node final {
   /// @param e the estimated extent of the node (optional)
   Node(const std::string& n, const Transform3& t, VolumeBounds::BoundsType bt,
        const std::vector<ActsScalar>& bv, const std::vector<BinningValue>& bss,
-       std::vector<std::unique_ptr<Node>> cs = {}, const Extent& e = Extent())
+       std::vector<std::shared_ptr<Node>> cs = {}, const Extent& e = Extent())
       : name(n),
         transform(t),
         boundsType(bt),
@@ -61,7 +61,7 @@ struct Node final {
         binning(bss),
         extent(e) {
     for_each(children.begin(), children.end(),
-             [this](std::unique_ptr<Node>& c) { c->parent = this; });
+             [this](std::shared_ptr<Node>& c) { c->parent = this; });
   }
 
   /// Leaf constructor
@@ -94,7 +94,7 @@ struct Node final {
   /// Parent node - nullptr for root only
   const Node* parent = nullptr;
   /// Branch definitions: children
-  std::vector<std::unique_ptr<Node>> children = {};
+  std::vector<std::shared_ptr<Node>> children = {};
   /// Branch definition binning
   std::vector<BinningValue> binning = {};
 

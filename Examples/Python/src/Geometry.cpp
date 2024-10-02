@@ -7,6 +7,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "Acts/Definitions/Algebra.hpp"
+#include "Acts/Detector/Blueprint.hpp"
 #include "Acts/Detector/CuboidalContainerBuilder.hpp"
 #include "Acts/Detector/CylindricalContainerBuilder.hpp"
 #include "Acts/Detector/Detector.hpp"
@@ -215,10 +216,74 @@ void addGeometry(Context& ctx) {
               }
               return extent;
             }))
-        .def("range", [](const Acts::Extent& self, Acts::BinningValue bval) {
-          return std::array<Acts::ActsScalar, 2u>{self.min(bval),
-                                                  self.max(bval)};
-        });
+        .def("range",
+             [](const Acts::Extent& self, Acts::BinningValue bval) {
+               return std::array<Acts::ActsScalar, 2u>{self.min(bval),
+                                                       self.max(bval)};
+             })
+        .def("extend", [](Acts::Extent& self,
+                          const Acts::Extent& other) { self.extend(other); })
+        .def(
+            "extendToSurfaces",
+            [](Acts::Extent& self, const GeometryContext& gctx,
+               const std::vector<std::shared_ptr<const Acts::Surface>>&
+                   surfaces,
+               unsigned int nSegments) {
+              for (const auto& surface : surfaces) {
+                auto sExtent =
+                    surface->polyhedronRepresentation(gctx, nSegments).extent();
+                self.extend(sExtent);
+              }
+            });
+  }
+
+  {
+    py::class_<Acts::Experimental::Blueprint::Node,
+               std::shared_ptr<Acts::Experimental::Blueprint::Node>>(
+        m, "BlueprintNode")
+        .def_static(
+            "createBranchNode",
+            [](const std::string& name, const Transform3& t,
+               Acts::VolumeBounds::BoundsType bType,
+               const std::vector<Acts::ActsScalar>& bValues,
+               const std::vector<Acts::BinningValue>& binning,
+               std::vector<std::shared_ptr<
+                   Acts::Experimental::Blueprint::Node>>& children,
+               const Acts::Extent& extent) {
+              return std::make_shared<Acts::Experimental::Blueprint::Node>(
+                  name, t, bType, bValues, binning, std::move(children),
+                  extent);
+            })
+        .def_static(
+            "createLeafNode",
+            [](const std::string& name, const Transform3& t,
+               Acts::VolumeBounds::BoundsType bType,
+               const std::vector<Acts::ActsScalar>& bValues,
+               std::shared_ptr<
+                   const Acts::Experimental::IInternalStructureBuilder>
+                   isb,
+               const Acts::Extent& extent) {
+              return std::make_shared<Acts::Experimental::Blueprint::Node>(
+                  name, t, bType, bValues, isb, extent);
+            })
+        .def_readwrite("name", &Acts::Experimental::Blueprint::Node::name)
+        .def_readwrite("transform",
+                       &Acts::Experimental::Blueprint::Node::transform)
+        .def_readwrite("boundsType",
+                       &Acts::Experimental::Blueprint::Node::boundsType)
+        .def_readwrite("boundaryValues",
+                       &Acts::Experimental::Blueprint::Node::boundaryValues)
+        .def_readwrite("children",
+                       &Acts::Experimental::Blueprint::Node::children)
+        .def_readwrite("binning", &Acts::Experimental::Blueprint::Node::binning)
+        .def_readwrite("extent", &Acts::Experimental::Blueprint::Node::extent)
+        .def_readwrite("internalsBuilder",
+                       &Acts::Experimental::Blueprint::Node::internalsBuilder)
+        .def_readwrite(
+            "portalMaterialBinning",
+            &Acts::Experimental::Blueprint::Node::portalMaterialBinning)
+        .def_readwrite("geoIdGenerator",
+                       &Acts::Experimental::Blueprint::Node::geoIdGenerator);
   }
 }
 
@@ -305,6 +370,13 @@ void addExperimentalGeometry(Context& ctx) {
         .def(py::init<Acts::BinningValue, Acts::AxisBoundaryType,
                       Acts::ActsScalar, Acts::ActsScalar, std::size_t,
                       std::size_t>());
+
+    // Be able to construct a binning description object
+    py::class_<BinningDescription>(m, "BinningDescription")
+        .def(py::init([](const std::vector<ProtoBinning>& binning) {
+          BinningDescription desc{binning};
+          return desc;
+        }));
   }
 
   {
@@ -466,6 +538,7 @@ void addExperimentalGeometry(Context& ctx) {
     ACTS_PYTHON_MEMBER(containerId);
     ACTS_PYTHON_MEMBER(resetSubCounters);
     ACTS_PYTHON_MEMBER(overrideExistingIds);
+    ACTS_PYTHON_MEMBER(passiveAsSensitive);
     ACTS_PYTHON_STRUCT_END();
   }
 
@@ -529,6 +602,12 @@ void addExperimentalGeometry(Context& ctx) {
               return std::make_shared<CylindricalContainerBuilder>(
                   config, getDefaultLogger(name, level));
             }))
+            .def_static("createFromBlueprint",
+                        [](const Acts::Experimental::Blueprint::Node& node,
+                           Acts::Logging::Level level) {
+                          return std::make_shared<CylindricalContainerBuilder>(
+                              node, level);
+                        })
             .def("construct", &CylindricalContainerBuilder::construct);
 
     auto ccConfig =

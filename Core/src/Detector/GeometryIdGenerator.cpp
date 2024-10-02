@@ -72,7 +72,7 @@ void Acts::Experimental::GeometryIdGenerator::assignGeometryId(
     return;
   } else if ((rGeoID.sensitive() == 0 && rGeoID.passive() == 0) ||
              m_cfg.overrideExistingIds) {
-    if (surface.associatedDetectorElement() != nullptr) {
+    if (surface.associatedDetectorElement() != nullptr || m_cfg.passiveAsSensitive) {
       geoID.setSensitive(++ccache.sensitiveCount);
       ACTS_VERBOSE("Assigning sensitive id " << ccache.sensitiveCount);
     } else {

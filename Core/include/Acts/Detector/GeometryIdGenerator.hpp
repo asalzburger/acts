@@ -50,6 +50,8 @@ class GeometryIdGenerator final : public IGeometryIdGenerator {
     bool resetSubCounters = true;
     /// Force override existing ids
     bool overrideExistingIds = false;
+    /// Treat passive surfaces as sensitive
+    bool passiveAsSensitive = false;
   };
 
   /// @brief Nested cache struct
