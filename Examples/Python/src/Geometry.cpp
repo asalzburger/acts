@@ -285,6 +285,7 @@ void addGeometry(Context& ctx) {
               Acts::BinningValue bval) -> std::array<double, 2> {
              return {self.min(bval), self.max(bval)};
            })
+      .def("setRange", &Extent::set)
       .def("__str__", &Extent::toString);
 
   {

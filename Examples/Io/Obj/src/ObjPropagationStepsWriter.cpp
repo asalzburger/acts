@@ -48,9 +48,11 @@ ProcessCode ObjPropagationStepsWriter::writeT(
            << m_cfg.outputScalor * step.position.z() << '\n';
       }
       // Write out the line - only if we have at least two points created
-      std::size_t vBreak = vCounter + steps.size() - 1;
-      for (; vCounter < vBreak; ++vCounter) {
-        os << "l " << vCounter << " " << vCounter + 1 << '\n';
+      // and if configured to do so
+      if (m_cfg.drawConnections) {
+        for (std::size_t i = 0; i < steps.size() - 1; ++i) {
+          os << "l " << vCounter + i << " " << vCounter + i + 1 << '\n';
+        }
       }
     }
   }

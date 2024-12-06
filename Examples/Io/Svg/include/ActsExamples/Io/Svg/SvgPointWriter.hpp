@@ -144,11 +144,11 @@ ActsExamples::ProcessCode ActsExamples::SvgPointWriter<T, Acc>::writeT(
 
   // Open per-event files
   std::string pathXY =
-      perEventFilepath(m_cfg.outputDir, "pointsXY.svg", context.eventNumber);
+      perEventFilepath(m_cfg.outputDir, "points_xy.svg", context.eventNumber);
 
   // Open per-event files
   std::string pathZR =
-      perEventFilepath(m_cfg.outputDir, "pointsZR.svg", context.eventNumber);
+      perEventFilepath(m_cfg.outputDir, "points_zr.svg", context.eventNumber);
 
   Acts::Svg::TrackingGeometryProjections::Options tgpOptions;
   tgpOptions.trackingGeometryOptions = m_cfg.trackingGeometryOptions;

@@ -25,6 +25,7 @@
 #include "ActsExamples/EventData/SimHit.hpp"
 #include "ActsExamples/EventData/SimSpacePoint.hpp"
 #include "ActsExamples/Io/Svg/SvgPointWriter.hpp"
+#include "ActsExamples/Io/Svg/SvgEventWriter.hpp"
 #include "ActsExamples/Io/Svg/SvgTrackingGeometryWriter.hpp"
 
 #include <memory>
@@ -432,6 +433,31 @@ void addSvg(Context& ctx) {
   }
 
   // Components from the ActsExamples - part of acts.examples
+
+  {
+    using Writer = ActsExamples::SvgEventWriter;
+    auto w = py::class_<Writer, ActsExamples::IWriter, std::shared_ptr<Writer>>(
+                 mex, "SvgEventWriter")
+                 .def(py::init<const Writer::Config&, Acts::Logging::Level>(),
+                      py::arg("config"), py::arg("level"))
+                 .def("write", py::overload_cast<const AlgorithmContext&>(
+                                   &Writer::write));
+
+    auto c = py::class_<Writer::Config>(w, "Config").def(py::init<>());
+    ACTS_PYTHON_STRUCT_BEGIN(c, Writer::Config);
+    ACTS_PYTHON_MEMBER(views);
+    ACTS_PYTHON_MEMBER(sensitiveSurfaces);
+    ACTS_PYTHON_MEMBER(sensitiveViewOptions);
+    ACTS_PYTHON_MEMBER(sensitiveViewRange);
+    ACTS_PYTHON_MEMBER(inputSimParticles);
+    ACTS_PYTHON_MEMBER(inputSimHits);
+    ACTS_PYTHON_MEMBER(shimHitParticleThreshold);
+    ACTS_PYTHON_MEMBER(simHitSize);
+    ACTS_PYTHON_MEMBER(simHitStyle);
+    ACTS_PYTHON_MEMBER(simHitsOnly);
+    ACTS_PYTHON_MEMBER(simHitsInterpolatedPoints);
+    ACTS_PYTHON_STRUCT_END();
+  }
 
   {
     using Writer = ActsExamples::SvgTrackingGeometryWriter;

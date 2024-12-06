@@ -14,6 +14,7 @@
 #include "Acts/Visualization/Interpolation3D.hpp"
 #include "ActsExamples/EventData/SimHit.hpp"
 #include "ActsExamples/Framework/AlgorithmContext.hpp"
+#include "ActsExamples/Io/Common/SimHitHelper.hpp"
 #include "ActsExamples/Utilities/Paths.hpp"
 #include "ActsFatras/EventData/Barcode.hpp"
 #include "ActsFatras/EventData/Hit.hpp"
@@ -66,44 +67,13 @@ ActsExamples::ProcessCode ActsExamples::ObjSimHitWriter::writeT(
 
     }  // end simHit loop
   } else {
-    // We need to associate first
-    std::unordered_map<std::size_t, std::vector<Acts::Vector4>> particleHits;
-    // Pre-loop over hits ... write those below threshold
-    for (const auto& simHit : simHits) {
-      double momentum = simHit.momentum4Before().head<3>().norm();
-      if (momentum < m_cfg.momentumThreshold) {
-        ACTS_VERBOSE("Skipping: Hit below threshold: " << momentum);
-        continue;
-      } else if (momentum < m_cfg.momentumThresholdTraj) {
-        ACTS_VERBOSE(
-            "Skipping (trajectory): Hit below threshold: " << momentum);
-        osHits << "v "
-               << simHit.fourPosition()[Acts::ePos0] / Acts::UnitConstants::mm
-               << " "
-               << simHit.fourPosition()[Acts::ePos1] / Acts::UnitConstants::mm
-               << " "
-               << simHit.fourPosition()[Acts::ePos2] / Acts::UnitConstants::mm
-               << std::endl;
-        continue;
-      }
-      ACTS_VERBOSE("Accepting: Hit above threshold: " << momentum);
+    auto particleHits =
+        SimHitHelper::associateHitsToParticle(simHits, m_cfg.momentumThreshold);
 
-      if (particleHits.find(simHit.particleId().value()) ==
-          particleHits.end()) {
-        particleHits[simHit.particleId().value()] = {};
-      }
-      particleHits[simHit.particleId().value()].push_back(
-          simHit.fourPosition());
-    }
     // Draw loop
     std::size_t lOffset = 1;
     for (auto& [pId, pHits] : particleHits) {
       // Draw the particle hits
-      std::sort(pHits.begin(), pHits.end(),
-                [](const Acts::Vector4& a, const Acts::Vector4& b) {
-                  return a[Acts::eTime] < b[Acts::eTime];
-                });
-
       osHits << "o particle_" << pId << std::endl;
       for (const auto& hit : pHits) {
         osHits << "v " << hit[Acts::ePos0] / Acts::UnitConstants::mm << " "

@@ -1,3 +1,4 @@
+add_subdirectory(Common)
 add_subdirectory(Csv)
 add_subdirectory_if(EDM4hep ACTS_BUILD_EXAMPLES_EDM4HEP)
 add_subdirectory_if(HepMC3 ACTS_BUILD_EXAMPLES_HEPMC3)

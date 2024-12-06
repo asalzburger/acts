@@ -12,7 +12,7 @@ target_include_directories(
 )
 target_link_libraries(
     ActsExamplesIoObj
-    PUBLIC ActsCore ActsExamplesFramework Threads::Threads
+    PUBLIC ActsCore ActsExamplesFramework ActsExamplesIoCommon Threads::Threads
 )
 
 install(TARGETS ActsExamplesIoObj LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})

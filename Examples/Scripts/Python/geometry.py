@@ -28,6 +28,7 @@ def runGeometry(
     outputObj=True,
     outputCsv=True,
     outputJson=True,
+    outputSvg=True,
 ):
     for ievt in range(events):
         eventStore = WhiteBoard(name=f"EventStore#{ievt}", level=acts.logging.INFO)
@@ -87,6 +88,27 @@ def runGeometry(
             )
 
             jmw.write(trackingGeometry)
+
+        if outputSvg:
+            config = acts.examples.SvgEventWriter.Config()
+            config.views = ["xy", "zr"]
+            config.sensitiveSurfaces = trackingGeometry.geoIdSurfaceMap()
+
+            xyRange = acts.Extent()
+            xyRange.setRange(acts.BinningValue.binZ, -100, 100)
+            zrRange = acts.Extent()
+            zrRange.setRange(acts.BinningValue.binPhi, -0.2, 0.2)
+            sensitiveViewRange = { "xy": [xyRange], "zr": [zrRange] }
+
+            config.sensitiveViewRange = sensitiveViewRange
+
+            # if not os.path.isdir(outputDir + "/svg"):
+            #    os.makedirs(outputDir + "/svg")
+            writer = acts.examples.SvgEventWriter(
+                config=config,
+                level=acts.logging.INFO,
+            )
+            writer.write(context)
 
 
 if "__main__" == __name__:

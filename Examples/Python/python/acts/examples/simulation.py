@@ -12,6 +12,7 @@ from acts.examples import (
     ParticlesPrinter,
     RootParticleWriter,
     RootVertexWriter,
+    SvgEventWriter,
 )
 
 # Defaults (given as `None` here) use class defaults defined in
@@ -524,7 +525,9 @@ def addSimWriters(
     outputDirCsv: Optional[Union[Path, str]] = None,
     outputDirRoot: Optional[Union[Path, str]] = None,
     outputDirObj: Optional[Union[Path, str]] = None,
+    outputDirSvg: Optional[Union[Path, str]] = None,
     logLevel: Optional[acts.logging.Level] = None,
+    trackingGeometry: Optional[acts.TrackingGeometry] = None,
 ) -> None:
     customLogLevel = acts.examples.defaultLogging(s, logLevel)
 
@@ -580,6 +583,34 @@ def addSimWriters(
                 outputStem="hits",
             )
         )
+
+    if outputDirSvg is not None:
+        outputDirSvg = Path(outputDirSvg)
+        if not outputDirSvg.exists():
+            outputDirSvg.mkdir()
+
+        config = acts.examples.SvgEventWriter.Config()
+        config.views = ["xy", "zr"]
+        # geometry
+        config.sensitiveSurfaces = trackingGeometry.geoIdSurfaceMap()
+        xyRange = acts.Extent()
+        xyRange.setRange(acts.BinningValue.binZ, -100, 100)
+        zrRange = acts.Extent()
+        zrRange.setRange(acts.BinningValue.binPhi, -0.2, 0.2)
+        sensitiveViewRange = { "xy": [xyRange], "zr": [zrRange] }
+        config.sensitiveViewRange = sensitiveViewRange
+        # sim particles
+        config.inputSimParticles = particlesSimulated
+        # sim hits
+        config.inputSimHits = simHits
+        config.simHitSize = 5.
+
+        writer = acts.examples.SvgEventWriter(
+            config=config,
+            level=acts.logging.INFO,
+        )
+
+        s.addWriter(writer)
 
 
 def getG4DetectorConstructionFactory(
@@ -639,6 +670,7 @@ def addGeant4(
     outputDirCsv: Optional[Union[Path, str]] = None,
     outputDirRoot: Optional[Union[Path, str]] = None,
     outputDirObj: Optional[Union[Path, str]] = None,
+    outputDirSvg: Optional[Union[Path, str]] = None,
     logLevel: Optional[acts.logging.Level] = None,
     killVolume: Optional[acts.Volume] = None,
     killAfterTime: float = float("inf"),
@@ -759,7 +791,9 @@ def addGeant4(
         outputDirCsv,
         outputDirRoot,
         outputDirObj,
+        outputDirSvg,
         logLevel=logLevel,
+        trackingGeometry=trackingGeometry,
     )
 
     return s

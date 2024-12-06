@@ -5,7 +5,7 @@ from pathlib import Path
 
 import acts
 import acts.examples
-from acts.examples.simulation import addParticleGun, addGeant4, EtaConfig
+from acts.examples.simulation import addParticleGun, addGeant4, EtaConfig, MomentumConfig, ParticleConfig
 from acts.examples.odd import getOpenDataDetector, getOpenDataDetectorDirectory
 
 u = acts.UnitConstants
@@ -20,13 +20,16 @@ def runGeant4(
     volumeMappings=[],
     s: acts.examples.Sequencer = None,
 ):
-    s = s or acts.examples.Sequencer(events=100, numThreads=1)
+    s = s or acts.examples.Sequencer(events=10, numThreads=1)
     s.config.logLevel = acts.logging.INFO
     rnd = acts.examples.RandomNumbers()
     addParticleGun(
         s,
+        MomentumConfig(0.3 * u.GeV, 1.5 * u.GeV, transverse=True),
         EtaConfig(-2.0, 2.0),
+        ParticleConfig(1, acts.PdgParticle.eMuon, randomizeCharge=True),
         rnd=rnd,
+        multiplicity=50
     )
     outputDir = Path(outputDir)
     addGeant4(
@@ -37,6 +40,7 @@ def runGeant4(
         outputDirCsv=outputDir / "csv",
         outputDirRoot=outputDir,
         outputDirObj=outputDir / "obj",
+        outputDirSvg=outputDir / "svg",
         rnd=rnd,
         materialMappings=materialMappings,
         volumeMappings=volumeMappings,

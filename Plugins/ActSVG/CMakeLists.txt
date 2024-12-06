@@ -8,6 +8,7 @@ add_library(
     src/PortalSvgConverter.cpp
     src/SurfaceArraySvgConverter.cpp
     src/SurfaceSvgConverter.cpp
+    src/SvgUtils.cpp
     src/TrackingGeometrySvgConverter.cpp
 )
 

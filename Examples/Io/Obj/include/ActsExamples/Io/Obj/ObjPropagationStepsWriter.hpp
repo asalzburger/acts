@@ -37,6 +37,13 @@ class ObjPropagationStepsWriter : public WriterT<PropagationSummaries> {
     double outputScalor = 1.0;
     /// floating point precision
     std::size_t outputPrecision = 6;
+    /// Draw line connections between hits
+    bool drawConnections = false;
+    /// Number of points to interpolated between hits to smooth the
+    /// trajectory view in the obj file.
+    std::size_t nInterpolatedPoints = 0;
+    /// Keep the original hits in the trajectory file
+    bool keepOriginalHits = false;
   };
 
   /// Constructor with arguments
