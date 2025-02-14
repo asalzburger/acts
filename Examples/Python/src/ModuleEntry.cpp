@@ -73,6 +73,8 @@ void addCovfie(Context& ctx);
 void addTraccc(Context& ctx);
 void addHashing(Context& ctx);
 
+void addHiBeam(Context& ctx);
+
 }  // namespace Acts::Python
 
 PYBIND11_MODULE(ActsPythonBindings, m) {
@@ -143,4 +145,6 @@ PYBIND11_MODULE(ActsPythonBindings, m) {
   addCovfie(ctx);
   addTraccc(ctx);
   addHashing(ctx);
+
+  addHiBeam(ctx);
 }

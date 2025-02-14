@@ -170,6 +170,8 @@ if(ACTS_BUILD_EXAMPLES_GEANT4)
     )
     add_dependencies(ActsPythonBindings ActsPythonBindingsGeant4)
 
+    target_sources(ActsPythonBindingsGeant4 PRIVATE src/HiBeam.cpp)
+
     install(TARGETS ActsPythonBindingsGeant4 DESTINATION ${_python_install_dir})
     set_target_properties(
         ActsPythonBindingsGeant4
@@ -191,8 +193,7 @@ if(ACTS_BUILD_EXAMPLES_GEANT4)
     else()
         target_sources(
             ActsPythonBindingsGeant4
-            PRIVATE src/Geant4HepMC3Stub.cpp
-        )
+            PRIVATE src/Geant4HepMC3Stub.cpp)
     endif()
 endif()
 
