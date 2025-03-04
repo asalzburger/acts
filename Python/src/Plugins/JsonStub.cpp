@@ -9,5 +9,5 @@
 #include "Acts/Python/PyUtilities.hpp"
 
 namespace Acts::Python {
-void addTraccc(Context& /*ctx*/) {}
+void addJson(Context& /*ctx*/) {}
 }  // namespace Acts::Python

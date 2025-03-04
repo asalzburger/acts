@@ -13,7 +13,6 @@
 #include "Acts/Plugins/DD4hep/DD4hepIdentifierMapper.hpp"
 #include "Acts/Python/PyUtilities.hpp"
 #include "Acts/Utilities/Logger.hpp"
-#include "ActsExamples/DD4hepDetector/DD4hepDetector.hpp"
 
 #include <memory>
 #include <utility>
@@ -23,7 +22,6 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-using namespace ActsExamples;
 using namespace Acts::Python;
 
 PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
@@ -31,32 +29,6 @@ PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
     py::class_<Acts::DD4hepDetectorElement, Acts::DetectorElementBase,
                std::shared_ptr<Acts::DD4hepDetectorElement>>(
         m, "DD4hepDetectorElement");
-  }
-
-  {
-    auto f =
-        py::class_<DD4hepDetector, Detector, std::shared_ptr<DD4hepDetector>>(
-            m, "DD4hepDetector")
-            .def(py::init<const DD4hepDetector::Config&>())
-            .def_property_readonly("field", &DD4hepDetector::field);
-
-    auto c = py::class_<DD4hepDetector::Config>(f, "Config").def(py::init<>());
-    ACTS_PYTHON_STRUCT_BEGIN(c, DD4hepDetector::Config);
-    ACTS_PYTHON_MEMBER(logLevel);
-    ACTS_PYTHON_MEMBER(dd4hepLogLevel);
-    ACTS_PYTHON_MEMBER(xmlFileNames);
-    ACTS_PYTHON_MEMBER(name);
-    ACTS_PYTHON_MEMBER(bTypePhi);
-    ACTS_PYTHON_MEMBER(bTypeR);
-    ACTS_PYTHON_MEMBER(bTypeZ);
-    ACTS_PYTHON_MEMBER(envelopeR);
-    ACTS_PYTHON_MEMBER(envelopeZ);
-    ACTS_PYTHON_MEMBER(defaultLayerThickness);
-    ACTS_PYTHON_MEMBER(materialDecorator);
-    ACTS_PYTHON_MEMBER(geometryIdentifierHook);
-    ACTS_PYTHON_STRUCT_END();
-
-    patchKwargsConstructor(c);
   }
 
   {

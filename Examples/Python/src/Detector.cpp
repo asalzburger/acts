@@ -11,7 +11,7 @@
 #include "Acts/Geometry/DetectorElementBase.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/Material/IMaterialDecorator.hpp"
-#include "Acts/Plugins/Python/Utilities.hpp"
+#include "Acts/Python/PyUtilities.hpp"
 #include "Acts/Utilities/BinningType.hpp"
 #include "ActsExamples/ContextualDetector/AlignedDetector.hpp"
 #include "ActsExamples/DetectorCommons/Detector.hpp"

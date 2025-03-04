@@ -6,8 +6,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "Acts/Python/PyUtilities.hpp"
-
 namespace Acts::Python {
-void addTraccc(Context& /*ctx*/) {}
-}  // namespace Acts::Python
+    struct Context;
+    }  // namespace Acts::Python
+
+    namespace Acts::Python {
+    void addSvg(Context& /*ctx*/) {}
+    }  // namespace Acts::Python

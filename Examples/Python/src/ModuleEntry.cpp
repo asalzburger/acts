@@ -7,7 +7,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "Acts/ActsVersion.hpp"
-#include "Acts/Plugins/Python/Utilities.hpp"
+#include "Acts/Python/PyUtilities.hpp"
 
 #include <tuple>
 #include <unordered_map>

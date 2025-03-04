@@ -8,7 +8,7 @@
 
 #include "Acts/Plugins/Detray/DetrayConversionUtils.hpp"
 #include "Acts/Plugins/Detray/DetrayConverter.hpp"
-#include "Acts/Plugins/Python/Utilities.hpp"
+#include "Acts/Python/PyUtilities.hpp"
 #include "ActsExamples/Propagation/PropagatorInterface.hpp"
 #include "ActsExamples/Traccc/DetrayPropagator.hpp"
 #include "ActsExamples/Traccc/DetrayStore.hpp"

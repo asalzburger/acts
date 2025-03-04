@@ -15,7 +15,7 @@
 #include "Acts/MagneticField/MultiRangeBField.hpp"
 #include "Acts/MagneticField/NullBField.hpp"
 #include "Acts/MagneticField/SolenoidBField.hpp"
-#include "Acts/Plugins/Python/Utilities.hpp"
+#include "Acts/Python/PyUtilities.hpp"
 #include "ActsExamples/MagneticField/FieldMapRootIo.hpp"
 #include "ActsExamples/MagneticField/FieldMapTextIo.hpp"
 

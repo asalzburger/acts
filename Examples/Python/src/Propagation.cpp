@@ -9,7 +9,7 @@
 #include "Acts/Definitions/Direction.hpp"
 #include "Acts/EventData/TrackParameters.hpp"
 #include "Acts/Navigation/DetectorNavigator.hpp"
-#include "Acts/Plugins/Python/Utilities.hpp"
+#include "Acts/Python/PyUtilities.hpp"
 #include "Acts/Propagator/AtlasStepper.hpp"
 #include "Acts/Propagator/EigenStepper.hpp"
 #include "Acts/Propagator/Navigator.hpp"

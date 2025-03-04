@@ -9,5 +9,20 @@
 #include "Acts/Python/PyUtilities.hpp"
 
 namespace Acts::Python {
-void addTraccc(Context& /*ctx*/) {}
+
+void addCovfie(Context& ctx);
+void addDetray(Context& ctx);
+void addJson(Context& ctx);
+void addSvg(Context& ctx);
+
+// Define plugins entry
+void addPluginsEntry(Context& ctx);
+
 }  // namespace Acts::Python
+
+void Acts::Python::addPluginsEntry(Context& ctx) {
+  addCovfie(ctx);
+  addDetray(ctx);
+  addJson(ctx);
+  addSvg(ctx);
+}
