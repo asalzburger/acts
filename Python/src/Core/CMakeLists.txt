@@ -5,7 +5,8 @@ pybind11_add_module(ActsPythonBindings
   Definitions.cpp
   Geometry.cpp
   GeometryBuildingGen1.cpp
-  Material.cpp
+  MagneticField.cpp
+  Material.cpp  
   Navigation.cpp
   Visualization.cpp
   )

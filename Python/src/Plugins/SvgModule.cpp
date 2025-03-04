@@ -186,11 +186,7 @@ std::vector<actsvg::svg::object> drawDetector(
 
 }  // namespace
 
-namespace Acts::Python {
-void addSvg(Context& ctx) {
-  auto& m = ctx.get("main");
-
-  auto svg = m.def_submodule("svg");
+PYBIND11_MODULE(ActsPythonBindingsSvg, svg) {
 
   // Some basics
   py::class_<actsvg::svg::object>(svg, "object");
@@ -425,4 +421,3 @@ void addSvg(Context& ctx) {
     ACTS_PYTHON_STRUCT_END();
   }
 }
-}  // namespace Acts::Python

@@ -22,11 +22,7 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace Acts::Python {
-void addTGeo(Context& ctx) {
-  auto [m, mex] = ctx.get("main", "examples");
-
-  auto tgeo = mex.def_submodule("tgeo");
+PYBIND11_MODULE(ActsPythonBindingsTGeo, tgeo) {
 
   {
     py::class_<Acts::TGeoDetectorElement,
@@ -58,20 +54,20 @@ void addTGeo(Context& ctx) {
                  if (tVolume != nullptr) {
                    TGeoHMatrix gmatrix = TGeoIdentity(tVolume->GetName());
 
-                   TGeoParser::Options tgpOptions;
+                   Acts::TGeoParser::Options tgpOptions;
                    tgpOptions.volumeNames = {tVolume->GetName()};
                    tgpOptions.targetNames = sensitiveMatches;
                    tgpOptions.unit = scaleConversion;
-                   TGeoParser::State tgpState;
+                   Acts::TGeoParser::State tgpState;
                    tgpState.volume = tVolume;
                    tgpState.onBranch = true;
 
-                   TGeoParser::select(tgpState, tgpOptions, gmatrix);
+                   Acts::TGeoParser::select(tgpState, tgpOptions, gmatrix);
                    tgElements.reserve(tgpState.selectedNodes.size());
 
                    for (const auto& snode : tgpState.selectedNodes) {
                      auto identifier = Acts::TGeoDetectorElement::Identifier();
-                     auto tgElement = TGeoLayerBuilder::defaultElementFactory(
+                     auto tgElement = Acts::TGeoLayerBuilder::defaultElementFactory(
                          identifier, *snode.node, *snode.transform, localAxes,
                          scaleConversion, nullptr);
                      tgElements.emplace_back(tgElement);
@@ -83,5 +79,3 @@ void addTGeo(Context& ctx) {
              });
   }
 }
-
-}  // namespace Acts::Python

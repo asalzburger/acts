@@ -13,6 +13,9 @@ add_subdirectory(src/Core)
 # Plugins Python bindings
 add_subdirectory(src/Plugins)
 
+# Examples Pythong bindings
+add_subdirectory_if(src/Examples ACTS_BUILD_EXAMPLES)
+
 target_link_libraries(ActsPythonBindings PUBLIC ActsPluginJson)
 target_sources(ActsPythonBindings PRIVATE src/ModuleEntry.cpp)
 

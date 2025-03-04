@@ -356,7 +356,7 @@ void addAlgebra(Acts::Python::Context& ctx) {
       });
 }
 
-void addBinning(Context& ctx) {
+void addAxis(Context& ctx) {
   auto& m = ctx.get("main");
 
   auto binningValue = py::enum_<Acts::AxisDirection>(m, "AxisDirection")

@@ -1,6 +1,6 @@
 if(ACTS_BUILD_PLUGIN_JSON)
     target_link_libraries(ActsPythonBindings PUBLIC ActsPluginJson)
-    target_sources(ActsPythonBindings PRIVATE src/Json.cpp)
+    pybind11_add_module(ActsPythonBindings PRIVATE src/Json.cpp)
 else()
     target_sources(ActsPythonBindings PRIVATE src/JsonStub.cpp)
 endif()

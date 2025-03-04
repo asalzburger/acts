@@ -7,6 +7,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "Acts/Detector/GeometryIdGenerator.hpp"
+#include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/Plugins/DD4hep/DD4hepDetectorElement.hpp"
 #include "Acts/Plugins/DD4hep/DD4hepDetectorStructure.hpp"
 #include "Acts/Plugins/DD4hep/DD4hepFieldAdapter.hpp"
@@ -24,21 +25,21 @@
 namespace py = pybind11;
 using namespace Acts::Python;
 
-PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
+PYBIND11_MODULE(ActsPythonBindingsDD4hep, dd4hep) {
   {
     py::class_<Acts::DD4hepDetectorElement, Acts::DetectorElementBase,
                std::shared_ptr<Acts::DD4hepDetectorElement>>(
-        m, "DD4hepDetectorElement");
+                dd4hep, "DD4hepDetectorElement");
   }
 
   {
     py::class_<Acts::DD4hepFieldAdapter, Acts::MagneticFieldProvider,
-               std::shared_ptr<Acts::DD4hepFieldAdapter>>(m,
+               std::shared_ptr<Acts::DD4hepFieldAdapter>>(dd4hep,
                                                           "DD4hepFieldAdapter");
   }
 
   {
-    m.def("createDD4hepIdGeoIdMap",
+    dd4hep.def("createDD4hepIdGeoIdMap",
           [](const Acts::TrackingGeometry& tGeometry)
               -> std::map<Acts::DD4hepDetectorElement::DD4hepVolumeID,
                           Acts::GeometryIdentifier> {
@@ -72,7 +73,7 @@ PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
 
   {
     using Options = Acts::Experimental::DD4hepDetectorStructure::Options;
-    auto o = py::class_<Options>(m, "DD4hepDetectorOptions").def(py::init<>());
+    auto o = py::class_<Options>(dd4hep, "DD4hepDetectorOptions").def(py::init<>());
     ACTS_PYTHON_STRUCT_BEGIN(o, Options);
     ACTS_PYTHON_MEMBER(logLevel);
     ACTS_PYTHON_MEMBER(emulateToGraph);
@@ -82,7 +83,7 @@ PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
 
     patchKwargsConstructor(o);
 
-    m.def(
+    dd4hep.def(
         "attachDD4hepGeoIdMapper",
         [](Acts::Experimental::DD4hepDetectorStructure::Options& options,
            const std::map<Acts::DD4hepDetectorElement::DD4hepVolumeID,

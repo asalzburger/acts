@@ -31,7 +31,7 @@ void addFramework(Context& ctx);
 void addLogging(Context& ctx);
 void addPdgParticle(Context& ctx);
 void addAlgebra(Context& ctx);
-void addBinning(Context& ctx);
+void addAxis(Context& ctx);
 void addEventData(Context& ctx);
 
 void addPropagation(Context& ctx);
@@ -105,7 +105,7 @@ PYBIND11_MODULE(ActsPythonBindings, m) {
   addLogging(ctx);
   addPdgParticle(ctx);
   addAlgebra(ctx);
-  addBinning(ctx);
+  addAxis(ctx);
   addEventData(ctx);
   addOutput(ctx);
 

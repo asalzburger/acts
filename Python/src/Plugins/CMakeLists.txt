@@ -1,49 +1,40 @@
 # Add the python bindings for the DETRAY plugin
 if(ACTS_BUILD_PLUGIN_TRACCC)
-    target_link_libraries(ActsPythonBindings PUBLIC ActsPluginCovfie ActsPluginDetray)
-    target_sources(ActsPythonBindings PRIVATE Covfie.cpp Detray.cpp)
-else()
-    target_sources(ActsPythonBindings PRIVATE CovfieStub.cpp DetrayStub.cpp)
+    # Covfie 
+    pybind11_add_module(ActsPythonBindingsCovfie CovfieModule.cpp)
+    target_link_libraries(ActsPythonBindingsCovfie PUBLIC ActsPythonUtilities ActsPluginCovfie)
+    # Detray
+    pybind11_add_module(ActsPythonBindingsDetray DetrayModule.cpp)
+    target_link_libraries(ActsPythonBindingsDetray PUBLIC ActsPythonUtilities ActsPluginCovfie ActsPluginDetray)
 endif()
 
 # Add the python bindings for the DD4hep plugin
 if(ACTS_BUILD_PLUGIN_DD4HEP)
-    target_link_libraries(ActsPythonBindings PUBLIC ActsPluginDD4hep)
-    target_sources(ActsPythonBindings PRIVATE DD4hepModule.cpp)
+    pybind11_add_module(ActsPythonBindingsDD4hep DD4hepModule.cpp)
+    target_link_libraries(ActsPythonBindingsDD4hep PUBLIC ActsPythonUtilities ActsPluginDD4hep)
 endif()
-
 
 # Add the python bindings for the GeoModel plugin
 if(ACTS_BUILD_PLUGIN_GEOMODEL)
-    target_link_libraries(ActsPythonBindings PUBLIC ActsPluginGeoModel)
-    target_sources(ActsPythonBindings PRIVATE GeoModel.cpp)
-else()
-    target_sources(ActsPythonBindings PRIVATE GeoModelStub.cpp)
+    pybind11_add_module(ActsPythonBindingsGeoModel GeoModelModule.cpp)
+    target_link_libraries(ActsPythonBindingsGeoModel PUBLIC ActsPythonUtilities ActsPluginGeoModel)
 endif()
 
 # Add the python bindings for the JSON plugin
 if(ACTS_BUILD_PLUGIN_JSON)
-    target_link_libraries(ActsPythonBindings PUBLIC ActsPluginJson)
-    target_sources(ActsPythonBindings PRIVATE Json.cpp)
-else()
-    target_sources(ActsPythonBindings PRIVATE JsonStub.cpp)
+    pybind11_add_module(ActsPythonBindingsJson JsonModule.cpp)
+    target_link_libraries(ActsPythonBindingsJson PUBLIC ActsPythonUtilities ActsPluginJson)
 endif()
-
-target_sources(ActsPythonBindings PRIVATE PluginsEntry.cpp)
 
 # Add the python bindings for the SVG plugin
 if(ACTS_BUILD_PLUGIN_ACTSVG)
-    target_link_libraries(ActsPythonBindings PUBLIC ActsPluginActSVG)
-    target_sources(ActsPythonBindings PRIVATE Svg.cpp)
-else()
-    target_sources(ActsPythonBindings PRIVATE SvgStub.cpp)
+    pybind11_add_module(ActsPythonBindingsActSVG SvgModule.cpp)
+    target_link_libraries(ActsPythonBindingsActSVG PUBLIC ActsPythonUtilities ActsPluginActSVG)
 endif()
 
 # Add the python bindings for the TGeo plugin
 if(ACTS_BUILD_PLUGIN_TGEO)
-    target_link_libraries(ActsPythonBindings PUBLIC ActsPluginTGeo)
-    target_sources(ActsPythonBindings PRIVATE TGeo.cpp)
-else()
-    target_sources(ActsPythonBindings PRIVATE TGeoStub.cpp)
+    pybind11_add_module(ActsPythonBindingsTGeo TGeoModule.cpp)
+    target_link_libraries(ActsPythonBindingsTGeo PUBLIC ActsPythonUtilities ActsPluginTGeo)
 endif()
 

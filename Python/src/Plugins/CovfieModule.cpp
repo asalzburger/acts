@@ -17,8 +17,6 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace Acts::Python {
-
 namespace {
 template <typename field_t>
 void declareCovfieField(py::module& m, const std::string& fieldName) {
@@ -32,26 +30,21 @@ void declareCovfieField(py::module& m, const std::string& fieldName) {
 }
 }  // namespace
 
-void addCovfie(Context& ctx) {
-  auto main = ctx.get("main");
-  auto m = main.def_submodule("covfie", "Submodule for covfie conversion");
-
-  declareCovfieField<Acts::CovfiePlugin::ConstantField>(m,
+PYBIND11_MODULE(ActsPythonBindingsCovfie, covfie) {
+  declareCovfieField<Acts::CovfiePlugin::ConstantField>(covfie,
                                                         "CovfieConstantField");
   declareCovfieField<Acts::CovfiePlugin::InterpolatedField>(
-      m, "CovfieAffineLinearStridedField");
+      covfie, "CovfieAffineLinearStridedField");
 
-  m.def("makeCovfieField",
-        py::overload_cast<const Acts::InterpolatedMagneticField&>(
-            &Acts::CovfiePlugin::covfieField));
-  m.def("makeCovfieField", py::overload_cast<const Acts::ConstantBField&>(
-                               &Acts::CovfiePlugin::covfieField));
-  m.def("makeCovfieField",
-        py::overload_cast<const Acts::MagneticFieldProvider&,
-                          Acts::MagneticFieldProvider::Cache&,
-                          const std::array<std::size_t, 3>&,
-                          const Acts::Vector3&, const Acts::Vector3&>(
-            &Acts::CovfiePlugin::covfieField));
+  covfie.def("makeCovfieField",
+             py::overload_cast<const Acts::InterpolatedMagneticField&>(
+                 &Acts::CovfiePlugin::covfieField));
+  covfie.def("makeCovfieField", py::overload_cast<const Acts::ConstantBField&>(
+                                    &Acts::CovfiePlugin::covfieField));
+  covfie.def("makeCovfieField",
+             py::overload_cast<const Acts::MagneticFieldProvider&,
+                               Acts::MagneticFieldProvider::Cache&,
+                               const std::array<std::size_t, 3>&,
+                               const Acts::Vector3&, const Acts::Vector3&>(
+                 &Acts::CovfiePlugin::covfieField));
 }
-
-}  // namespace Acts::Python

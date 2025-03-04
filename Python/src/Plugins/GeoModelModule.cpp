@@ -38,20 +38,14 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace Acts::Python {
+PYBIND11_MODULE(ActsPythonBindingsGeoModel, geomodel) {
+  py::class_<Acts::GeoModelTree>(geomodel, "GeoModelTree").def(py::init<>());
 
-void addGeoModel(Context& ctx) {
-  auto m = ctx.get("main");
-
-  auto gm = m.def_submodule("geomodel");
-
-  py::class_<Acts::GeoModelTree>(gm, "GeoModelTree").def(py::init<>());
-
-  gm.def("readFromDb", &Acts::GeoModelReader::readFromDb);
+  geomodel.def("readFromDb", &Acts::GeoModelReader::readFromDb);
 
   py::class_<Acts::GeoModelDetectorElement,
              std::shared_ptr<Acts::GeoModelDetectorElement>>(
-      gm, "GeoModelDetectorElement")
+      geomodel, "GeoModelDetectorElement")
       .def("logVolName", &Acts::GeoModelDetectorElement::logVolName)
       .def("databaseEntryName",
            &Acts::GeoModelDetectorElement::databaseEntryName)
@@ -62,30 +56,33 @@ void addGeoModel(Context& ctx) {
   // Shape converters
   {
     py::class_<Acts::IGeoShapeConverter,
-               std::shared_ptr<Acts::IGeoShapeConverter>>(gm,
+               std::shared_ptr<Acts::IGeoShapeConverter>>(geomodel,
                                                           "IGeoShapeConverter");
 
     py::class_<Acts::GeoBoxConverter, Acts::IGeoShapeConverter,
-               std::shared_ptr<Acts::GeoBoxConverter>>(gm, "GeoBoxConverter")
+               std::shared_ptr<Acts::GeoBoxConverter>>(geomodel,
+                                                       "GeoBoxConverter")
         .def(py::init<>())
         .def("toSensitiveSurface", &Acts::GeoBoxConverter::toSensitiveSurface)
         .def("toPassiveSurface", &Acts::GeoBoxConverter::toPassiveSurface);
 
     py::class_<Acts::GeoTrdConverter, Acts::IGeoShapeConverter,
-               std::shared_ptr<Acts::GeoTrdConverter>>(gm, "GeoTrdConverter")
+               std::shared_ptr<Acts::GeoTrdConverter>>(geomodel,
+                                                       "GeoTrdConverter")
         .def(py::init<>())
         .def("toSensitiveSurface", &Acts::GeoTrdConverter::toSensitiveSurface)
         .def("toPassiveSurface", &Acts::GeoTrdConverter::toPassiveSurface);
 
     py::class_<Acts::GeoTubeConverter, Acts::IGeoShapeConverter,
-               std::shared_ptr<Acts::GeoTubeConverter>>(gm, "GeoTubeConverter")
+               std::shared_ptr<Acts::GeoTubeConverter>>(geomodel,
+                                                        "GeoTubeConverter")
         .def(py::init<>())
         .def("toSensitiveSurface", &Acts::GeoTubeConverter::toSensitiveSurface)
         .def("toPassiveSurface", &Acts::GeoTubeConverter::toPassiveSurface);
 
     py::class_<Acts::GeoUnionDoubleTrdConverter, Acts::IGeoShapeConverter,
                std::shared_ptr<Acts::GeoUnionDoubleTrdConverter>>(
-        gm, "GeoUnionDoubleTrdConverter")
+        geomodel, "GeoUnionDoubleTrdConverter")
         .def(py::init<>())
         .def("toSensitiveSurface",
              &Acts::GeoUnionDoubleTrdConverter::toSensitiveSurface)
@@ -94,7 +91,7 @@ void addGeoModel(Context& ctx) {
 
     py::class_<Acts::GeoIntersectionAnnulusConverter, Acts::IGeoShapeConverter,
                std::shared_ptr<Acts::GeoIntersectionAnnulusConverter>>(
-        gm, "GeoIntersectionAnnulusConverter")
+        geomodel, "GeoIntersectionAnnulusConverter")
         .def(py::init<>())
         .def("toSensitiveSurface",
              &Acts::GeoIntersectionAnnulusConverter::toSensitiveSurface)
@@ -102,7 +99,7 @@ void addGeoModel(Context& ctx) {
              &Acts::GeoIntersectionAnnulusConverter::toPassiveSurface);
 
     py::class_<Acts::GeoShiftConverter, Acts::IGeoShapeConverter,
-               std::shared_ptr<Acts::GeoShiftConverter>>(gm,
+               std::shared_ptr<Acts::GeoShiftConverter>>(geomodel,
                                                          "GeoShiftConverter")
         .def(py::init<>())
         .def("toSensitiveSurface", &Acts::GeoShiftConverter::toSensitiveSurface)
@@ -114,7 +111,7 @@ void addGeoModel(Context& ctx) {
     auto a =
         py::class_<Acts::GeoModelDetectorObjectFactory,
                    std::shared_ptr<Acts::GeoModelDetectorObjectFactory>>(
-            gm, "GeoModelDetectorObjectFactory")
+            geomodel, "GeoModelDetectorObjectFactory")
             .def(py::init(
                 [](const Acts::GeoModelDetectorObjectFactory::Config& cfg,
                    Acts::Logging::Level level) {
@@ -155,7 +152,7 @@ void addGeoModel(Context& ctx) {
   {
     py::class_<Acts::GeoModelBlueprintCreater::Blueprint,
                std::shared_ptr<Acts::GeoModelBlueprintCreater::Blueprint>>(
-        gm, "Blueprint")
+        geomodel, "Blueprint")
         .def("convertToBuilder",
              [](Acts::GeoModelBlueprintCreater::Blueprint& self,
                 Acts::Logging::Level level) {
@@ -168,7 +165,7 @@ void addGeoModel(Context& ctx) {
     auto bpc =
         py::class_<Acts::GeoModelBlueprintCreater,
                    std::shared_ptr<Acts::GeoModelBlueprintCreater>>(
-            gm, "GeoModelBlueprintCreater")
+            geomodel, "GeoModelBlueprintCreater")
             .def(py::init([](const Acts::GeoModelBlueprintCreater::Config& cfg,
                              Acts::Logging::Level level) {
               return std::make_shared<Acts::GeoModelBlueprintCreater>(
@@ -199,11 +196,11 @@ void addGeoModel(Context& ctx) {
 
   py::class_<Acts::GeoModelDetectorElementITk,
              std::shared_ptr<Acts::GeoModelDetectorElementITk>>(
-      gm, "GeoModelDetectorElementITk")
+      geomodel, "GeoModelDetectorElementITk")
       .def("surface", [](Acts::GeoModelDetectorElementITk& self) {
         return self.surface().getSharedPtr();
       });
-  gm.def("convertToItk", &GeoModelDetectorElementITk::convertFromGeomodel);
-}
 
-}  // namespace Acts::Python
+  geomodel.def("convertToItk",
+               &Acts::GeoModelDetectorElementITk::convertFromGeomodel);
+}

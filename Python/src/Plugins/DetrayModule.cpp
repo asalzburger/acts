@@ -25,12 +25,8 @@ using namespace Acts;
 using namespace detray;
 using namespace detray::io::detail;
 
-namespace Acts::Python {
+PYBIND11_MODULE(ActsPythonBindingsDetray, detray) {
 
-void addDetray(Context& ctx) {
-  auto& m = ctx.get("main");
-
-  auto detray = m.def_submodule("detray");
   {
     py::class_<detector<default_metadata>,
                std::shared_ptr<detector<default_metadata>>>(detray,
@@ -69,4 +65,3 @@ void addDetray(Context& ctx) {
   }
 
 }
-}  // namespace Acts::Python

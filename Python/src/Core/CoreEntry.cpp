@@ -15,9 +15,10 @@ void addUnits(Context& ctx);
 void addLogging(Context& ctx);
 void addPdgParticle(Context& ctx);
 void addAlgebra(Context& ctx);
-void addBinning(Context& ctx);
+void addAxis(Context& ctx);
 void addGeometry(Context& ctx);
 void addGeometryBuildingGen1(Context& ctx);
+void addMagneticField(Context& ctx);
 void addNavigation(Context& ctx);
 void addExperimentalGeometry(Context& ctx);
 void addMaterial(Context& ctx);
@@ -36,11 +37,12 @@ void Acts::Python::addCoreEntry(Context& ctx) {
   addLogging(ctx);
   addPdgParticle(ctx);
   addAlgebra(ctx);
-  addBinning(ctx);
+  addAxis(ctx);
   addVisualization(ctx);
   addGeometry(ctx);
   addGeometryBuildingGen1(ctx);
   addNavigation(ctx);
+  addMagneticField(ctx);
   addExperimentalGeometry(ctx);
   addMaterial(ctx);
 

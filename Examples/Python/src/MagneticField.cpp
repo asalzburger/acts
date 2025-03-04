@@ -53,24 +53,6 @@ Acts::Vector3 getField(Acts::MagneticFieldProvider& self,
 }
 
 void addMagneticField(Context& ctx) {
-  auto [m, mex, prop] = ctx.get("main", "examples", "propagation");
-
-  py::class_<Acts::MagneticFieldProvider,
-             std::shared_ptr<Acts::MagneticFieldProvider>>(
-      m, "MagneticFieldProvider")
-      .def("getField", &getField)
-      .def("makeCache", &Acts::MagneticFieldProvider::makeCache);
-
-  py::class_<Acts::InterpolatedMagneticField,
-             std::shared_ptr<Acts::InterpolatedMagneticField>>(
-      m, "InterpolatedMagneticField");
-
-  m.def("solenoidFieldMap", &Acts::solenoidFieldMap, py::arg("rlim"),
-        py::arg("zlim"), py::arg("nbins"), py::arg("field"));
-
-  py::class_<Acts::ConstantBField, Acts::MagneticFieldProvider,
-             std::shared_ptr<Acts::ConstantBField>>(m, "ConstantBField")
-      .def(py::init<Acts::Vector3>());
 
   py::class_<ActsExamples::detail::InterpolatedMagneticField2,
              Acts::InterpolatedMagneticField, Acts::MagneticFieldProvider,
@@ -90,30 +72,6 @@ void addMagneticField(Context& ctx) {
              std::shared_ptr<Acts::MultiRangeBField>>(m, "MultiRangeBField")
       .def(py::init<
            std::vector<std::pair<Acts::RangeXD<3, double>, Acts::Vector3>>>());
-
-  {
-    using Config = Acts::SolenoidBField::Config;
-
-    auto sol =
-        py::class_<Acts::SolenoidBField, Acts::MagneticFieldProvider,
-                   std::shared_ptr<Acts::SolenoidBField>>(m, "SolenoidBField")
-            .def(py::init<Config>())
-            .def(py::init([](double radius, double length, std::size_t nCoils,
-                             double bMagCenter) {
-                   return Acts::SolenoidBField{
-                       Config{radius, length, nCoils, bMagCenter}};
-                 }),
-                 py::arg("radius"), py::arg("length"), py::arg("nCoils"),
-                 py::arg("bMagCenter"));
-
-    py::class_<Config>(sol, "Config")
-        .def(py::init<>())
-        .def_readwrite("radius", &Config::radius)
-        .def_readwrite("length", &Config::length)
-        .def_readwrite("nCoils", &Config::nCoils)
-        .def_readwrite("bMagCenter", &Config::bMagCenter);
-  }
-
   mex.def(
       "MagneticFieldMapXyz",
       [](const std::string& filename, const std::string& tree,

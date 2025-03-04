@@ -24,7 +24,6 @@ namespace py = pybind11;
 
 namespace Acts::Python {
 void addCoreEntry(Context& ctx);
-void addPluginsEntry(Context& ctx);
 }
 
 PYBIND11_MODULE(ActsPythonBindings, m) {
@@ -47,6 +46,5 @@ PYBIND11_MODULE(ActsPythonBindings, m) {
   }
 
   addCoreEntry(ctx);
-  addPluginsEntry(ctx);
 
 }
