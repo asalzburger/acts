@@ -1,6 +1,7 @@
 set(library_sources
     src/RootMaterialTrackPayload.cpp
     src/RootMaterialDecorator.cpp
+    src/RootSurfaceMaterialConverter.cpp
 )
 
 add_library(ActsPluginRoot SHARED ${library_sources})
