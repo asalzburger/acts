@@ -189,6 +189,11 @@ void addGeometry(Context& ctx) {
         .def("center", &Surface::center)
         .def_property_readonly("type", &Surface::type)
         .def("visualize", &Surface::visualize)
+        .def("extent",
+             [](const Surface& self, const GeometryContext& gctx) {
+               auto polyHedron = self.polyhedronRepresentation(gctx);
+               return polyHedron.extent();
+             })
         .def_property_readonly("surfaceMaterial",
                                &Acts::Surface::surfaceMaterialSharedPtr);
   }
@@ -368,6 +373,10 @@ void addGeometry(Context& ctx) {
            [](Extent& self, Acts::AxisDirection bval,
               const std::array<double, 2>& range) {
              self.set(bval, range[0], range[1]);
+           })
+      .def("contains",
+           [](const Extent& self, const Extent& other) {
+             return self.contains(other);
            })
       .def("__str__", &Extent::toString);
 

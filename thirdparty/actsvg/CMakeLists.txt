@@ -17,7 +17,7 @@ message(STATUS "Building actsvg as part of the ACTS project")
 FetchContent_Declare(actsvg SYSTEM ${ACTS_ACTSVG_SOURCE})
 
 set(ACTSVG_BUILD_PYTHON_BINDINGS
-    OFF
+    ON
     CACHE BOOL
     "Do not build the Python bindings for actsvg"
 )
