@@ -1,10 +1,8 @@
-set(_python_dir "${CMAKE_BINARY_DIR}/python")
-file(MAKE_DIRECTORY ${_python_dir})
-file(MAKE_DIRECTORY ${_python_dir}/acts)
 
+set(_python_dir "${CMAKE_BINARY_DIR}/python")
 set(_python_install_dir "python/acts")
 
-pybind11_add_module(ActsPythonBindings
+target_sources(ActsPythonBindings PRIVATE
   src/ModuleEntry.cpp
   src/Framework.cpp
   src/Base.cpp
@@ -30,16 +28,7 @@ pybind11_add_module(ActsPythonBindings
   src/EventData.cpp
   src/Utilities.cpp
 )
-install(TARGETS ActsPythonBindings DESTINATION ${_python_install_dir})
 
-set_target_properties(
-    ActsPythonBindings
-    PROPERTIES INSTALL_RPATH "\$ORIGIN/../../${CMAKE_INSTALL_LIBDIR}"
-)
-set_target_properties(
-    ActsPythonBindings
-    PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${_python_dir}/acts
-)
 
 target_link_libraries(
     ActsPythonBindings

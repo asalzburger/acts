@@ -6,7 +6,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "Acts/ActsVersion.hpp"
 #include "ActsPython/Utilities/Context.hpp"
 
 #include <tuple>
@@ -78,76 +77,60 @@ void addHashing(Context& ctx);
 
 }  // namespace ActsPython
 
-PYBIND11_MODULE(ActsPythonBindings, m) {
-  ActsPython::Context ctx;
-  ctx.modules["main"] = m;
-  auto mex = m.def_submodule("_examples");
+void ActsPython::addLegacyExamplesModule(Context& ctx) {
+  auto& m = ctx.get("examples");
+  auto mex = m.def_submodule("_examples", "Acts Python Examples");
   ctx.modules["examples"] = mex;
-  auto prop = m.def_submodule("_propagator");
+  auto prop = m.def_submodule("_propagator", "Acts Propagation Module");
   ctx.modules["propagation"] = prop;
-  m.doc() = "Acts";
 
-  m.attr("__version__") =
-      std::tuple{Acts::VersionMajor, Acts::VersionMinor, Acts::VersionPatch};
+  addContext(ctx);
+  addAny(ctx);
+  addUnits(ctx);
+  addFramework(ctx);
+  addLogging(ctx);
+  addPdgParticle(ctx);
+  addAlgebra(ctx);
+  addBinning(ctx);
+  addEventData(ctx);
+  addOutput(ctx);
 
-  {
-    auto mv = m.def_submodule("version");
+  addPropagation(ctx);
+  addNavigation(ctx);
+  addGeometryBuildingGen1(ctx);
+  addGeometry(ctx);
+  addExperimentalGeometry(ctx);
 
-    mv.attr("major") = Acts::VersionMajor;
-    mv.attr("minor") = Acts::VersionMinor;
-    mv.attr("patch") = Acts::VersionPatch;
+  addMagneticField(ctx);
+  addMaterial(ctx);
+  addDetector(ctx);
+  addExampleAlgorithms(ctx);
+  addInput(ctx);
+  addGenerators(ctx);
+  addTruthTracking(ctx);
+  addTrackFitting(ctx);
+  addTrackFinding(ctx);
+  addTruthJet(ctx);
+  addVertexing(ctx);
+  addAmbiguityResolution(ctx);
+  addUtilities(ctx);
 
-    mv.attr("commit_hash") = Acts::CommitHash;
-    mv.attr("commit_hash_short") = Acts::CommitHashShort;
-  }
+  addDigitization(ctx);
+  addPythia8(ctx);
+  addJson(ctx);
+  addGeoModel(ctx);
+  addTGeo(ctx);
+  addDetray(ctx);
+  addHepMC3(ctx);
+  addExaTrkXTrackFinding(ctx);
+  addObj(ctx);
+  addSvg(ctx);
+  addOnnx(ctx);
+  addOnnxNeuralCalibrator(ctx);
+  addCovfie(ctx);
+  addTraccc(ctx);
+  addHashing(ctx);
 
-  ActsPython::addContext(ctx);
-  ActsPython::addAny(ctx);
-  ActsPython::addUnits(ctx);
-  ActsPython::addFramework(ctx);
-  ActsPython::addLogging(ctx);
-  ActsPython::addPdgParticle(ctx);
-  ActsPython::addAlgebra(ctx);
-  ActsPython::addBinning(ctx);
-  ActsPython::addEventData(ctx);
-  ActsPython::addOutput(ctx);
-
-  ActsPython::addPropagation(ctx);
-  ActsPython::addNavigation(ctx);
-  ActsPython::addGeometryBuildingGen1(ctx);
-  ActsPython::addGeometry(ctx);
-  ActsPython::addExperimentalGeometry(ctx);
-
-  ActsPython::addMagneticField(ctx);
-  ActsPython::addMaterial(ctx);
-  ActsPython::addDetector(ctx);
-  ActsPython::addExampleAlgorithms(ctx);
-  ActsPython::addInput(ctx);
-  ActsPython::addGenerators(ctx);
-  ActsPython::addTruthTracking(ctx);
-  ActsPython::addTrackFitting(ctx);
-  ActsPython::addTrackFinding(ctx);
-  ActsPython::addTruthJet(ctx);
-  ActsPython::addVertexing(ctx);
-  ActsPython::addAmbiguityResolution(ctx);
-  ActsPython::addUtilities(ctx);
-
-  ActsPython::addDigitization(ctx);
-  ActsPython::addPythia8(ctx);
-  ActsPython::addJson(ctx);
-  ActsPython::addGeoModel(ctx);
-  ActsPython::addTGeo(ctx);
-  ActsPython::addDetray(ctx);
-  ActsPython::addHepMC3(ctx);
-  ActsPython::addExaTrkXTrackFinding(ctx);
-  ActsPython::addObj(ctx);
-  ActsPython::addSvg(ctx);
-  ActsPython::addOnnx(ctx);
-  ActsPython::addOnnxNeuralCalibrator(ctx);
-  ActsPython::addCovfie(ctx);
-  ActsPython::addTraccc(ctx);
-  ActsPython::addHashing(ctx);
-
-  ActsPython::addRootInput(ctx);
-  ActsPython::addRootOutput(ctx);
+  addRootInput(ctx);
+  addRootOutput(ctx);
 }
