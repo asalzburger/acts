@@ -23,7 +23,6 @@
 #include "Acts/Propagator/Propagator.hpp"
 #include "Acts/Surfaces/PerigeeSurface.hpp"
 #include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Tests/CommonHelpers/FloatComparisons.hpp"
 #include "Acts/Utilities/AnnealingUtility.hpp"
 #include "Acts/Utilities/Logger.hpp"
 #include "Acts/Utilities/Result.hpp"
@@ -34,6 +33,7 @@
 #include "Acts/Vertexing/TrackAtVertex.hpp"
 #include "Acts/Vertexing/Vertex.hpp"
 #include "Acts/Vertexing/VertexingOptions.hpp"
+#include "ActsTests/CommonHelpers/FloatComparisons.hpp"
 
 #include <algorithm>
 #include <array>
@@ -48,14 +48,15 @@
 #include <utility>
 #include <vector>
 
+using namespace Acts;
 using namespace Acts::UnitLiterals;
 
-namespace Acts::Test {
+namespace ActsTests {
 
 using Acts::VectorHelpers::makeVector4;
 
 // Set up logger
-ACTS_LOCAL_LOGGER(Acts::getDefaultLogger("AMVFitterTests", Acts::Logging::INFO))
+ACTS_LOCAL_LOGGER(getDefaultLogger("AMVFitterTests", Logging::INFO))
 
 using Covariance = BoundSquareMatrix;
 using Propagator = Acts::Propagator<EigenStepper<>>;
@@ -94,6 +95,8 @@ std::uniform_real_distribution<double> resQoPDist(-0.1, 0.1);
 // Track time resolution distribution. Values are unrealistic and only used for
 // testing purposes.
 std::uniform_real_distribution<double> resTDist(0_ps, 8_ps);
+
+BOOST_AUTO_TEST_SUITE(VertexingSuite)
 
 /// @brief Unit test for AdaptiveMultiVertexFitter
 ///
@@ -733,4 +736,6 @@ BOOST_AUTO_TEST_CASE(adaptive_multi_vertex_fitter_test_athena) {
   CHECK_CLOSE_ABS(vtx2FQ.second, expVtx2ndf, 0.001);
 }
 
-}  // namespace Acts::Test
+BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace ActsTests
