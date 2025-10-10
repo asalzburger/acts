@@ -59,6 +59,15 @@ BOOST_AUTO_TEST_CASE(PolyhedronReference) {
   BOOST_CHECK_EQUAL(referencePositions.size(), 5u);
 }
 
+BOOST_AUTO_TEST_CASE(ExpandedExtremaReference) {
+  // Simply return binning position, we test only the behavior of the generator
+  // not the output
+  auto referencePositions =
+      ExpandedExtremaReferenceGenerator{}.references(tContext, *pSurface);
+  // 4 corners expanded from center of gravity
+  BOOST_CHECK_EQUAL(referencePositions.size(), 4u);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace ActsTests

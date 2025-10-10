@@ -92,4 +92,42 @@ struct PolyhedronReferenceGenerator {
   }
 };
 
+/// A struct to extract reference points from a given set of surfaces
+/// These vertices are then used to find the bin boundary box for the
+/// indexed grid.
+///
+/// @tparam nSEGS the number of segments to be used for the polyhedron
+/// approximation of arcs between vertices
+/// @tparam aBARY if true, the barycenter of the polyhedron is added
+///
+/// The grid filling then completes the empty bins in between and
+///
+/// It uses a expansion factor to extend the range
+struct ExpandedExtremaReferenceGenerator {
+  double expansionFactor = 1.25;
+  /// Helper to access the Center point of for filling the grid
+  ///
+  /// @param gctx the geometry context of this operation
+  /// @param surface the surface for which the reference point is to be accessed
+  ///
+  /// @return a vector of reference points for filling
+  const std::vector<Vector3> references(const GeometryContext& gctx,
+                                        const Surface& surface) const {
+    // Create the return  vector
+    std::vector<Vector3> rPositions;
+    auto pHedron = surface.polyhedronRepresentation(gctx, 1u);
+
+    Vector3 baryCenter(0., 0., 0.);
+    std::ranges::for_each(pHedron.vertices,
+                          [&](const auto& p) { baryCenter += p; });
+    baryCenter *= 1. / pHedron.vertices.size();
+
+    for (const auto& p : pHedron.vertices) {
+      rPositions.push_back(baryCenter + expansionFactor * (p - baryCenter));
+    }
+
+    return rPositions;
+  }
+};
+
 }  // namespace Acts::Experimental::detail

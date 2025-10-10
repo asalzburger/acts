@@ -210,7 +210,8 @@ Acts::Experimental::LayerStructureBuilder::construct(
       }
 
       // Provide a reference generator
-      Acts::Experimental::detail::PolyhedronReferenceGenerator rGenerator;
+      // Acts::Experimental::detail::PolyhedronReferenceGenerator rGenerator;
+      Acts::Experimental::detail::ExpandedExtremaReferenceGenerator rGenerator;
 
       // 1D surface binning
       if (binnings.size() == 1) {

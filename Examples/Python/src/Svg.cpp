@@ -338,6 +338,9 @@ void addSvg(Context& ctx) {
   }
 
   {
+    // Define the proto grid
+    py::class_<Svg::ProtoGrid>(svg, "ProtoGrid");
+
     auto gco = py::class_<Svg::GridConverter::Options>(svg, "GridOptions")
                    .def(py::init<>());
     ACTS_PYTHON_STRUCT(gco, style);
@@ -350,6 +353,9 @@ void addSvg(Context& ctx) {
 
   // How detector volumes are drawn: Svg DetectorVolume options & drawning
   {
+    // Define the proto grid
+    py::class_<Svg::ProtoVolume>(svg, "ProtoVolume");
+
     auto c = py::class_<Svg::DetectorVolumeConverter::Options>(
                  svg, "DetectorVolumeOptions")
                  .def(py::init<>());
