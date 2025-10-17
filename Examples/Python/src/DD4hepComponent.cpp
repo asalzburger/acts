@@ -13,6 +13,7 @@
 #include "ActsPlugins/DD4hep/DD4hepDetectorElement.hpp"
 #include "ActsPlugins/DD4hep/DD4hepDetectorStructure.hpp"
 #include "ActsPlugins/DD4hep/DD4hepFieldAdapter.hpp"
+#include "ActsPlugins/DD4hep/DD4hepGeometryBuilder.hpp"
 #include "ActsPlugins/DD4hep/DD4hepIdentifierMapper.hpp"
 #include "ActsPython/Utilities/Helpers.hpp"
 #include "ActsPython/Utilities/Macros.hpp"
@@ -21,6 +22,7 @@
 #include <utility>
 
 #include <DD4hep/DetElement.h>
+#include <DD4hep/Detector.h>
 #include <DD4hep/Fields.h>
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
@@ -45,7 +47,11 @@ PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
 
   {
     py::class_<dd4hep::DetElement, std::shared_ptr<dd4hep::DetElement>>(
-        m, "DD4hepDetElement");
+        m, "dd4hep_DetElement");
+
+    py::class_<dd4hep::Detector, std::shared_ptr<dd4hep::Detector>>(
+        m, "dd4hep_Detector")
+        .def("world", &dd4hep::Detector::world);
   }
 
   {
@@ -53,7 +59,8 @@ PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
         py::class_<DD4hepDetector, Detector, std::shared_ptr<DD4hepDetector>>(
             m, "DD4hepDetector")
             .def(py::init<const DD4hepDetector::Config&>())
-            .def_property_readonly("field", &DD4hepDetector::field);
+            .def_property_readonly("field", &DD4hepDetector::field)
+            .def("detector", &DD4hepDetector::dd4hepDetectorPtr);
 
     auto c = py::class_<DD4hepDetector::Config>(f, "Config").def(py::init<>());
     ACTS_PYTHON_STRUCT(c, logLevel, dd4hepLogLevel, xmlFileNames, name,
@@ -104,6 +111,7 @@ PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
         });
   }
 
+  // Gen2
   {
     using Options = DD4hepDetectorStructure::Options;
     auto o = py::class_<Options>(m, "DD4hepDetectorOptions").def(py::init<>());
@@ -141,5 +149,29 @@ PYBIND11_MODULE(ActsPythonBindingsDD4hep, m) {
 
             options.geoIdGenerator = chainedGeoIdGenerator;
           });
+  }
+
+  // Gen3
+  {
+    auto dgb =
+        py::class_<DD4hepGeometryBuilder,
+                   std::shared_ptr<DD4hepGeometryBuilder>>(
+            m, "DD4hepGeometryBuilder")
+            .def(py::init(
+                [](const DD4hepGeometryBuilder::Config& config,
+                   Acts::Logging::Level logLevel) {
+                  return std::make_shared<DD4hepGeometryBuilder>(
+                      std::forward<const DD4hepGeometryBuilder::Config&>(
+                          config),
+                      Acts::getDefaultLogger("DD4hepGeometryBuilder",
+                                             logLevel));
+                }))
+            .def("buildTrackingGeometry",
+                 &DD4hepGeometryBuilder::buildTrackingGeometry);
+
+    auto c = py::class_<DD4hepGeometryBuilder::Config>(dgb, "Config")
+                 .def(py::init<>());
+    ACTS_PYTHON_STRUCT(c, dd4hepSource);
+    patchKwargsConstructor(c);
   }
 }

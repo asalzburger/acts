@@ -50,6 +50,11 @@ dd4hep::Detector& DD4hepDetector::dd4hepDetector() {
   return *m_detector;
 }
 
+std::shared_ptr<dd4hep::Detector> DD4hepDetector::dd4hepDetectorPtr() {
+  throw_assert(m_detector != nullptr, "Detector not initialized");
+  return m_detector;
+}
+
 std::shared_ptr<DD4hepFieldAdapter> DD4hepDetector::field() const {
   throw_assert(m_detector != nullptr, "Detector not initialized");
   return std::make_shared<DD4hepFieldAdapter>(m_detector->field());

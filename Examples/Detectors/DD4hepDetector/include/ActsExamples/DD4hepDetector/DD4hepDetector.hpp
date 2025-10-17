@@ -93,6 +93,9 @@ class DD4hepDetector : public Detector {
   /// Interface method to access to the DD4hep geometry
   dd4hep::Detector& dd4hepDetector();
 
+  /// Access ot the detector as shared ptr
+  std::shared_ptr<dd4hep::Detector> dd4hepDetectorPtr();
+
   /// @brief Access to the DD4hep field
   /// @return a shared pointer to the DD4hep field
   std::shared_ptr<ActsPlugins::DD4hepFieldAdapter> field() const;

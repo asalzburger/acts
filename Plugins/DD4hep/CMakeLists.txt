@@ -14,6 +14,8 @@ acts_add_library(
     src/DD4hepLayerStructure.cpp
     src/DD4hepVolumeBuilder.cpp
     src/DD4hepFieldAdapter.cpp
+    src/DD4hepGeometryBuilder.cpp
+    src/DD4hepProcessors.cpp
     ACTS_INCLUDE_FOLDER include/ActsPlugins
 )
 
