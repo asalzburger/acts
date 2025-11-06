@@ -9,6 +9,7 @@
 #include "ActsExamples/Utilities/Helpers.hpp"
 
 #include <cassert>
+#include <mutex>
 
 #include <TAxis.h>
 #include <TEfficiency.h>
@@ -104,6 +105,19 @@ TProfile* bookProf(const char* profName, const char* profTitle,
 void fillProf(TProfile* profile, float xValue, float yValue, float weight) {
   assert(profile != nullptr);
   profile->Fill(xValue, yValue, weight);
+}
+
+BoostProfile bookProfile(const Binning& varBinning) {
+  auto axis = boost::histogram::axis::regular<double>(
+      varBinning.nBins(), varBinning.low(), varBinning.high(),
+      varBinning.title());
+
+  auto axes = std::vector<BoostAxisVariant>();
+  axes.emplace_back(axis);
+
+  return boost::histogram::make_histogram_with<
+      boost::histogram::unlimited_storage<
+          acts_boost::atomic_weighted_mean<double>>>());
 }
 
 }  // namespace ActsExamples::PlotHelpers

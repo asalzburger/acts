@@ -11,6 +11,7 @@
 #include "Acts/EventData/TrackParameters.hpp"
 #include "Acts/Utilities/Logger.hpp"
 #include "ActsExamples/Utilities/Helpers.hpp"
+#include "ActsExamples/Utilities/BoostHistograms.hpp"
 
 #include <cstddef>
 #include <map>
@@ -41,6 +42,8 @@ class TrackQualityPlotTool {
     TProfile* purity_vs_pT;
     TProfile* purity_vs_eta;
     TProfile* purity_vs_phi;
+
+    BoostProfile test;
   };
 
   /// Constructor

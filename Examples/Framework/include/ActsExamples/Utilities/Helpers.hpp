@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+#include <mutex>
 #include <string>
 #include <utility>
 
@@ -19,11 +21,14 @@
 #include "TProfile.h"
 #include "TROOT.h"
 
+#include "ActsExamples/Utilities/BoostHistograms.hpp"
+
 class TEfficiency;
 class TH1D;
 class TH1F;
 class TH2F;
 class TProfile;
+
 
 namespace ActsExamples::PlotHelpers {
 /// @brief Nested binning struct for booking plots
@@ -142,5 +147,9 @@ TProfile* bookProf(const char* profName, const char* profTitle,
 /// @param weight weight to fill
 void fillProf(TProfile* profile, float xValue, float yValue,
               float weight = 1.0);
+
+/// @brief book a BoostProfile plot
+/// @param varBinning the binning info of variable at x axis
+BoostProfile bookProfile(const Binning& varBinning);
 
 }  // namespace ActsExamples::PlotHelpers
