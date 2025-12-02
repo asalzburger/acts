@@ -165,7 +165,7 @@ PYBIND11_MODULE(ActsExamplesPythonBindingsGeant4, mod) {
             .def(py::init<const Geant4Detector::Config&>());
 
     auto c = py::class_<Geant4Detector::Config>(f, "Config").def(py::init<>());
-    ACTS_PYTHON_STRUCT(c, name, g4World, g4SurfaceOptions, protoDetector,
+    ACTS_PYTHON_STRUCT(c, name, g4World, g4SurfaceOptions,
                        geometryIdentifierHook, logLevel);
   }
 
