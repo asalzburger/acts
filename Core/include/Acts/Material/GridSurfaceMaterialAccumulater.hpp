@@ -14,12 +14,12 @@
 
 namespace Acts {
 
-/// @brief The binned surface material accumulater
+/// @brief The grid surface material accumulater
 ///
-/// It consumes the assigned material interactions and then accumulates
-/// the material on the surfaces in prepared binned containers for averaging
-
-class BinnedSurfaceMaterialAccumulater final
+/// It consumes the assigned material interactions and accumulates the
+/// material on surfaces that are configured with ProtoGridSurfaceMaterial
+/// definitions.
+class GridSurfaceMaterialAccumulater final
     : public ISurfaceMaterialAccumulater {
  public:
   /// @brief Nested config struct
@@ -48,10 +48,10 @@ class BinnedSurfaceMaterialAccumulater final
   ///
   /// @param cfg the configuration struct
   /// @param mlogger the logger
-  explicit BinnedSurfaceMaterialAccumulater(
+  explicit GridSurfaceMaterialAccumulater(
       const Config& cfg,
       std::unique_ptr<const Logger> mlogger =
-          getDefaultLogger("BinnedSurfaceMaterialAccumulater", Logging::INFO));
+          getDefaultLogger("GridSurfaceMaterialAccumulater", Logging::INFO));
 
   /// Factory for creating the state
   /// @return Unique pointer to newly created accumulator state
@@ -94,8 +94,8 @@ class BinnedSurfaceMaterialAccumulater final
   std::unique_ptr<const Logger> m_logger;
 
   /// Method to initialize the accumulation state
-  /// @param gctx is the geometry context for this initialization step
   /// @param state is the state of the accumulator
+  /// @param gctx is the geometry context for this initialization step
   void initializeAccumulationState(State& state,
                                    const GeometryContext& gctx) const;
 };

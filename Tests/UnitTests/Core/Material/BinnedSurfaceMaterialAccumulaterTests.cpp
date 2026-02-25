@@ -52,7 +52,6 @@ BOOST_AUTO_TEST_CASE(InvalidSetupTest) {
   BinnedSurfaceMaterialAccumulater::Config bsmaConfig;
   bsmaConfig.materialSurfaces = {surfaces[0].get(), surfaces[1].get()};
   bsmaConfig.emptyBinCorrection = true;
-  bsmaConfig.geoContext = tContext;
 
   BinnedSurfaceMaterialAccumulater bsma(
       bsmaConfig,
@@ -101,7 +100,6 @@ BOOST_AUTO_TEST_CASE(AccumulationTest) {
   bsmaConfig.materialSurfaces = {surfaces[0].get(), surfaces[1].get(),
                                  surfaces[2].get()};
   bsmaConfig.emptyBinCorrection = true;
-  bsmaConfig.geoContext = tContext;
 
   BinnedSurfaceMaterialAccumulater bsma(
       bsmaConfig,
@@ -142,7 +140,7 @@ BOOST_AUTO_TEST_CASE(AccumulationTest) {
   std::vector<IAssignmentFinder::SurfaceAssignment> emptyHits = {
       {surfaces[2u].get(), 50 * d0, d0}};
 
-  bsma.accumulate(*state, mInteractions, emptyHits);
+  bsma.accumulate(*state, tContext, mInteractions, emptyHits);
 
   // Track 1:
   // - Surface 0 empty hit
@@ -161,10 +159,10 @@ BOOST_AUTO_TEST_CASE(AccumulationTest) {
 
   mInteractions = {m11, m12};
   emptyHits = {{surfaces[0u].get(), 50 * d1, d1}};
-  bsma.accumulate(*state, mInteractions, emptyHits);
+  bsma.accumulate(*state, tContext, mInteractions, emptyHits);
 
   // Get the maps
-  auto maps = bsma.finalizeMaterial(*state);
+  auto maps = bsma.finalizeMaterial(*state, tContext);
 
   BOOST_CHECK_EQUAL(maps.size(), 3u);
 
@@ -209,12 +207,13 @@ BOOST_AUTO_TEST_CASE(AccumulationTest) {
   mXX.surface = invalidSurface.get();
   mXX.position = 50 * d1;
   mXX.direction = d1;
-  BOOST_CHECK_THROW(bsma.accumulate(*state, {mXX}, {}), std::invalid_argument);
+  BOOST_CHECK_THROW(bsma.accumulate(*state, tContext, {mXX}, {}),
+                    std::invalid_argument);
 
   // Invalid surface amongst empty hits
-  BOOST_CHECK_THROW(
-      bsma.accumulate(*state, {}, {{invalidSurface.get(), 50 * d1, d1}}),
-      std::invalid_argument);
+  BOOST_CHECK_THROW(bsma.accumulate(*state, tContext, {},
+                                    {{invalidSurface.get(), 50 * d1, d1}}),
+                    std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

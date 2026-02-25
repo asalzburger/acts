@@ -80,8 +80,10 @@ class MaterialMapper {
 
   /// Finalize the maps
   /// @param state Material mapping state containing collected data
+  /// @param gctx the geometry context
   /// @return Tracking geometry material map with finalized surface and volume materials
-  TrackingGeometryMaterial finalizeMaps(const State& state) const;
+  TrackingGeometryMaterial finalizeMaps(const State& state,
+                                        const GeometryContext& gctx) const;
 
  private:
   /// Access method to the logger

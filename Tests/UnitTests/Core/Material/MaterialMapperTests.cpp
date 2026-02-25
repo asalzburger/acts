@@ -111,6 +111,7 @@ class MaterialBlender : public ISurfaceMaterialAccumulater {
   ///
   /// @note this the track average over the binned material
   void accumulate(ISurfaceMaterialAccumulater::State& state,
+                  const GeometryContext& /*gctx*/,
                   const std::vector<MaterialInteraction>& interactions,
                   const std::vector<IAssignmentFinder::SurfaceAssignment>&
                   /*surfacesWithoutAssignment*/) const override {
@@ -136,10 +137,12 @@ class MaterialBlender : public ISurfaceMaterialAccumulater {
   /// Finalize the surface material maps
   ///
   /// @param state the state of the accumulator
+  /// @param gctx is the geometry context for this finalization step
   ///
   /// @note this does the run average over the (binned) material
   std::map<GeometryIdentifier, std::shared_ptr<const ISurfaceMaterial>>
-  finalizeMaterial(ISurfaceMaterialAccumulater::State& state) const override {
+  finalizeMaterial(ISurfaceMaterialAccumulater::State& state,
+                   const GeometryContext& /*gctx*/) const override {
     auto cState = static_cast<State*>(&state);
 
     std::map<GeometryIdentifier, std::shared_ptr<const ISurfaceMaterial>>
@@ -218,7 +221,7 @@ BOOST_AUTO_TEST_CASE(MaterialMapperFlowTest) {
   }
 
   // Get the maps
-  auto [surfaceMaps, volumeMaps] = mapper.finalizeMaps(*state);
+  auto [surfaceMaps, volumeMaps] = mapper.finalizeMaps(*state, tContext);
 
   BOOST_CHECK(surfaceMaps.size() == 3);
   BOOST_CHECK(volumeMaps.empty());

@@ -63,7 +63,7 @@ Acts::MaterialMapper::mapMaterial(State& state, const GeometryContext& gctx,
 
   // The material interactions
   m_cfg.surfaceMaterialAccumulater->accumulate(
-      *state.surfaceMaterialAccumulaterState, assigned, emptyBinSurfaces);
+      *state.surfaceMaterialAccumulaterState, gctx, assigned, emptyBinSurfaces);
 
   // The function to calculate the total material before returning
   auto calculateTotalMaterial = [](RecordedMaterialTrack& rTrack) -> void {
@@ -80,13 +80,13 @@ Acts::MaterialMapper::mapMaterial(State& state, const GeometryContext& gctx,
 }
 
 Acts::TrackingGeometryMaterial Acts::MaterialMapper::finalizeMaps(
-    const State& state) const {
+    const State& state, const GeometryContext& gctx) const {
   // The final maps
   TrackingGeometryMaterial detectorMaterialMaps;
   // The surface maps
   detectorMaterialMaps.first =
       m_cfg.surfaceMaterialAccumulater->finalizeMaterial(
-          *state.surfaceMaterialAccumulaterState);
+          *state.surfaceMaterialAccumulaterState, gctx);
 
   return detectorMaterialMaps;
 }
