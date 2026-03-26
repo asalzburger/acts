@@ -117,3 +117,23 @@ Acts::MaterialInteractionAssignment::assign(
   return {assignedMaterialInteractions, unassignedMaterialInteractions,
           surfacesWithoutAssignments};
 }
+
+Acts::MaterialInteractionAssignment::Result
+Acts::MaterialInteractionAssignment::directlyAssign(
+    const std::vector<MaterialInteraction>& materialInteractions) {
+  Result result;
+  result.assigned.reserve(materialInteractions.size());
+
+  for (const auto& mi : materialInteractions) {
+    if (!mi.materialSlab.isVacuum()) {
+      result.assigned.push_back(mi);
+      continue;
+    }
+    if (mi.surface != nullptr) {
+      result.unassignedSurfaces.push_back(
+          {mi.surface, mi.intersection, mi.direction});
+    }
+  }
+
+  return result;
+}

@@ -250,6 +250,130 @@ BOOST_AUTO_TEST_CASE(MaterialMapperInvalidTest) {
                     std::invalid_argument);
 }
 
+BOOST_AUTO_TEST_CASE(MaterialMapperWriteEmptyBinSurfacesTest) {
+  // Create a vector of surfaces
+  std::vector<std::shared_ptr<Surface>> surfaces = {
+      Surface::makeShared<CylinderSurface>(Transform3::Identity(), 20.0, 100.0),
+      Surface::makeShared<CylinderSurface>(Transform3::Identity(), 30.0, 100.0),
+      Surface::makeShared<CylinderSurface>(Transform3::Identity(), 50.0,
+                                           100.0)};
+
+  for (auto [is, surface] : enumerate(surfaces)) {
+    surface->assignGeometryId(GeometryIdentifier().withSensitive(is + 1));
+  }
+
+  // The assigner
+  auto assigner = std::make_shared<IntersectSurfacesFinder>();
+  assigner->surfaces = {surfaces[0].get(), surfaces[1].get(),
+                        surfaces[2].get()};
+
+  // The accumulator (not used for assertions here, but required)
+  auto accumulator = std::make_shared<MaterialBlender>(surfaces);
+
+  // Create the mapper
+  MaterialMapper::Config mmConfig;
+  mmConfig.assignmentFinder = assigner;
+  mmConfig.surfaceMaterialAccumulator = accumulator;
+  mmConfig.writeEmptyBinSurfaces = true;
+
+  MaterialMapper mapper(mmConfig);
+  auto state = mapper.createState(tContext);
+
+  // Build a track with exactly one interaction close to the first surface only.
+  Vector3 position(0., 0., 0.);
+  Vector3 direction(1., 0., 0.);
+  RecordedMaterialTrack mTrack{{position, direction}, {}};
+
+  MaterialInteraction mi;
+  mi.materialSlab = MaterialSlab(
+      Material::fromMassDensity(1, 1, 1, 1, 1),
+      0.1);
+  mi.position = Vector3(20.0, 0., 0.);  // exactly on the first cylinder
+  mi.direction = direction;
+  mTrack.second.materialInteractions.push_back(mi);
+
+  auto [mapped, unmapped] = mapper.mapMaterial(*state, tContext, {}, mTrack);
+
+  // Unmapped should be empty: no global/local vetoing used, one interaction can
+  // always be assigned to the closest surface.
+  BOOST_CHECK(unmapped.second.materialInteractions.empty());
+
+  // We expect one assigned interaction + two added vacuum interactions for the
+  // two empty-bin surfaces.
+  BOOST_CHECK_EQUAL(mapped.second.materialInteractions.size(), 3u);
+
+  // Exactly one non-vacuum interaction (the original one), the two others are
+  // vacuum placeholders.
+  std::size_t nNonVacuum = 0u;
+  std::size_t nVacuum = 0u;
+  for (const auto& outMi : mapped.second.materialInteractions) {
+    if (outMi.materialSlab.isVacuum()) {
+      ++nVacuum;
+      BOOST_CHECK(outMi.surface != nullptr);
+    } else {
+      ++nNonVacuum;
+    }
+  }
+  BOOST_CHECK_EQUAL(nNonVacuum, 1u);
+  BOOST_CHECK_EQUAL(nVacuum, 2u);
+}
+
+BOOST_AUTO_TEST_CASE(MaterialMapperAssignDirectlyTest) {
+  // Create a vector of surfaces
+  std::vector<std::shared_ptr<Surface>> surfaces = {
+      Surface::makeShared<CylinderSurface>(Transform3::Identity(), 20.0, 100.0),
+      Surface::makeShared<CylinderSurface>(Transform3::Identity(), 30.0, 100.0)};
+
+  for (auto [is, surface] : enumerate(surfaces)) {
+    surface->assignGeometryId(GeometryIdentifier().withSensitive(is + 1));
+  }
+
+  // The assigner (still required by the mapper, even if we assign directly)
+  auto assigner = std::make_shared<IntersectSurfacesFinder>();
+  assigner->surfaces = {surfaces[0].get(), surfaces[1].get()};
+
+  auto accumulator = std::make_shared<MaterialBlender>(surfaces);
+
+  MaterialMapper::Config mmConfig;
+  mmConfig.assignmentFinder = assigner;
+  mmConfig.surfaceMaterialAccumulator = accumulator;
+  mmConfig.assignDirectly = true;
+  mmConfig.writeEmptyBinSurfaces = false;
+
+  MaterialMapper mapper(mmConfig);
+  auto state = mapper.createState(tContext);
+
+  Vector3 position(0., 0., 0.);
+  Vector3 direction(1., 0., 0.);
+  RecordedMaterialTrack mTrack{{position, direction}, {}};
+
+  // One non-vacuum interaction -> should go to mapped.assigned
+  MaterialInteraction nonVacuum;
+  nonVacuum.materialSlab = MaterialSlab(
+      Material::fromMassDensity(1, 1, 1, 1, 1),
+      0.1);
+  nonVacuum.position = Vector3(1., 0., 0.);
+  nonVacuum.direction = direction;
+  mTrack.second.materialInteractions.push_back(nonVacuum);
+
+  // One vacuum interaction with a surface -> should end up as empty-bin surface
+  // info, but NOT written out as interaction unless writeEmptyBinSurfaces=true.
+  MaterialInteraction vacuum;
+  vacuum.materialSlab = MaterialSlab::Nothing();
+  vacuum.surface = surfaces[1].get();
+  vacuum.intersection = Vector3(30., 0., 0.);
+  vacuum.position = vacuum.intersection;
+  vacuum.direction = direction;
+  vacuum.intersectionID = surfaces[1]->geometryId();
+  mTrack.second.materialInteractions.push_back(vacuum);
+
+  auto [mapped, unmapped] = mapper.mapMaterial(*state, tContext, {}, mTrack);
+
+  BOOST_CHECK(unmapped.second.materialInteractions.empty());
+  BOOST_CHECK_EQUAL(mapped.second.materialInteractions.size(), 1u);
+  BOOST_CHECK(!mapped.second.materialInteractions[0].materialSlab.isVacuum());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace ActsTests

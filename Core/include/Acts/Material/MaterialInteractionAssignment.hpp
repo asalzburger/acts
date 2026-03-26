@@ -108,6 +108,14 @@ Result assign(const GeometryContext& gctx,
                   intersectedSurfaces,
               const Options& options = Options());
 
+/// @brief This is the fast track assignment method that only works on the output
+/// of a prior job that has already assigned the material interactions to surfaces.
+///
+/// @note that this method will not allow to re-assign
+///
+/// @param a pair of vectors of assigned and unassigned material interactions
+Result directlyAssign(const std::vector<MaterialInteraction>& materialInteractions);
+
 }  // namespace MaterialInteractionAssignment
 
 }  // namespace Acts

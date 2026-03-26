@@ -33,6 +33,10 @@ class MaterialMapper {
     /// The material accumulator for surfaces
     std::shared_ptr<const ISurfaceMaterialAccumulator>
         surfaceMaterialAccumulator = nullptr;
+    /// If set, interpret the input interactions as already assigned.
+    bool assignDirectly = false;
+    /// If set, add empty-bin surfaces as vacuum interactions to output.
+    bool writeEmptyBinSurfaces = false;
   };
 
   /// @brief nested state struct

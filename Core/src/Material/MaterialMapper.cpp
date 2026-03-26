@@ -8,6 +8,8 @@
 
 #include "Acts/Material/MaterialMapper.hpp"
 
+#include "Acts/Surfaces/Surface.hpp"
+
 Acts::MaterialMapper::MaterialMapper(const Config& cfg,
                                      std::unique_ptr<const Logger> mlogger)
     : m_cfg(cfg), m_logger(std::move(mlogger)) {
@@ -46,15 +48,34 @@ Acts::MaterialMapper::mapMaterial(State& state, const GeometryContext& gctx,
   RecordedMaterialTrack mappedMaterial = {starDir, {}};
   RecordedMaterialTrack unmappedMaterial = {starDir, {}};
   // Assign the surface interactions
-  auto [assigned, unassigned, emptyBinSurfaces] =
-      MaterialInteractionAssignment::assign(
-          gctx, recordedMaterial.materialInteractions, surfaceAssignments,
-          options.assignmentOptions);
+  auto [assigned, unassigned, emptyBinSurfaces] = [&]() {
+    if (m_cfg.assignDirectly) {
+      return MaterialInteractionAssignment::directlyAssign(
+          recordedMaterial.materialInteractions);
+    }
+    return MaterialInteractionAssignment::assign(
+        gctx, recordedMaterial.materialInteractions, surfaceAssignments,
+        options.assignmentOptions);
+  }();
 
   // Record the assigned ones - as mapped ones
   mappedMaterial.second.materialInteractions.insert(
       mappedMaterial.second.materialInteractions.end(), assigned.begin(),
       assigned.end());
+
+  if (m_cfg.writeEmptyBinSurfaces) {
+    for (const auto& ebs : emptyBinSurfaces) {
+      MaterialInteraction mi;
+      mi.surface = ebs.surface;
+      mi.intersection = ebs.position;
+      mi.position = ebs.position;
+      mi.direction = ebs.direction;
+      if (ebs.surface != nullptr) {
+        mi.intersectionID = ebs.surface->geometryId();
+      }
+      mappedMaterial.second.materialInteractions.push_back(mi);
+    }
+  }
 
   // Record the unassigned ones - as unmapped ones
   unmappedMaterial.second.materialInteractions.insert(
