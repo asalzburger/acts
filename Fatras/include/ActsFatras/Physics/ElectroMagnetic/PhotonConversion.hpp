@@ -136,7 +136,7 @@ std::pair<double, double> PhotonConversion::generatePathLimits(
   }
 
   // Use for the moment only Al data - Yung Tsai - Rev.Mod.Particle Physics Vol.
-  // 46, No.4, October 1974 optainef from a fit given in the momentum range 100
+  // 46, No.4, October 1974 obtained from a fit given in the momentum range 100
   // 10 6 2 1 0.6 0.4 0.2 0.1 GeV
 
   //// Quadratic background function

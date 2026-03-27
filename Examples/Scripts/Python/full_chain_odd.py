@@ -80,6 +80,13 @@ parser.add_argument(
     default=200,
 )
 parser.add_argument(
+    "--gun-particle-type",
+    help="Particle type of the particle gun",
+    type=str,
+    choices=["muon", "electron", "pion", "pi0", "gamma"],
+    default="muon",
+)
+parser.add_argument(
     "--gun-eta-range",
     nargs=2,
     help="Eta range of the particle gun",
@@ -133,13 +140,13 @@ parser.add_argument(
 parser.add_argument(
     "--output-csv",
     help="Switch csv output on/off",
-    default=True,
+    default=False,
     action=argparse.BooleanOptionalAction,
 )
 parser.add_argument(
     "--output-obj",
     help="Switch obj output on/off",
-    default=True,
+    default=False,
     action=argparse.BooleanOptionalAction,
 )
 
@@ -232,6 +239,15 @@ if args.edm4hep:
     )
 else:
     if not args.ttbar:
+        gun_particle_configs = {
+            "muon": (acts.PdgParticle.eMuon, True),
+            "electron": (acts.PdgParticle.eElectron, True),
+            "pion": (acts.PdgParticle.ePionPlus, True),
+            "pi0": (acts.PdgParticle.ePionZero, False),
+            "gamma": (acts.PdgParticle.eGamma, False),
+        }
+        gun_pdg, gun_randomize_charge = gun_particle_configs[args.gun_particle_type]
+
         addParticleGun(
             s,
             MomentumConfig(
@@ -242,7 +258,7 @@ else:
             EtaConfig(args.gun_eta_range[0], args.gun_eta_range[1]),
             PhiConfig(0.0, 360.0 * u.degree),
             ParticleConfig(
-                args.gun_particles, acts.PdgParticle.eMuon, randomizeCharge=True
+                args.gun_particles, gun_pdg, randomizeCharge=gun_randomize_charge
             ),
             vtxGen=acts.examples.GaussianVertexGenerator(
                 mean=acts.Vector4(0, 0, 0, 0),

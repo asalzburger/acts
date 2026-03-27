@@ -114,4 +114,25 @@ struct AbsPdgExcluder {
   }
 };
 
+/// Select hadrons only
+struct HadronSelector {
+  /// Check if particle is a hadron
+  /// @param particle The particle to evaluate
+  /// @return true if particle PDG is a hadron
+  bool operator()(const Particle &particle) const {
+    return (particle.pdg() == Acts::PdgParticle::ePionZero ||
+            particle.pdg() == Acts::PdgParticle::ePionPlus ||
+            particle.pdg() == Acts::PdgParticle::ePionMinus ||
+            particle.pdg() == Acts::PdgParticle::eKaonPlus ||
+            particle.pdg() == Acts::PdgParticle::eKaonMinus ||
+            particle.pdg() == Acts::PdgParticle::eNeutron ||
+            particle.pdg() == Acts::PdgParticle::eAntiNeutron ||
+            particle.pdg() == Acts::PdgParticle::eProton ||
+            particle.pdg() == Acts::PdgParticle::eAntiProton ||
+            particle.pdg() == Acts::PdgParticle::eLead ||
+            particle.pdg() == Acts::PdgParticle::eKaon0Short ||
+            particle.pdg() == Acts::PdgParticle::eLambda0);
+  }
+};
+
 }  // namespace ActsFatras

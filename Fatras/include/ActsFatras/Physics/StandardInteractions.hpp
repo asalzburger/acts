@@ -16,6 +16,7 @@
 #include "ActsFatras/Physics/ElectroMagnetic/BetheHeitler.hpp"
 #include "ActsFatras/Physics/ElectroMagnetic/PhotonConversion.hpp"
 #include "ActsFatras/Physics/ElectroMagnetic/Scattering.hpp"
+#include "ActsFatras/Physics/Hadronic/HadronicInteraction.hpp"
 #include "ActsFatras/Selectors/KinematicCasts.hpp"
 #include "ActsFatras/Selectors/ParticleSelectors.hpp"
 #include "ActsFatras/Selectors/SelectorHelpers.hpp"
@@ -33,6 +34,7 @@ using SelectElectronLike = AbsPdgSelector<Acts::PdgParticle::eElectron>;
 using SelectPhotonLike = AbsPdgSelector<Acts::PdgParticle::eGamma>;
 /// Select particles above a minimum absolute momentum.
 using SelectPMin = Min<Casts::P>;
+/// Select hadrons only
 
 /// Highland multiple scattering that applies to all charged particles.
 using StandardScattering =
@@ -53,6 +55,11 @@ using StandardBetheHeitler =
 using StandardPhotonConversion =
     PointLikeProcess<PhotonConversion, SelectPhotonLike, SelectPMin,
                      SelectPMin>;
+
+/// Handle hadronic interactions
+using StandardHadronicInteraction =
+    PointLikeProcess<HadronicInteraction, HadronSelector, SelectPMin, SelectPMin>;
+
 }  // namespace detail
 
 /// Standard set of electro-magnetic interactions for charged particles.
@@ -67,20 +74,20 @@ using StandardPhotonConversion =
 ///       descriptions for electrons.
 /// @todo Bethe-Heitler is applied after energy loss and thus sees the wrong
 ///       input energy.
-using StandardChargedElectroMagneticInteractions =
+using StandardChargedInteractions =
     InteractionList<detail::StandardScattering, detail::StandardBetheBloch,
-                    detail::StandardBetheHeitler>;
+                    detail::StandardBetheHeitler, detail::StandardHadronicInteraction>;
 
 /// Construct the standard electro-magnetic interactions for charged particles.
 ///
 /// @param minimumAbsMomentum lower p cut on output particles
 /// @return Configured interaction list for charged particles
-StandardChargedElectroMagneticInteractions
-makeStandardChargedElectroMagneticInteractions(double minimumAbsMomentum);
+StandardChargedInteractions
+makeStandardChargedInteractions(double minimumAbsMomentum);
 
 /// Standard set of electro-magnetic interactions for neutral particles.
-using StandardNeutralElectroMagneticInteractions =
-    InteractionList<detail::StandardPhotonConversion>;
+using StandardNeutralInteractions =
+    InteractionList<detail::StandardPhotonConversion, detail::StandardHadronicInteraction>;
 
 /// Construct the standard electro-magnetic interactions for neutral particles.
 ///
@@ -90,7 +97,7 @@ using StandardNeutralElectroMagneticInteractions =
 ///
 /// @param minimumAbsMomentum lower p cut on output particles
 /// @return Configured interaction list for neutral particles
-StandardNeutralElectroMagneticInteractions
-makeStandardNeutralElectroMagneticInteractions(double minimumAbsMomentum);
+StandardNeutralInteractions
+makeStandardNeutralInteractions(double minimumAbsMomentum);
 
 }  // namespace ActsFatras

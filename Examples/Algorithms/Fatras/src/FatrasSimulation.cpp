@@ -88,7 +88,7 @@ struct FatrasSimulationT final : detail::FatrasSimulation {
   // charged particles w/ standard em physics list and selectable hits
   using ChargedSelector = CutPMin;
   using ChargedSimulation = ActsFatras::SingleParticleSimulation<
-      ChargedPropagator, ActsFatras::StandardChargedElectroMagneticInteractions,
+      ChargedPropagator, ActsFatras::StandardChargedInteractions,
       HitSurfaceSelector, ActsFatras::NoDecay>;
 
   // typedefs for neutral particle simulation
@@ -97,11 +97,9 @@ struct FatrasSimulationT final : detail::FatrasSimulation {
   using NeutralPropagator = Acts::Propagator<NeutralStepper, Acts::Navigator>;
   // neutral particles w/ photon conversion and no hits
   using NeutralSelector = CutPMin;
-  using NeutralInteractions =
-      ActsFatras::InteractionList<ActsFatras::PhotonConversion>;
   using NeutralSimulation = ActsFatras::SingleParticleSimulation<
-      NeutralPropagator, NeutralInteractions, ActsFatras::NoSurface,
-      ActsFatras::NoDecay>;
+      NeutralPropagator, ActsFatras::StandardNeutralInteractions,
+      ActsFatras::NoSurface, ActsFatras::NoDecay>;
 
   // combined simulation type
   using Simulation = ActsFatras::Simulation<ChargedSelector, ChargedSimulation,
@@ -131,8 +129,8 @@ struct FatrasSimulationT final : detail::FatrasSimulation {
     // minimal p cut on input particles and as is-alive check for interactions
     simulation.selectCharged.valMin = cfg.pMin;
     simulation.selectNeutral.valMin = cfg.pMin;
-    simulation.charged.interactions =
-        makeStandardChargedElectroMagneticInteractions(cfg.pMin);
+    simulation.charged.interactions = makeStandardChargedInteractions(cfg.pMin);
+    simulation.neutral.interactions = makeStandardNeutralInteractions(cfg.pMin);
 
     // processes are enabled by default
     if (!cfg.emScattering) {
@@ -145,9 +143,12 @@ struct FatrasSimulationT final : detail::FatrasSimulation {
       simulation.charged.interactions.template disable<StandardBetheHeitler>();
     }
     if (!cfg.emPhotonConversion) {
-      simulation.neutral.interactions.template disable<PhotonConversion>();
+      simulation.neutral.interactions.template disable<StandardPhotonConversion>();
     }
-
+    if (!cfg.hadronicInteraction) {
+      simulation.charged.interactions.template disable<StandardHadronicInteraction>();
+      simulation.neutral.interactions.template disable<StandardHadronicInteraction>();
+    }
     // configure hit surfaces for charged particles
     simulation.charged.selectHitSurface.sensitive = cfg.generateHitsOnSensitive;
     simulation.charged.selectHitSurface.material = cfg.generateHitsOnMaterial;
@@ -158,6 +159,7 @@ struct FatrasSimulationT final : detail::FatrasSimulation {
     simulation.neutral.maxStepSize = cfg.maxStepSize;
     simulation.neutral.pathLimit = cfg.pathLimit;
   }
+
   ~FatrasSimulationT() final = default;
 
   Acts::Result<std::vector<ActsFatras::FailedParticle>> simulate(

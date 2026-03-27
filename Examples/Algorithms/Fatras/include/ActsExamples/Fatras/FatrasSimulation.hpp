@@ -58,6 +58,8 @@ class FatrasSimulation final : public IAlgorithm {
     bool emEnergyLossRadiation = true;
     /// Simulate electron-positron pair production by photon conversion.
     bool emPhotonConversion = true;
+    /// Simulate hadronic interactions.
+    bool hadronicInteraction = true;
     /// Generate simulation hits on sensitive surfaces.
     bool generateHitsOnSensitive = true;
     /// Generate simulation hits on surfaces with associated material.
