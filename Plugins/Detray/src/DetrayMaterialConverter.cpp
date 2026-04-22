@@ -13,7 +13,6 @@
 #include "Acts/Material/HomogeneousSurfaceMaterial.hpp"
 #include "Acts/Material/ProtoSurfaceMaterial.hpp"
 #include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Utilities/BinUtility.hpp"
 #include "Acts/Utilities/BinningType.hpp"
 #include "Acts/Utilities/Helpers.hpp"
 #include "ActsPlugins/Detray/DetrayConversionUtils.hpp"
@@ -124,8 +123,11 @@ ActsPlugins::DetrayMaterialConverter::convertGridSurfaceMaterial(
     // Get the bin utility and convert to 2D if needed
     // Detray expects 2-dimensional grid, currently supported are
     // x-y, r-phi, phi-z
-    auto [bUtility, swapped] = DetrayConversionUtils::convertBinUtilityTo2D(
-        binnedMaterial->binUtility());
+    auto [dProtoAxis0, dProtoAxis1, swapped] =
+        DetrayConversionUtils::convertDirectedProtoAxesTo2D(
+            binnedMaterial->directedProtoAxes());
+    auto bUtility = DetrayConversionUtils::convertDirectedProtoAxesToBinUtility(
+        {dProtoAxis0, dProtoAxis1});
 
     AxisDirection bVal0 = bUtility.binningData()[0u].binvalue;
     AxisDirection bVal1 = bUtility.binningData()[1u].binvalue;
@@ -174,12 +176,11 @@ ActsPlugins::DetrayMaterialConverter::convertGridSurfaceMaterial(
     return materialGrid;
   }
 
-  if (dynamic_cast<const ProtoSurfaceMaterial*>(&material) != nullptr ||
-      dynamic_cast<const ProtoGridSurfaceMaterial*>(&material) != nullptr) {
+  if (dynamic_cast<const ProtoSurfaceMaterial*>(&material) != nullptr) {
     ACTS_WARNING(
-        "DetrayMaterialConverter: ProtoSurfaceMaterial and "
-        "ProtoGridSurfaceMaterial are not being translated, consider to switch "
-        "material conversion off.");
+        "DetrayMaterialConverter: ProtoSurfaceMaterial is not being "
+        "translated, "
+        "consider to switch material conversion off.");
     return materialGrid;
   }
 

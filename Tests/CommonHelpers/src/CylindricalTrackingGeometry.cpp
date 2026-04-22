@@ -27,6 +27,8 @@
 #include "Acts/Utilities/AxisDefinitions.hpp"
 #include "ActsTests/CommonHelpers/PredefinedMaterials.hpp"
 
+#include <array>
+
 using namespace Acts;
 
 namespace ActsTests {
@@ -289,19 +291,18 @@ std::shared_ptr<TrackingGeometry> CylindricalTrackingGeometry::buildGen3(
   const MaterialSlab lProperties(makeSilicon(), 1.5_mm);
 
   // Create a binned material in 2 bins - irregularly in z, 2 bins in phi
-  std::vector<float> binEdges = {// empirical bin edges. these are not checked!
-                                 -476.5, 0, 476.5};
-
-  BinUtility binUtility(2u, -std::numbers::pi, std::numbers::pi,
-                        BinningOption::closed, AxisPhi);
-
-  binUtility += Acts::BinUtility(binEdges, BinningOption::open, AxisZ);
+  std::vector<double> binEdges = {// empirical bin edges. these are not checked!
+                                  -476.5, 0., 476.5};
+  std::array<DirectedProtoAxis, 2u> protoAxes = {
+      DirectedProtoAxis(AxisPhi, AxisBoundaryType::Closed, -std::numbers::pi,
+                        std::numbers::pi, 2u),
+      DirectedProtoAxis(AxisZ, AxisBoundaryType::Open, binEdges)};
 
   std::vector<MaterialSlab> materialSlabs0 = {lProperties, lProperties};
   std::vector<MaterialSlab> materialSlabs1 = {lProperties, lProperties};
 
   auto binnedMaterial = std::make_shared<BinnedSurfaceMaterial>(
-      binUtility, std::vector{materialSlabs0, materialSlabs1}, 0.,
+      protoAxes, std::vector{materialSlabs0, materialSlabs1}, 0.,
       MappingType::Default);
 
   Blueprint::Config cfg;

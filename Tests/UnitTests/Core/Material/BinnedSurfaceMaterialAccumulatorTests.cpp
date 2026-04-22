@@ -17,7 +17,6 @@
 #include "Acts/Material/ProtoSurfaceMaterial.hpp"
 #include "Acts/Surfaces/CylinderSurface.hpp"
 #include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Utilities/BinUtility.hpp"
 #include "Acts/Utilities/Logger.hpp"
 
 #include <numbers>
@@ -84,15 +83,18 @@ BOOST_AUTO_TEST_CASE(AccumulationTest) {
       std::make_shared<HomogeneousSurfaceMaterial>(mp, 1.));
 
   // Second surface is binned Phi / Z
-  BinUtility sb1(4, -std::numbers::pi, std::numbers::pi, closed,
-                 AxisDirection::AxisPhi);
-  sb1 += BinUtility(2, -100., 100., open, AxisDirection::AxisZ);
+  std::vector<DirectedProtoAxis> sb1 = {
+      DirectedProtoAxis(AxisDirection::AxisPhi, AxisBoundaryType::Closed,
+                        -std::numbers::pi, std::numbers::pi, 4u),
+      DirectedProtoAxis(AxisDirection::AxisZ, AxisBoundaryType::Open, -100.,
+                        100., 2u)};
   surfaces[1u]->assignSurfaceMaterial(
       std::make_shared<ProtoSurfaceMaterial>(sb1));
 
   // Third is binned
   std::vector<MaterialSlab> mps = {mp, mp, mp};
-  BinUtility sb2(3, -100., 100., open, AxisDirection::AxisZ);
+  DirectedProtoAxis sb2(AxisDirection::AxisZ, AxisBoundaryType::Open, -100.,
+                        100., 3u);
   surfaces[2u]->assignSurfaceMaterial(
       std::make_shared<BinnedSurfaceMaterial>(sb2, mps));
 
@@ -191,11 +193,11 @@ BOOST_AUTO_TEST_CASE(AccumulationTest) {
       dynamic_cast<const BinnedSurfaceMaterial*>(m1.get());
   BOOST_CHECK(bm1 != nullptr);
 
-  // map2 should be binned
+  // map2 is treated as homogeneous
   auto m2 = m2Itr->second;
-  const BinnedSurfaceMaterial* bm2 =
-      dynamic_cast<const BinnedSurfaceMaterial*>(m2.get());
-  BOOST_CHECK(bm2 != nullptr);
+  const HomogeneousSurfaceMaterial* hm2 =
+      dynamic_cast<const HomogeneousSurfaceMaterial*>(m2.get());
+  BOOST_CHECK(hm2 != nullptr);
 
   // Check failures
   auto invalidSurface =

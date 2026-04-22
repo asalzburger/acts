@@ -57,6 +57,8 @@ class RootMaterialMapIo {
     std::string axisDirHistName = "v";
     /// The axis boundary type hist name
     std::string axisBoundaryTypeHistName = "o";
+    /// The binning schema marker hist name (0: legacy, 1: directed proto axis)
+    std::string axisSchemaHistName = "schema";
     /// The range histogram name: min value
     std::string minRangeHistName = "min";
     /// The range histogram name: max value

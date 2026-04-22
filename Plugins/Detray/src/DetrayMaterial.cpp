@@ -34,11 +34,12 @@ DetrayPayloadConverter::convertBinnedSurfaceMaterial(
   // Get the bin utility and convert to 2D if needed
   // Detray expects 2-dimensional grid, currently supported are
   // x-y, r-phi, phi-z
-  auto [bUtility, swapped] =
-      DetrayConversionUtils::convertBinUtilityTo2D(material.binUtility());
+  auto [dProtoAxis0, dProtoAxis1, swapped] =
+      DetrayConversionUtils::convertDirectedProtoAxesTo2D(
+          material.directedProtoAxes());
 
-  AxisDirection bVal0 = bUtility.binningData()[0u].binvalue;
-  AxisDirection bVal1 = bUtility.binningData()[1u].binvalue;
+  AxisDirection bVal0 = dProtoAxis0.getAxisDirection();
+  AxisDirection bVal1 = dProtoAxis1.getAxisDirection();
 
   // Translate into grid index type
   detray::io::material_id gridIndexType = detray::io::material_id::unknown;
@@ -62,8 +63,9 @@ DetrayPayloadConverter::convertBinnedSurfaceMaterial(
   materialGrid.grid_link = linkPayload;
 
   // Now convert the (modified) bin utility
-  for (const auto& bData : bUtility.binningData()) {
-    auto axisPayload = DetrayConversionUtils::convertBinningData(bData);
+  for (const auto& dProtoAxis : {dProtoAxis0, dProtoAxis1}) {
+    auto axisPayload =
+        DetrayConversionUtils::convertDirectedProtoAxis(dProtoAxis);
     materialGrid.axes.push_back(axisPayload);
   }
 
@@ -99,14 +101,8 @@ DetrayPayloadConverter::convertHomogeneousSurfaceMaterial(
 }
 
 std::optional<DetraySurfaceMaterial>
-DetrayPayloadConverter::convertProtoSurfaceMaterialBinUtility(
-    const ProtoSurfaceMaterialT<Acts::BinUtility>& /*material*/) {
-  return std::nullopt;
-}
-
-std::optional<DetraySurfaceMaterial>
-DetrayPayloadConverter::convertProtoSurfaceMaterialProtoAxes(
-    const ProtoSurfaceMaterialT<std::vector<DirectedProtoAxis>>& /*material*/) {
+DetrayPayloadConverter::convertProtoSurfaceMaterial(
+    const ProtoSurfaceMaterial& /*material*/) {
   return std::nullopt;
 }
 

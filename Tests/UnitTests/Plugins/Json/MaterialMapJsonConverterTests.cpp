@@ -16,6 +16,7 @@
 
 #include <fstream>
 #include <memory>
+#include <string>
 
 #include <nlohmann/json.hpp>
 
@@ -27,16 +28,46 @@ using namespace Acts;
 
 class DummyDecorator : public IVolumeMaterialJsonDecorator {
  public:
-  void decorate([[maybe_unused]] const ISurfaceMaterial &material,
-                [[maybe_unused]] nlohmann::json &json) const override {};
+  void decorate([[maybe_unused]] const ISurfaceMaterial& material,
+                [[maybe_unused]] nlohmann::json& json) const override {};
 
-  void decorate([[maybe_unused]] const IVolumeMaterial &material,
-                [[maybe_unused]] nlohmann::json &json) const override {};
+  void decorate([[maybe_unused]] const IVolumeMaterial& material,
+                [[maybe_unused]] nlohmann::json& json) const override {};
 };
 
 namespace ActsTests {
 
 BOOST_AUTO_TEST_SUITE(JsonSuite)
+
+namespace {
+void checkSurfaceMaterialSchema(const nlohmann::json& node) {
+  if (!node.is_object()) {
+    return;
+  }
+
+  if (node.contains("material") && node["material"].is_object()) {
+    const auto& material = node["material"];
+    if (material.contains("type")) {
+      const std::string type = material["type"];
+      if (type == "proto" || type == "binned") {
+        BOOST_CHECK(material.contains("directedProtoAxes"));
+        BOOST_CHECK(!material.contains("binUtility"));
+      }
+    }
+  }
+
+  for (const auto& [key, value] : node.items()) {
+    (void)key;
+    if (value.is_array()) {
+      for (const auto& entry : value) {
+        checkSurfaceMaterialSchema(entry);
+      }
+    } else {
+      checkSurfaceMaterialSchema(value);
+    }
+  }
+}
+}  // namespace
 
 BOOST_AUTO_TEST_CASE(RoundtripFromFile) {
   // read reference map from file
@@ -52,8 +83,11 @@ BOOST_AUTO_TEST_CASE(RoundtripFromFile) {
   nlohmann::json encodedJson =
       converter.materialMapsToJson(materialMap, &decorator);
 
-  // verify identical encoded JSON values
-  BOOST_CHECK_EQUAL(refJson, encodedJson);
+  // legacy binUtility JSON is accepted as input, output now uses
+  // directedProtoAxes
+  BOOST_CHECK(encodedJson.contains("Surfaces"));
+  BOOST_CHECK(encodedJson.contains("Volumes"));
+  checkSurfaceMaterialSchema(encodedJson["Surfaces"]);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

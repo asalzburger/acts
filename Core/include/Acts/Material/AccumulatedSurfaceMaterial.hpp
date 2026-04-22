@@ -11,7 +11,7 @@
 #include "Acts/Definitions/Algebra.hpp"
 #include "Acts/Material/AccumulatedMaterialSlab.hpp"
 #include "Acts/Material/MaterialSlab.hpp"
-#include "Acts/Utilities/BinUtility.hpp"
+#include "Acts/Utilities/ProtoAxis.hpp"
 
 #include <array>
 #include <cstddef>
@@ -51,10 +51,11 @@ class AccumulatedSurfaceMaterial {
   ///    - 0. : alongPre
   ///  ===> 1 Dimensional array
   ///
-  /// @param binUtility defines the binning structure on the surface
+  /// @param dProtoAxes defines the binning structure on the surface
   /// @param splitFactor is the pre/post splitting directive
-  explicit AccumulatedSurfaceMaterial(const BinUtility& binUtility,
-                                      double splitFactor = 0.);
+  explicit AccumulatedSurfaceMaterial(
+      const std::vector<DirectedProtoAxis>& dProtoAxes,
+      double splitFactor = 0.);
 
   /// Copy Constructor
   ///
@@ -83,20 +84,8 @@ class AccumulatedSurfaceMaterial {
   /// Destructor
   ~AccumulatedSurfaceMaterial() = default;
 
-  /// Return the BinUtility
-  /// @return Reference to the bin utility used for material binning
-  const BinUtility& binUtility() const;
-
-  /// Assign a material properties object
-  ///
-  /// @param lp local position for the bin assignment
-  /// @param mp material properties to be assigned
-  /// @param pathCorrection Correction factor for the effective path length
-  ///
-  /// @return the bin triple to which the material was assigned
-  std::array<std::size_t, 3> accumulate(const Vector2& lp,
-                                        const MaterialSlab& mp,
-                                        double pathCorrection = 1.);
+  /// @return the directed proto axies
+  const std::vector<DirectedProtoAxis>& directedProtoAxes() const;
 
   /// Assign a material properties object
   ///
@@ -155,7 +144,7 @@ class AccumulatedSurfaceMaterial {
 
  private:
   /// The helper for the bin finding
-  BinUtility m_binUtility{};
+  std::vector<DirectedProtoAxis> m_directedProtoAxes{};
 
   /// the split factor
   double m_splitFactor{0.};
@@ -164,8 +153,9 @@ class AccumulatedSurfaceMaterial {
   AccumulatedMatrix m_accumulatedMaterial;
 };
 
-inline const BinUtility& AccumulatedSurfaceMaterial::binUtility() const {
-  return m_binUtility;
+inline const std::vector<DirectedProtoAxis>&
+AccumulatedSurfaceMaterial::directedProtoAxes() const {
+  return m_directedProtoAxes;
 }
 
 inline const AccumulatedSurfaceMaterial::AccumulatedMatrix&

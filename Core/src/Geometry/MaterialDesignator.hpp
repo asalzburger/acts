@@ -82,7 +82,8 @@ class ProtoDesignator {
                         << loc1 << " to face " << face);
 
       portal->surface().assignSurfaceMaterial(
-          std::make_shared<ProtoGridSurfaceMaterial>(std::vector{loc0, loc1}));
+          std::make_shared<ProtoSurfaceMaterial>(
+              std::vector<DirectedProtoAxis>{loc0, loc1}));
     }
   }
 

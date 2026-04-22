@@ -88,10 +88,14 @@ namespace {
 Acts::SurfaceAndMaterialWithContext defaultSurfaceMaterial(
     const std::shared_ptr<const Acts::Surface>& surface,
     const Acts::GeometryContext& context) {
+  using enum Acts::AxisDirection;
+  using enum Acts::AxisBoundaryType;
+
   if (surface->surfaceMaterialSharedPtr() != nullptr) {
     return {surface, surface->surfaceMaterialSharedPtr(), context};
   }
-  Acts::BinUtility bUtility;
+
+  std::vector<Acts::DirectedProtoAxis> dProtoAxes;
   // Check which type of bounds is associated to the surface
   const Acts::SurfaceBounds& surfaceBounds = surface->bounds();
   const Acts::RadialBounds* radialBounds =
@@ -106,68 +110,54 @@ Acts::SurfaceAndMaterialWithContext defaultSurfaceMaterial(
       dynamic_cast<const Acts::TrapezoidBounds*>(&surfaceBounds);
 
   if (radialBounds != nullptr) {
-    bUtility += Acts::BinUtility(
-        1,
-        radialBounds->get(Acts::RadialBounds::eAveragePhi) -
-            radialBounds->get(Acts::RadialBounds::eHalfPhiSector),
-        radialBounds->get(Acts::RadialBounds::eAveragePhi) +
-            radialBounds->get(Acts::RadialBounds::eHalfPhiSector),
-        (radialBounds->get(Acts::RadialBounds::eHalfPhiSector) -
-         std::numbers::pi) < Acts::s_epsilon
-            ? Acts::closed
-            : Acts::open,
-        Acts::AxisDirection::AxisPhi);
-    bUtility += Acts::BinUtility(1, radialBounds->rMin(), radialBounds->rMax(),
-                                 Acts::open, Acts::AxisDirection::AxisR);
+    dProtoAxes.emplace_back(AxisR, Bound, radialBounds->rMin(),
+                            radialBounds->rMax(), 1u);
+    dProtoAxes.emplace_back(AxisPhi, Closed, -std::numbers::pi,
+                            std::numbers::pi, 1u);
   }
   if (cylinderBounds != nullptr) {
-    bUtility += Acts::BinUtility(
-        1,
+    dProtoAxes.emplace_back(
+        AxisPhi,
+        (cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector) -
+         std::numbers::pi) < Acts::s_epsilon
+            ? Closed
+            : Open,
         cylinderBounds->get(Acts::CylinderBounds::eAveragePhi) -
             cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector),
         cylinderBounds->get(Acts::CylinderBounds::eAveragePhi) +
             cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector),
-        (cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector) -
-         std::numbers::pi) < Acts::s_epsilon
-            ? Acts::closed
-            : Acts::open,
-        Acts::AxisDirection::AxisPhi);
-    bUtility += Acts::BinUtility(
-        1, -1 * cylinderBounds->get(Acts::CylinderBounds::eHalfLengthZ),
-        cylinderBounds->get(Acts::CylinderBounds::eHalfLengthZ), Acts::open,
-        Acts::AxisDirection::AxisZ);
+        1u);
+    dProtoAxes.emplace_back(
+        AxisZ, Open,
+        -1 * cylinderBounds->get(Acts::CylinderBounds::eHalfLengthZ),
+        cylinderBounds->get(Acts::CylinderBounds::eHalfLengthZ), 1u);
   }
   if (annulusBounds != nullptr) {
-    bUtility +=
-        Acts::BinUtility(1, annulusBounds->get(Acts::AnnulusBounds::eMinPhiRel),
-                         annulusBounds->get(Acts::AnnulusBounds::eMaxPhiRel),
-                         Acts::open, Acts::AxisDirection::AxisPhi);
-    bUtility += Acts::BinUtility(1, static_cast<float>(annulusBounds->rMin()),
-                                 static_cast<float>(annulusBounds->rMax()),
-                                 Acts::open, Acts::AxisDirection::AxisR);
+    dProtoAxes.emplace_back(
+        AxisPhi, Open, annulusBounds->get(Acts::AnnulusBounds::eMinPhiRel),
+        annulusBounds->get(Acts::AnnulusBounds::eMaxPhiRel), 1u);
+    dProtoAxes.emplace_back(AxisR, Open, annulusBounds->rMin(),
+                            annulusBounds->rMax(), 1u);
   }
   if (rectangleBounds != nullptr) {
-    bUtility +=
-        Acts::BinUtility(1, rectangleBounds->get(Acts::RectangleBounds::eMinX),
-                         rectangleBounds->get(Acts::RectangleBounds::eMaxX),
-                         Acts::open, Acts::AxisDirection::AxisX);
-    bUtility +=
-        Acts::BinUtility(1, rectangleBounds->get(Acts::RectangleBounds::eMinY),
-                         rectangleBounds->get(Acts::RectangleBounds::eMaxY),
-                         Acts::open, Acts::AxisDirection::AxisY);
+    dProtoAxes.emplace_back(
+        AxisX, Open, rectangleBounds->get(Acts::RectangleBounds::eMinX),
+        rectangleBounds->get(Acts::RectangleBounds::eMaxX), 1u);
+    dProtoAxes.emplace_back(
+        AxisY, Open, rectangleBounds->get(Acts::RectangleBounds::eMinY),
+        rectangleBounds->get(Acts::RectangleBounds::eMaxY), 1u);
   }
   if (trapezoidBounds != nullptr) {
     double halfLengthX =
         std::max(trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthXnegY),
                  trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthXposY));
-    bUtility += Acts::BinUtility(1, -1 * halfLengthX, halfLengthX, Acts::open,
-                                 Acts::AxisDirection::AxisX);
-    bUtility += Acts::BinUtility(
-        1, -1 * trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthY),
-        trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthY), Acts::open,
-        Acts::AxisDirection::AxisY);
+    dProtoAxes.emplace_back(AxisX, Open, -1 * halfLengthX, halfLengthX, 1u);
+    dProtoAxes.emplace_back(
+        AxisY, Open,
+        -1 * trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthY),
+        trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthY), 1u);
   }
-  return {surface, std::make_shared<Acts::ProtoSurfaceMaterial>(bUtility),
+  return {surface, std::make_shared<Acts::ProtoSurfaceMaterial>(dProtoAxes),
           context};
 }
 

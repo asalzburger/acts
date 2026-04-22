@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <map>
 #include <numbers>
+#include <vector>
 
 // Convenience shorthand
 
@@ -157,7 +158,7 @@ class MappingMaterialDecorator : public IMaterialDecorator {
   std::shared_ptr<const Acts::ISurfaceMaterial> binnedSurfaceMaterial(
       const std::shared_ptr<const Acts::Surface>& surface) const {
     auto bin = m_binningMap.find(surface->geometryId().value());
-    Acts::BinUtility bUtility;
+    std::vector<Acts::DirectedProtoAxis> dProtoAxes;
     if (bin == m_binningMap.end()) {
       ACTS_ERROR("No corresponding binning in the map to surface "
                  << surface->geometryId());
@@ -177,76 +178,80 @@ class MappingMaterialDecorator : public IMaterialDecorator {
           dynamic_cast<const Acts::TrapezoidBounds*>(&surfaceBounds);
 
       if (radialBounds != nullptr) {
-        bUtility += Acts::BinUtility(
-            binning.first,
+        dProtoAxes.emplace_back(
+            Acts::AxisDirection::AxisPhi,
+            (radialBounds->get(Acts::RadialBounds::eHalfPhiSector) -
+             std::numbers::pi) < Acts::s_epsilon
+                ? Acts::AxisBoundaryType::Closed
+                : Acts::AxisBoundaryType::Open,
             radialBounds->get(Acts::RadialBounds::eAveragePhi) -
                 radialBounds->get(Acts::RadialBounds::eHalfPhiSector),
             radialBounds->get(Acts::RadialBounds::eAveragePhi) +
                 radialBounds->get(Acts::RadialBounds::eHalfPhiSector),
-            (radialBounds->get(Acts::RadialBounds::eHalfPhiSector) -
-             std::numbers::pi) < Acts::s_epsilon
-                ? Acts::closed
-                : Acts::open,
-            Acts::AxisDirection::AxisPhi);
-        bUtility += Acts::BinUtility(binning.second,
-                                     static_cast<float>(radialBounds->rMin()),
-                                     static_cast<float>(radialBounds->rMax()),
-                                     Acts::open, Acts::AxisDirection::AxisR);
+            static_cast<std::size_t>(binning.first));
+        dProtoAxes.emplace_back(Acts::AxisDirection::AxisR,
+                                Acts::AxisBoundaryType::Open,
+                                radialBounds->rMin(), radialBounds->rMax(),
+                                static_cast<std::size_t>(binning.second));
       }
       if (cylinderBounds != nullptr) {
-        bUtility += Acts::BinUtility(
-            binning.first,
+        dProtoAxes.emplace_back(
+            Acts::AxisDirection::AxisPhi,
+            (cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector) -
+             std::numbers::pi) < Acts::s_epsilon
+                ? Acts::AxisBoundaryType::Closed
+                : Acts::AxisBoundaryType::Open,
             cylinderBounds->get(Acts::CylinderBounds::eAveragePhi) -
                 cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector),
             cylinderBounds->get(Acts::CylinderBounds::eAveragePhi) +
                 cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector),
-            (cylinderBounds->get(Acts::CylinderBounds::eHalfPhiSector) -
-             std::numbers::pi) < Acts::s_epsilon
-                ? Acts::closed
-                : Acts::open,
-            Acts::AxisDirection::AxisPhi);
-        bUtility += Acts::BinUtility(
-            binning.second,
+            static_cast<std::size_t>(binning.first));
+        dProtoAxes.emplace_back(
+            Acts::AxisDirection::AxisZ, Acts::AxisBoundaryType::Open,
             -1 * cylinderBounds->get(Acts::CylinderBounds::eHalfLengthZ),
-            cylinderBounds->get(Acts::CylinderBounds::eHalfLengthZ), Acts::open,
-            Acts::AxisDirection::AxisZ);
+            cylinderBounds->get(Acts::CylinderBounds::eHalfLengthZ),
+            static_cast<std::size_t>(binning.second));
       }
       if (annulusBounds != nullptr) {
-        bUtility += Acts::BinUtility(
-            binning.first, annulusBounds->get(Acts::AnnulusBounds::eMinPhiRel),
-            annulusBounds->get(Acts::AnnulusBounds::eMaxPhiRel), Acts::open,
-            Acts::AxisDirection::AxisPhi);
-        bUtility += Acts::BinUtility(binning.second,
-                                     static_cast<float>(annulusBounds->rMin()),
-                                     static_cast<float>(annulusBounds->rMax()),
-                                     Acts::open, Acts::AxisDirection::AxisR);
+        dProtoAxes.emplace_back(
+            Acts::AxisDirection::AxisPhi, Acts::AxisBoundaryType::Open,
+            annulusBounds->get(Acts::AnnulusBounds::eMinPhiRel),
+            annulusBounds->get(Acts::AnnulusBounds::eMaxPhiRel),
+            static_cast<std::size_t>(binning.first));
+        dProtoAxes.emplace_back(Acts::AxisDirection::AxisR,
+                                Acts::AxisBoundaryType::Open,
+                                annulusBounds->rMin(), annulusBounds->rMax(),
+                                static_cast<std::size_t>(binning.second));
       }
       if (rectangleBounds != nullptr) {
-        bUtility += Acts::BinUtility(
-            binning.first, rectangleBounds->get(Acts::RectangleBounds::eMinX),
-            rectangleBounds->get(Acts::RectangleBounds::eMaxX), Acts::open,
-            Acts::AxisDirection::AxisX);
-        bUtility += Acts::BinUtility(
-            binning.second, rectangleBounds->get(Acts::RectangleBounds::eMinY),
-            rectangleBounds->get(Acts::RectangleBounds::eMaxY), Acts::open,
-            Acts::AxisDirection::AxisY);
+        dProtoAxes.emplace_back(
+            Acts::AxisDirection::AxisX, Acts::AxisBoundaryType::Open,
+            rectangleBounds->get(Acts::RectangleBounds::eMinX),
+            rectangleBounds->get(Acts::RectangleBounds::eMaxX),
+            static_cast<std::size_t>(binning.first));
+        dProtoAxes.emplace_back(
+            Acts::AxisDirection::AxisY, Acts::AxisBoundaryType::Open,
+            rectangleBounds->get(Acts::RectangleBounds::eMinY),
+            rectangleBounds->get(Acts::RectangleBounds::eMaxY),
+            static_cast<std::size_t>(binning.second));
       }
       if (trapezoidBounds != nullptr) {
         double halfLengthX = std::max(
             trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthXnegY),
             trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthXposY));
-        bUtility += Acts::BinUtility(binning.first,
-                                     static_cast<float>(-1 * halfLengthX),
-                                     static_cast<float>(halfLengthX),
-                                     Acts::open, Acts::AxisDirection::AxisX);
-        bUtility += Acts::BinUtility(
-            binning.second,
+        dProtoAxes.emplace_back(Acts::AxisDirection::AxisX,
+                                Acts::AxisBoundaryType::Open,
+                                static_cast<double>(-1 * halfLengthX),
+                                static_cast<double>(halfLengthX),
+                                static_cast<std::size_t>(binning.first));
+        dProtoAxes.emplace_back(
+            Acts::AxisDirection::AxisY, Acts::AxisBoundaryType::Open,
             -1 * trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthY),
             trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthY),
-            Acts::open, Acts::AxisDirection::AxisY);
+            static_cast<std::size_t>(binning.second));
       }
     }
-    return std::make_shared<Acts::ProtoSurfaceMaterial>(bUtility);
+    return std::make_shared<Acts::ProtoSurfaceMaterial>(dProtoAxes);
   }
 
   /// Readonly access to the BinningMap

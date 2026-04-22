@@ -13,8 +13,6 @@
 #include "Acts/Material/AccumulatedSurfaceMaterial.hpp"
 #include "Acts/Material/Material.hpp"
 #include "Acts/Material/MaterialSlab.hpp"
-#include "Acts/Utilities/BinUtility.hpp"
-#include "Acts/Utilities/BinningType.hpp"
 
 #include <array>
 #include <cstddef>
@@ -39,17 +37,21 @@ BOOST_AUTO_TEST_CASE(AccumulatedSurfaceMaterial_construction_test) {
 
   // Test:
   // BinsSurfaceMaterial accumulation - 1D
-  BinUtility binUtility1D(10, -5., 5., open, AxisDirection::AxisX);
-  AccumulatedSurfaceMaterial material1D{binUtility1D};
+  std::vector<DirectedProtoAxis> binning1D = {DirectedProtoAxis(
+      AxisDirection::AxisX, AxisBoundaryType::Open, -5., 5., 10u)};
+  AccumulatedSurfaceMaterial material1D{binning1D};
   auto accMat1D = material1D.accumulatedMaterial();
   BOOST_CHECK_EQUAL(accMat1D.size(), 1u);
   BOOST_CHECK_EQUAL(accMat1D[0].size(), 10u);
 
   // Test:
   // BinsSurfaceMaterial accumulation - 2D
-  BinUtility binUtility2D(10, -5., 5., open, AxisDirection::AxisX);
-  binUtility2D += BinUtility(20, -10., 10., open, AxisDirection::AxisY);
-  AccumulatedSurfaceMaterial material2D{binUtility2D};
+  std::vector<DirectedProtoAxis> binning2D = {
+      DirectedProtoAxis(AxisDirection::AxisX, AxisBoundaryType::Open, -5., 5.,
+                        10u),
+      DirectedProtoAxis(AxisDirection::AxisY, AxisBoundaryType::Open, -10., 10.,
+                        20u)};
+  AccumulatedSurfaceMaterial material2D{binning2D};
   auto accMat2D = material2D.accumulatedMaterial();
   BOOST_CHECK_EQUAL(accMat2D.size(), 20u);
   for (std::size_t ib = 0; ib < accMat2D.size(); ++ib) {
@@ -66,8 +68,8 @@ BOOST_AUTO_TEST_CASE(AccumulatedSurfaceMaterial_fill_convert_0D) {
   AccumulatedSurfaceMaterial material0D{};
   const std::vector<std::array<std::size_t, 3>> bin;
   // assign 2 one steps
-  material0D.accumulate(Vector2{0., 0.}, one);
-  material0D.accumulate(Vector2{0., 0.}, one);
+  material0D.accumulate(Vector3{0., 0., 0.}, one);
+  material0D.accumulate(Vector3{0., 0., 0.}, one);
   material0D.trackVariance(bin, one);
   material0D.trackAverage();
   // assign 1 double step
@@ -95,32 +97,35 @@ BOOST_AUTO_TEST_CASE(AccumulatedSurfaceMaterial_fill_convert_1D) {
   MaterialSlab four(mat, 4.);
 
   // BinsSurfaceMaterial accumulation - 2D
-  BinUtility binUtility2D(2, -1., 1., open, AxisDirection::AxisX);
-  binUtility2D += BinUtility(2, -1., 1., open, AxisDirection::AxisY);
-  AccumulatedSurfaceMaterial material2D{binUtility2D};
+  std::vector<DirectedProtoAxis> binning2D = {
+      DirectedProtoAxis(AxisDirection::AxisX, AxisBoundaryType::Open, -1., 1.,
+                        2u),
+      DirectedProtoAxis(AxisDirection::AxisY, AxisBoundaryType::Open, -1., 1.,
+                        2u)};
+  AccumulatedSurfaceMaterial material2D{binning2D};
   const std::vector<std::array<std::size_t, 3>> bin;
 
   // assign in the different bins
   // event 0
-  material2D.accumulate(Vector2{-0.5, -0.5}, one);
-  material2D.accumulate(Vector2{0.5, -0.5}, two);
-  material2D.accumulate(Vector2{-0.5, 0.5}, three);
-  material2D.accumulate(Vector2{0.5, 0.5}, four);
+  material2D.accumulate(Vector3{-0.5, -0.5, 0.}, one);
+  material2D.accumulate(Vector3{0.5, -0.5, 0.}, two);
+  material2D.accumulate(Vector3{-0.5, 0.5, 0.}, three);
+  material2D.accumulate(Vector3{0.5, 0.5, 0.}, four);
   material2D.trackVariance(bin, one);
   material2D.trackAverage();
   // event 1
-  material2D.accumulate(Vector2{0.5, -0.5}, two);
-  material2D.accumulate(Vector2{-0.5, 0.5}, three);
-  material2D.accumulate(Vector2{0.5, 0.5}, four);
+  material2D.accumulate(Vector3{0.5, -0.5, 0.}, two);
+  material2D.accumulate(Vector3{-0.5, 0.5, 0.}, three);
+  material2D.accumulate(Vector3{0.5, 0.5, 0.}, four);
   material2D.trackVariance(bin, one);
   material2D.trackAverage();
   // event 2
-  material2D.accumulate(Vector2{-0.5, 0.5}, three);
-  material2D.accumulate(Vector2{0.5, 0.5}, four);
+  material2D.accumulate(Vector3{-0.5, 0.5, 0.}, three);
+  material2D.accumulate(Vector3{0.5, 0.5, 0.}, four);
   material2D.trackVariance(bin, one);
   material2D.trackAverage();
   // event 2
-  material2D.accumulate(Vector2{0.5, 0.5}, four);
+  material2D.accumulate(Vector3{0.5, 0.5, 0.}, four);
   material2D.trackVariance(bin, one);
   material2D.trackAverage();
   // get the single matrix
@@ -170,7 +175,7 @@ BOOST_AUTO_TEST_CASE(AccumulatedSurfaceMaterial_variance_0D) {
   AccumulatedSurfaceMaterial material0D{};
   const std::vector<std::array<std::size_t, 3>> bin;
   // assign 2 one steps
-  material0D.accumulate(Vector2{0., 0.}, one);
+  material0D.accumulate(Vector3{0., 0., 0.}, one);
   material0D.trackVariance(bin, avg);
   material0D.trackAverage();
   // assign 1 double step

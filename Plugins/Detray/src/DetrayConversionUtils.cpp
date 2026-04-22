@@ -116,6 +116,14 @@ detray::io::axis_payload ActsPlugins::DetrayConversionUtils::convertAxis(
   return payload;
 }
 
+detray::io::axis_payload
+ActsPlugins::DetrayConversionUtils::convertDirectedProtoAxis(
+    const Acts::DirectedProtoAxis& dpa) {
+  auto axisPayload = convertAxis(dpa.getAxis());
+  axisPayload.label = convertAxisDirection(dpa.getAxisDirection());
+  return axisPayload;
+}
+
 detray::io::material_slab_payload
 ActsPlugins::DetrayConversionUtils::convertMaterialSlab(
     const Acts::MaterialSlab& slab) {
@@ -144,58 +152,51 @@ ActsPlugins::DetrayConversionUtils::convertTransform(
   return tfPayload;
 }
 
-std::tuple<Acts::BinUtility, bool>
-ActsPlugins::DetrayConversionUtils::convertBinUtilityTo2D(
-    const Acts::BinUtility& bUtility) {
+std::tuple<Acts::DirectedProtoAxis, Acts::DirectedProtoAxis, bool>
+ActsPlugins::DetrayConversionUtils::convertDirectedProtoAxesTo2D(
+    const std::vector<Acts::DirectedProtoAxis>& dProtoAxes) {
   using enum Acts::AxisDirection;
-  using enum Acts::BinningOption;
+  using enum Acts::AxisBoundaryType;
 
   // Return as-is if already 2D
-  if (bUtility.dimensions() == 2u) {
+  if (dProtoAxes.size() == 2u) {
     // Check if we need to swap for phi-z -> z-phi
-    if (bUtility.binningData()[0u].binvalue == AxisZ &&
-        bUtility.binningData()[1u].binvalue == AxisPhi) {
-      BinUtility nbUtility(bUtility.binningData()[1u]);
-      nbUtility += BinUtility{bUtility.binningData()[0u]};
-      return {std::move(nbUtility), true};
+    if (dProtoAxes[0].getAxisDirection() == AxisZ &&
+        dProtoAxes[1].getAxisDirection() == AxisPhi) {
+      return {dProtoAxes[1], dProtoAxes[0], true};
     }
-    return {bUtility, false};
+    return {dProtoAxes[0], dProtoAxes[1], false};
   }
 
   // Convert 1D to 2D
-  if (bUtility.dimensions() == 1u) {
-    BinUtility result = bUtility;
-    bool swapped = false;
-
-    if (bUtility.binningData()[0u].binvalue == AxisX) {
-      // Turn to X-Y
-      result += BinUtility(1u, std::numeric_limits<float>::lowest(),
-                           std::numeric_limits<float>::max(), closed, AxisY);
-    } else if (bUtility.binningData()[0u].binvalue == AxisY) {
+  if (dProtoAxes.size() == 1u) {
+    const DirectedProtoAxis& dpa0 = dProtoAxes[0];
+    if (dpa0.getAxisDirection() == AxisX) {
+      DirectedProtoAxis dpa1(AxisY, Bound, std::numeric_limits<float>::lowest(),
+                             std::numeric_limits<float>::max(), 1u);
+      return {dpa0, dpa1, false};
+    } else if (dpa0.getAxisDirection() == AxisY) {
       // Turn to X-Y (swap needed)
-      BinUtility nbUtility(1u, std::numeric_limits<float>::lowest(),
-                           std::numeric_limits<float>::max(), closed, AxisX);
-      nbUtility += bUtility;
-      result = std::move(nbUtility);
-      swapped = true;
-    } else if (bUtility.binningData()[0u].binvalue == AxisR) {
+      DirectedProtoAxis dpa1(AxisX, Bound, std::numeric_limits<float>::lowest(),
+                             std::numeric_limits<float>::max(), 1u);
+      return {dpa1, dpa0, true};
+    } else if (dpa0.getAxisDirection() == AxisR) {
       // Turn to R-Phi
-      result +=
-          BinUtility(1u, -std::numbers::pi, std::numbers::pi, closed, AxisPhi);
-    } else if (bUtility.binningData()[0u].binvalue == AxisZ) {
+      DirectedProtoAxis dpa1(AxisPhi, Closed, -std::numbers::pi,
+                             std::numbers::pi, 1u);
+      return {dpa0, dpa1, false};
+    } else if (dpa0.getAxisDirection() == AxisZ) {
       // Turn to Phi-Z (swap needed)
-      BinUtility nbUtility(1u, -std::numbers::pi, std::numbers::pi, closed,
-                           AxisPhi);
-      nbUtility += bUtility;
-      result = std::move(nbUtility);
-      swapped = true;
-    } else {
-      throw std::invalid_argument("Unsupported binning for Detray");
+      DirectedProtoAxis dpa1(AxisPhi, Closed, -std::numbers::pi,
+                             std::numbers::pi, 1u);
+      return {dpa1, dpa0, true};
+    } else if (dpa0.getAxisDirection() == AxisPhi) {
+      // Turn to R-Phi
+      DirectedProtoAxis dpa1(AxisR, Bound, 0.0f,
+                             std::numeric_limits<float>::max(), 1u);
+      return {dpa0, dpa1, false};
     }
-
-    return {result, swapped};
   }
 
-  throw std::invalid_argument(
-      "DetrayConversionUtils: BinUtility must be 1D or 2D");
+  throw std::invalid_argument("Unsupported binning for Detray");
 }

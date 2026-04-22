@@ -15,7 +15,10 @@
 #include "Acts/Material/Material.hpp"
 #include "Acts/Material/MaterialSlab.hpp"
 #include "Acts/Surfaces/Surface.hpp"
+#include "Acts/Utilities/BinningType.hpp"
 #include "Acts/Utilities/Enumerate.hpp"
+
+#include <array>
 
 #include <TFile.h>
 #include <TH1I.h>
@@ -29,6 +32,24 @@
 #include <boost/algorithm/string/iter_find.hpp>
 
 using namespace Acts;
+
+namespace {
+
+constexpr int kDirectedProtoAxisSchemaVersion = 1;
+
+AxisBoundaryType toAxisBoundaryType(BinningOption option) {
+  return option == closed ? AxisBoundaryType::Closed : AxisBoundaryType::Open;
+}
+
+AxisBoundaryType decodeAxisBoundaryType(float value, bool directedProtoSchema) {
+  if (directedProtoSchema) {
+    return static_cast<AxisBoundaryType>(static_cast<int>(value));
+  }
+  return toAxisBoundaryType(
+      static_cast<BinningOption>(static_cast<int>(value)));
+}
+
+}  // namespace
 
 void ActsPlugins::RootMaterialMapIo::write(
     TFile& rFile, const GeometryIdentifier& geoID,
@@ -73,11 +94,10 @@ void ActsPlugins::RootMaterialMapIo::write(
     rFile.mkdir(tdName.c_str());
     rFile.cd(tdName.c_str());
 
-    // Boundary condistions
-    // Get the binning data
-    auto& binningData = bsMaterial->binUtility().binningData();
+    // Binning definition from directed proto axes
+    const auto& dProtoAxes = bsMaterial->directedProtoAxes();
     // 1-D or 2-D maps
-    auto bins = static_cast<int>(binningData.size());
+    auto bins = static_cast<int>(dProtoAxes.size());
     auto fBins = static_cast<float>(bins);
 
     // The bin number information
@@ -98,22 +118,30 @@ void ActsPlugins::RootMaterialMapIo::write(
     // The binning option information - range max
     TH1F rmax(m_cfg.maxRangeHistName.c_str(), "max; bin", bins, -0.5,
               fBins - 0.5);
+    TH1I schema(m_cfg.axisSchemaHistName.c_str(), "schema version", 1, -0.5,
+                0.5);
+    schema.SetBinContent(1, kDirectedProtoAxisSchemaVersion);
 
     // Now fill the histogram content
-    for (auto [b, bData] : enumerate(binningData)) {
-      // Fill: nbins, value, option, min, max
-      n.SetBinContent(static_cast<int>(b) + 1, static_cast<int>(bData.bins()));
+    for (auto [b, dProtoAxis] : enumerate(dProtoAxes)) {
+      const auto& axis = dProtoAxis.getAxis();
+      const auto& edges = axis.getBinEdges();
+      // Fill: nbins, value, boundary, min, max
+      n.SetBinContent(static_cast<int>(b) + 1,
+                      static_cast<int>(axis.getNBins()));
       v.SetBinContent(static_cast<int>(b) + 1,
-                      static_cast<int>(bData.binvalue));
-      o.SetBinContent(static_cast<int>(b) + 1, static_cast<int>(bData.option));
-      rmin.SetBinContent(static_cast<int>(b) + 1, bData.min);
-      rmax.SetBinContent(static_cast<int>(b) + 1, bData.max);
+                      static_cast<int>(dProtoAxis.getAxisDirection()));
+      o.SetBinContent(static_cast<int>(b) + 1,
+                      static_cast<int>(axis.getBoundaryType()));
+      rmin.SetBinContent(static_cast<int>(b) + 1, edges.front());
+      rmax.SetBinContent(static_cast<int>(b) + 1, edges.back());
     }
     n.Write();
     v.Write();
     o.Write();
     rmin.Write();
     rmax.Write();
+    schema.Write();
 
     // If compressed writing is not enabled, write the binned surface material
     // as histograms
@@ -190,8 +218,10 @@ void ActsPlugins::RootMaterialMapIo::fillMaterialSlab(
 
 void ActsPlugins::RootMaterialMapIo::fillBinnedSurfaceMaterial(
     const BinnedSurfaceMaterial& bsMaterial) {
-  auto bins0 = static_cast<int>(bsMaterial.binUtility().bins(0));
-  auto bins1 = static_cast<int>(bsMaterial.binUtility().bins(1));
+  const auto& axes = bsMaterial.directedProtoAxes();
+  auto bins0 = static_cast<int>(axes.at(0).getAxis().getNBins());
+  auto bins1 =
+      static_cast<int>(axes.size() > 1 ? axes.at(1).getAxis().getNBins() : 1u);
   auto fBins0 = static_cast<float>(bins0);
   auto fBins1 = static_cast<float>(bins1);
 
@@ -236,8 +266,9 @@ void ActsPlugins::RootMaterialMapIo::fillBinnedSurfaceMaterial(
 
 void ActsPlugins::RootMaterialMapIo::fillBinnedSurfaceMaterial(
     MaterialTreePayload& payload, const BinnedSurfaceMaterial& bsMaterial) {
-  std::size_t bins0 = bsMaterial.binUtility().bins(0);
-  std::size_t bins1 = bsMaterial.binUtility().bins(1);
+  const auto& axes = bsMaterial.directedProtoAxes();
+  std::size_t bins0 = axes.at(0).getAxis().getNBins();
+  std::size_t bins1 = axes.size() > 1 ? axes.at(1).getAxis().getNBins() : 1u;
 
   TH2I idx(m_cfg.indexHistName.c_str(), "indices; bin0; bin1",
            static_cast<int>(bins0), -0.5, static_cast<float>(bins0) - 0.5,
@@ -380,17 +411,23 @@ ActsPlugins::RootMaterialMapIo::readTextureSurfaceMaterial(
     return nullptr;
   }
 
-  // Now reconstruct the bin utilities
-  BinUtility bUtility;
+  auto schemaHist = dynamic_cast<TH1I*>(
+      rFile.Get((tdName + "/" + m_cfg.axisSchemaHistName).c_str()));
+  const bool directedProtoSchema =
+      (schemaHist != nullptr &&
+       schemaHist->GetBinContent(1) == kDirectedProtoAxisSchemaVersion);
+
+  std::vector<DirectedProtoAxis> dProtoAxes;
+  dProtoAxes.reserve(n->GetNbinsX());
   for (int ib = 1; ib < n->GetNbinsX() + 1; ++ib) {
     auto nbins = static_cast<std::size_t>(n->GetBinContent(ib));
     auto val = static_cast<AxisDirection>(v->GetBinContent(ib));
-    auto opt = static_cast<BinningOption>(o->GetBinContent(ib));
-    auto rmin = static_cast<float>(minh->GetBinContent(ib));
-    auto rmax = static_cast<float>(maxh->GetBinContent(ib));
-    bUtility += BinUtility(nbins, rmin, rmax, opt, val);
+    auto boundaryType =
+        decodeAxisBoundaryType(o->GetBinContent(ib), directedProtoSchema);
+    auto rmin = static_cast<double>(minh->GetBinContent(ib));
+    auto rmax = static_cast<double>(maxh->GetBinContent(ib));
+    dProtoAxes.emplace_back(val, boundaryType, rmin, rmax, nbins);
   }
-  ACTS_VERBOSE("Created " << bUtility);
 
   /// Draw from histogram only source
   if (indexedMaterialTree == nullptr) {
@@ -437,9 +474,15 @@ ActsPlugins::RootMaterialMapIo::readTextureSurfaceMaterial(
             materialMatrix[ib1 - 1][ib0 - 1] = MaterialSlab(material, dt);
           }
         }
-      }  // Construct the binned material with the right bin utility
-      texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
-          bUtility, std::move(materialMatrix));
+      }  // Construct binned material with directed proto axis schema
+      if (dProtoAxes.size() == 1u) {
+        texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
+            dProtoAxes[0], std::move(materialMatrix[0]));
+      } else if (dProtoAxes.size() == 2u) {
+        std::array<DirectedProtoAxis, 2u> axes = {dProtoAxes[0], dProtoAxes[1]};
+        texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
+            axes, std::move(materialMatrix));
+      }
     }
   } else {
     // Construct the names for histogram type storage
@@ -466,9 +509,15 @@ ActsPlugins::RootMaterialMapIo::readTextureSurfaceMaterial(
           materialMatrix[ib1 - 1][ib0 - 1] =
               MaterialSlab(material, m_indexedMaterialTreePayload.ht);
         }
-      }  // Construct the binned material with the right bin utility
-      texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
-          bUtility, std::move(materialMatrix));
+      }  // Construct binned material with directed proto axis schema
+      if (dProtoAxes.size() == 1u) {
+        texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
+            dProtoAxes[0], std::move(materialMatrix[0]));
+      } else if (dProtoAxes.size() == 2u) {
+        std::array<DirectedProtoAxis, 2u> axes = {dProtoAxes[0], dProtoAxes[1]};
+        texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
+            axes, std::move(materialMatrix));
+      }
     }
   }
 

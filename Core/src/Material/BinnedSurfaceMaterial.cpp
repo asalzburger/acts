@@ -15,18 +15,20 @@
 #include <vector>
 
 Acts::BinnedSurfaceMaterial::BinnedSurfaceMaterial(
-    const BinUtility& binUtility, MaterialSlabVector fullProperties,
+    const DirectedProtoAxis& dProtoAxis, MaterialSlabVector fullProperties,
     double splitFactor, Acts::MappingType mappingType)
-    : ISurfaceMaterial(splitFactor, mappingType), m_binUtility(binUtility) {
+    : ISurfaceMaterial(splitFactor, mappingType),
+      m_directedProtoAxes({dProtoAxis}) {
   // fill the material with deep copy
   m_fullMaterial.push_back(std::move(fullProperties));
 }
 
 Acts::BinnedSurfaceMaterial::BinnedSurfaceMaterial(
-    const BinUtility& binUtility, MaterialSlabMatrix fullProperties,
-    double splitFactor, Acts::MappingType mappingType)
+    const std::array<DirectedProtoAxis, 2>& dProtoAxes,
+    MaterialSlabMatrix fullProperties, double splitFactor,
+    Acts::MappingType mappingType)
     : ISurfaceMaterial(splitFactor, mappingType),
-      m_binUtility(binUtility),
+      m_directedProtoAxes({dProtoAxes[0], dProtoAxes[1]}),
       m_fullMaterial(std::move(fullProperties)) {}
 
 Acts::BinnedSurfaceMaterial& Acts::BinnedSurfaceMaterial::scale(double factor) {
@@ -40,24 +42,41 @@ Acts::BinnedSurfaceMaterial& Acts::BinnedSurfaceMaterial::scale(double factor) {
 
 const Acts::MaterialSlab& Acts::BinnedSurfaceMaterial::materialSlab(
     const Vector2& lp) const {
-  // the first bin
-  std::size_t ibin0 = m_binUtility.bin(lp, 0);
-  std::size_t ibin1 = m_binUtility.max(1) != 0u ? m_binUtility.bin(lp, 1) : 0;
+  const auto& dpa0 = m_directedProtoAxes[0];
+  std::size_t ibin0 = dpa0.getAxis().getBin(
+      lp[static_cast<std::size_t>(dpa0.getAxisDirection())]);
+  std::size_t ibin1 = 0u;
+  if (m_directedProtoAxes.size() > 1) {
+    const auto& dpa1 = m_directedProtoAxes[1];
+    ibin1 = dpa1.getAxis().getBin(
+        lp[static_cast<std::size_t>(dpa1.getAxisDirection())]);
+  }
   return m_fullMaterial[ibin1][ibin0];
 }
 
 const Acts::MaterialSlab& Acts::BinnedSurfaceMaterial::materialSlab(
     const Acts::Vector3& gp) const {
-  // the first bin
-  std::size_t ibin0 = m_binUtility.bin(gp, 0);
-  std::size_t ibin1 = m_binUtility.max(1) != 0u ? m_binUtility.bin(gp, 1) : 0;
+  const auto& dpa0 = m_directedProtoAxes[0];
+  double v0 = VectorHelpers::cast(gp, dpa0.getAxisDirection());
+  std::size_t ibin0 = dpa0.getAxis().getBin(v0);
+  std::size_t ibin1 = 0u;
+  if (m_directedProtoAxes.size() > 1) {
+    const auto& dpa1 = m_directedProtoAxes[1];
+    double v1 = VectorHelpers::cast(gp, dpa1.getAxisDirection());
+    ibin1 = dpa1.getAxis().getBin(v1);
+  }
   return m_fullMaterial[ibin1][ibin0];
 }
 
 std::ostream& Acts::BinnedSurfaceMaterial::toStream(std::ostream& sl) const {
   sl << "Acts::BinnedSurfaceMaterial : " << std::endl;
-  sl << "   - Number of Material bins [0,1] : " << m_binUtility.max(0) + 1
-     << " / " << m_binUtility.max(1) + 1 << std::endl;
+  std::size_t nbins0 = m_directedProtoAxes[0].getAxis().getNBins();
+  std::size_t nbins1 = 0u;
+  if (m_directedProtoAxes.size() > 1) {
+    nbins1 = m_directedProtoAxes[1].getAxis().getNBins();
+  }
+  sl << "   - Number of Material bins [0,1] : " << nbins0 << " / " << nbins1
+     << std::endl;
   sl << "   - Parse full update material    : " << std::endl;  //
   // output  the full material
   unsigned int imat1 = 0;
@@ -70,6 +89,6 @@ std::ostream& Acts::BinnedSurfaceMaterial::toStream(std::ostream& sl) const {
     }
     ++imat1;
   }
-  sl << "  - BinUtility: " << m_binUtility << std::endl;
+  sl << "  - ProtoAxes: " << m_directedProtoAxes << std::endl;
   return sl;
 }

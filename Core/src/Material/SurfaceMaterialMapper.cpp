@@ -23,8 +23,6 @@
 #include "Acts/Propagator/SurfaceCollector.hpp"
 #include "Acts/Propagator/VolumeCollector.hpp"
 #include "Acts/Surfaces/SurfaceArray.hpp"
-#include "Acts/Utilities/BinAdjustment.hpp"
-#include "Acts/Utilities/BinUtility.hpp"
 #include "Acts/Utilities/Result.hpp"
 
 #include <cstddef>
@@ -123,37 +121,17 @@ void SurfaceMaterialMapper::checkAndInsert(State& mState,
     ACTS_DEBUG("Material surface found with volumeID " << volumeID);
     ACTS_DEBUG("       - surfaceID is " << geoID);
 
-    // We need a dynamic_cast to either a surface material proxy or
-    // proper surface material
+    // This needs to be a proto surface material
     auto psm = dynamic_cast<const ProtoSurfaceMaterial*>(surfaceMaterial);
-
-    // Get the bin utility: try proxy material first
-    const BinUtility* bu = (psm != nullptr) ? (&psm->binning()) : nullptr;
-    if (bu != nullptr) {
-      // Screen output for Binned Surface material
-      ACTS_DEBUG("       - (proto) binning is " << *bu);
-      // Now update
-      BinUtility buAdjusted = adjustBinUtility(*bu, surface, mState.geoContext);
-      // Screen output for Binned Surface material
-      ACTS_DEBUG("       - adjusted binning is " << buAdjusted);
-      mState.accumulatedMaterial[geoID] =
-          AccumulatedSurfaceMaterial(buAdjusted);
-      return;
+    if (psm == nullptr) {
+      ACTS_ERROR("Surface material is not a ProtoSurfaceMaterial");
+      throw std::invalid_argument(
+          "Surface material is not a ProtoSurfaceMaterial");
     }
-
-    // Second attempt: binned material
-    auto bmp = dynamic_cast<const BinnedSurfaceMaterial*>(surfaceMaterial);
-    bu = (bmp != nullptr) ? (&bmp->binUtility()) : nullptr;
-    // Create a binned type of material
-    if (bu != nullptr) {
-      // Screen output for Binned Surface material
-      ACTS_DEBUG("       - binning is " << *bu);
-      mState.accumulatedMaterial[geoID] = AccumulatedSurfaceMaterial(*bu);
-    } else {
-      // Create a homogeneous type of material
-      ACTS_DEBUG("       - this is homogeneous material.");
-      mState.accumulatedMaterial[geoID] = AccumulatedSurfaceMaterial();
-    }
+    // Get the binning information from the proto surface material
+    const std::vector<DirectedProtoAxis>& dProtoAxes = psm->directedProtoAxes();
+    // @TODO add autorange option
+    mState.accumulatedMaterial[geoID] = AccumulatedSurfaceMaterial(dProtoAxes);
   }
 }
 

@@ -11,7 +11,6 @@
 #include "Acts/Geometry/ApproachDescriptor.hpp"
 #include "Acts/Geometry/Layer.hpp"
 #include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Utilities/BinUtility.hpp"
 #include "Acts/Utilities/BinningType.hpp"
 #include "ActsPlugins/DD4hep/DD4hepConversionHelpers.hpp"
 
@@ -30,12 +29,15 @@ std::shared_ptr<ProtoSurfaceMaterial> ActsPlugins::createProtoMaterial(
     const Logger& logger) {
   using namespace std::string_literals;
 
-  // Create the bin utility
-  BinUtility bu;
+  // Create directed proto axes for the proto material schema
+  std::vector<DirectedProtoAxis> dProtoAxes;
+  dProtoAxes.reserve(binning.size());
   // Loop over the bins
   for (auto& bin : binning) {
     AxisDirection bval = axisDirectionFromName(bin.first);
     BinningOption bopt = bin.second;
+    AxisBoundaryType bType =
+        bopt == closed ? AxisBoundaryType::Closed : AxisBoundaryType::Open;
     double min = 0.;
     double max = 0.;
     if (bopt == closed) {
@@ -46,10 +48,11 @@ std::shared_ptr<ProtoSurfaceMaterial> ActsPlugins::createProtoMaterial(
     ACTS_VERBOSE("  - material binning for " << bin.first << " on " << valueTag
                                              << ": " << bins);
     if (bins >= 1) {
-      bu += BinUtility(bins, min, max, bopt, bval);
+      dProtoAxes.emplace_back(bval, bType, min, max,
+                              static_cast<std::size_t>(bins));
     }
   }
-  return std::make_shared<ProtoSurfaceMaterial>(bu);
+  return std::make_shared<ProtoSurfaceMaterial>(dProtoAxes);
 }
 
 void ActsPlugins::addLayerProtoMaterial(

@@ -11,8 +11,10 @@
 #include "Acts/Definitions/Algebra.hpp"
 #include "Acts/Material/ISurfaceMaterial.hpp"
 #include "Acts/Material/MaterialSlab.hpp"
-#include "Acts/Utilities/BinUtility.hpp"
+#include "Acts/Utilities/ProtoAxis.hpp"
+#include "Acts/Utilities/VectorHelpers.hpp"
 
+#include <array>
 #include <iosfwd>
 
 namespace Acts {
@@ -35,11 +37,11 @@ class BinnedSurfaceMaterial : public ISurfaceMaterial {
   ///    - 0. : alongPre
   ///  ===> 1 Dimensional array
   ///
-  /// @param binUtility defines the binning structure on the surface (copied)
+  /// @param dProtoAxis defines the binning structure on the surface
   /// @param fullProperties is the vector of properties as recorded (moved)
   /// @param splitFactor is the pre/post splitting directive
   /// @param mappingType is the type of surface mapping associated to the surface
-  BinnedSurfaceMaterial(const BinUtility& binUtility,
+  BinnedSurfaceMaterial(const DirectedProtoAxis& dProtoAxis,
                         MaterialSlabVector fullProperties,
                         double splitFactor = 0.,
                         MappingType mappingType = MappingType::Default);
@@ -52,11 +54,11 @@ class BinnedSurfaceMaterial : public ISurfaceMaterial {
   ///    - 0. : alongPre
   ///  ===> 1 Dimensional array
   ///
-  /// @param binUtility defines the binning structure on the surface (copied)
+  /// @param dProtoAxes defines the binning structure on the surface
   /// @param fullProperties is the vector of properties as recorded (moved)
   /// @param splitFactor is the pre/post splitting directive
   /// @param mappingType is the type of surface mapping associated to the surface
-  BinnedSurfaceMaterial(const BinUtility& binUtility,
+  BinnedSurfaceMaterial(const std::array<DirectedProtoAxis, 2>& dProtoAxes,
                         MaterialSlabMatrix fullProperties,
                         double splitFactor = 0.,
                         MappingType mappingType = MappingType::Default);
@@ -90,9 +92,9 @@ class BinnedSurfaceMaterial : public ISurfaceMaterial {
   /// @return Reference to this object after scaling
   BinnedSurfaceMaterial& scale(double factor) final;
 
-  /// Return the BinUtility
-  /// @return Reference to the bin utility used for material binning
-  const BinUtility& binUtility() const;
+  /// Return the directed proto axes
+  /// @return Reference to the directed proto axes used for material binning
+  const std::vector<DirectedProtoAxis>& directedProtoAxes() const;
 
   /// @brief Retrieve the entire material slab matrix
   /// @return Reference to the complete matrix of material slabs
@@ -113,14 +115,15 @@ class BinnedSurfaceMaterial : public ISurfaceMaterial {
 
  private:
   /// The helper for the bin finding
-  BinUtility m_binUtility;
+  std::vector<DirectedProtoAxis> m_directedProtoAxes;
 
   /// The five different MaterialSlab
   MaterialSlabMatrix m_fullMaterial;
 };
 
-inline const BinUtility& BinnedSurfaceMaterial::binUtility() const {
-  return m_binUtility;
+inline const std::vector<DirectedProtoAxis>&
+BinnedSurfaceMaterial::directedProtoAxes() const {
+  return m_directedProtoAxes;
 }
 
 inline const MaterialSlabMatrix& BinnedSurfaceMaterial::fullMaterial() const {

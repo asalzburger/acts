@@ -88,6 +88,14 @@ detray::io::axis_payload convertBinningData(const Acts::BinningData& bData);
 /// @return a detray axis payload
 detray::io::axis_payload convertAxis(const Acts::IAxis& axis);
 
+/// Convert DirectedProtoAxis
+///
+/// @param dProtoAxis the directed proto axis to be converted
+///
+/// @return a detray axis payload
+detray::io::axis_payload convertDirectedProtoAxis(
+    const Acts::DirectedProtoAxis& dProtoAxis);
+
 /// Convert a MaterialSlab to a detray material slab payload
 ///
 /// @param slab the material slab to be converted
@@ -110,13 +118,15 @@ detray::io::transform_payload convertTransform(
 /// to 2D by adding a dummy second dimension. Currently supported 2D grids
 /// are: x-y, r-phi, phi-z
 ///
-/// @param bUtility the bin utility to be converted (may be 1D or 2D)
+/// @param dProtoAxes the directed proto axes to be converted (may be 1D or 2D)
 ///
 /// @return a tuple containing:
-///   - the converted 2D BinUtility
+///   - the converted DirectedProtoAxis, dimension 0
+///   - the converted DirectedProtoAxis, dimension 1
 ///   - a boolean indicating if axes were swapped
-std::tuple<Acts::BinUtility, bool> convertBinUtilityTo2D(
-    const Acts::BinUtility& bUtility);
+std::tuple<Acts::DirectedProtoAxis, Acts::DirectedProtoAxis, bool>
+convertDirectedProtoAxesTo2D(
+    const std::vector<Acts::DirectedProtoAxis>& dProtoAxes);
 
 /// @}
 
