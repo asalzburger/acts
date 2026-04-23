@@ -109,9 +109,8 @@ std::vector<DirectedProtoAxis> adjustDirectedProtoAxes(
 std::vector<DirectedProtoAxis> adjustDirectedProtoAxes(
     const std::vector<DirectedProtoAxis>& dProtoAxes,
     const TrapezoidBounds& pBounds) {
-  const double halfX =
-      std::max(pBounds.get(TrapezoidBounds::eHalfLengthXnegY),
-               pBounds.get(TrapezoidBounds::eHalfLengthXposY));
+  const double halfX = std::max(pBounds.get(TrapezoidBounds::eHalfLengthXnegY),
+                                pBounds.get(TrapezoidBounds::eHalfLengthXposY));
   const double halfY = pBounds.get(TrapezoidBounds::eHalfLengthY);
 
   std::vector<DirectedProtoAxis> adjustedAxes = dProtoAxes;

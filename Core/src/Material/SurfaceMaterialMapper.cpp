@@ -12,6 +12,7 @@
 #include "Acts/Definitions/Tolerance.hpp"
 #include "Acts/EventData/ParticleHypothesis.hpp"
 #include "Acts/Geometry/ApproachDescriptor.hpp"
+#include "Acts/Geometry/GeometryContext.hpp"
 #include "Acts/Geometry/Layer.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/Material/BinnedSurfaceMaterial.hpp"
@@ -23,6 +24,7 @@
 #include "Acts/Propagator/SurfaceCollector.hpp"
 #include "Acts/Propagator/VolumeCollector.hpp"
 #include "Acts/Surfaces/SurfaceArray.hpp"
+#include "Acts/Utilities/DirectedProtoAxisHelper.hpp"
 #include "Acts/Utilities/Result.hpp"
 
 #include <cstddef>
@@ -130,8 +132,11 @@ void SurfaceMaterialMapper::checkAndInsert(State& mState,
     }
     // Get the binning information from the proto surface material
     const std::vector<DirectedProtoAxis>& dProtoAxes = psm->directedProtoAxes();
-    // @TODO add autorange option
-    mState.accumulatedMaterial[geoID] = AccumulatedSurfaceMaterial(dProtoAxes);
+    // will disappear with the SurfaceMaterialMapper (to be decommissioned)
+    auto gctx = GeometryContext::dangerouslyDefaultConstruct();
+    auto adjustedProtoAxes = adjustDirectedProtoAxes(dProtoAxes, surface, gctx);
+    mState.accumulatedMaterial[geoID] =
+        AccumulatedSurfaceMaterial(adjustedProtoAxes);
   }
 }
 
