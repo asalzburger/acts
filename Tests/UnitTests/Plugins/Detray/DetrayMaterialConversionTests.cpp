@@ -288,7 +288,8 @@ BOOST_AUTO_TEST_CASE(DetrayBinnedMaterialConversionXY) {
                                                     materialSlab109876};
 
   auto binnedMaterial = Acts::BinnedSurfaceMaterial(
-      xyAxes, {materialSlabs0, materialSlabs1}, 0., Acts::MappingType::Default);
+      xyAxes[0], xyAxes[1], {materialSlabs0, materialSlabs1}, 0.,
+      Acts::MappingType::Default);
 
   detray::io::grid_payload<detray::io::material_slab_payload,
                            detray::io::material_id>
@@ -389,8 +390,9 @@ BOOST_AUTO_TEST_CASE(DetrayBinnedMaterialConversionRPhi) {
                                                     materialSlab109876};
 
   auto binnedMaterial =
-      Acts::BinnedSurfaceMaterial(rPhiAxes, {materialSlabs0, materialSlabs1},
-                                  0., Acts::MappingType::Default);
+      Acts::BinnedSurfaceMaterial(rPhiAxes[0], rPhiAxes[1],
+                                  {materialSlabs0, materialSlabs1}, 0.,
+                                  Acts::MappingType::Default);
 
   detray::io::grid_payload<detray::io::material_slab_payload,
                            detray::io::material_id>
@@ -472,8 +474,9 @@ BOOST_AUTO_TEST_CASE(DetrayBinnedMaterialConversionZPhi) {
                                                     materialSlab109876};
 
   auto binnedMaterial =
-      Acts::BinnedSurfaceMaterial(zPhiAxes, {materialSlabs0, materialSlabs1},
-                                  0., Acts::MappingType::Default);
+      Acts::BinnedSurfaceMaterial(zPhiAxes[0], zPhiAxes[1],
+                                  {materialSlabs0, materialSlabs1}, 0.,
+                                  Acts::MappingType::Default);
 
   detray::io::grid_payload<detray::io::material_slab_payload,
                            detray::io::material_id>
@@ -506,8 +509,9 @@ BOOST_AUTO_TEST_CASE(DetrayBinnedMaterialConversionInvalid) {
                                                     materialSlab109876};
 
   auto binnedMaterial =
-      Acts::BinnedSurfaceMaterial(rEtaAxes, {materialSlabs0, materialSlabs1},
-                                  0., Acts::MappingType::Default);
+      Acts::BinnedSurfaceMaterial(rEtaAxes[0], rEtaAxes[1],
+                                  {materialSlabs0, materialSlabs1}, 0.,
+                                  Acts::MappingType::Default);
 
   BOOST_CHECK_THROW(
       DetrayPayloadConverter::convertBinnedSurfaceMaterial(binnedMaterial),

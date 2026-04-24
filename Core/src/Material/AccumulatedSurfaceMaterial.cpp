@@ -168,10 +168,9 @@ Acts::AccumulatedSurfaceMaterial::totalAverage() {
         m_directedProtoAxes[0], std::move(mpMatrix[0]), m_splitFactor);
   }
   if (m_directedProtoAxes.size() == 2u) {
-    std::array<DirectedProtoAxis, 2u> axes = {m_directedProtoAxes[0],
-                                              m_directedProtoAxes[1]};
     return std::make_unique<const BinnedSurfaceMaterial>(
-        axes, std::move(mpMatrix), m_splitFactor);
+        m_directedProtoAxes[0], m_directedProtoAxes[1], std::move(mpMatrix),
+        m_splitFactor);
   }
   throw std::invalid_argument(
       "AccumulatedSurfaceMaterial supports only 1D or 2D directed proto axes.");

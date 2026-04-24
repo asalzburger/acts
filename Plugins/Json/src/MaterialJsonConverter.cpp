@@ -603,9 +603,8 @@ void Acts::from_json(const nlohmann::json& j,
       material = new Acts::BinnedSurfaceMaterial(dProtoAxes[0], mpMatrix[0], 1,
                                                  mapType);
     } else if (dProtoAxes.size() == 2u) {
-      std::array<Acts::DirectedProtoAxis, 2u> axes = {dProtoAxes[0],
-                                                      dProtoAxes[1]};
-      material = new Acts::BinnedSurfaceMaterial(axes, mpMatrix, 1, mapType);
+      material = new Acts::BinnedSurfaceMaterial(dProtoAxes[0], dProtoAxes[1],
+                                                 mpMatrix, 1, mapType);
     } else {
       throw std::invalid_argument(
           "BinnedSurfaceMaterial supports only 1D or 2D directed proto axes.");

@@ -302,8 +302,8 @@ std::shared_ptr<TrackingGeometry> CylindricalTrackingGeometry::buildGen3(
   std::vector<MaterialSlab> materialSlabs1 = {lProperties, lProperties};
 
   auto binnedMaterial = std::make_shared<BinnedSurfaceMaterial>(
-      protoAxes, std::vector{materialSlabs0, materialSlabs1}, 0.,
-      MappingType::Default);
+      protoAxes[0], protoAxes[1], std::vector{materialSlabs0, materialSlabs1},
+      0., MappingType::Default);
 
   Blueprint::Config cfg;
   cfg.envelope = ExtentEnvelope{{

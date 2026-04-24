@@ -14,7 +14,6 @@
 #include "Acts/Utilities/ProtoAxis.hpp"
 #include "Acts/Utilities/VectorHelpers.hpp"
 
-#include <array>
 #include <iosfwd>
 
 namespace Acts {
@@ -37,7 +36,7 @@ class BinnedSurfaceMaterial : public ISurfaceMaterial {
   ///    - 0. : alongPre
   ///  ===> 1 Dimensional array
   ///
-  /// @param dProtoAxis defines the binning structure on the surface
+  /// @param dProtoAxis defines the single binning on the surface
   /// @param fullProperties is the vector of properties as recorded (moved)
   /// @param splitFactor is the pre/post splitting directive
   /// @param mappingType is the type of surface mapping associated to the surface
@@ -54,11 +53,13 @@ class BinnedSurfaceMaterial : public ISurfaceMaterial {
   ///    - 0. : alongPre
   ///  ===> 1 Dimensional array
   ///
-  /// @param dProtoAxes defines the binning structure on the surface
+  /// @param dProtoAxis0 defines the binning in the first axis direction on the surface
+  /// @param dProtoAxis1 defines the binning in the second axis direction on the surface
   /// @param fullProperties is the vector of properties as recorded (moved)
   /// @param splitFactor is the pre/post splitting directive
   /// @param mappingType is the type of surface mapping associated to the surface
-  BinnedSurfaceMaterial(const std::array<DirectedProtoAxis, 2>& dProtoAxes,
+  BinnedSurfaceMaterial(const DirectedProtoAxis& dProtoAxis0,
+                        const DirectedProtoAxis& dProtoAxis1,
                         MaterialSlabMatrix fullProperties,
                         double splitFactor = 0.,
                         MappingType mappingType = MappingType::Default);

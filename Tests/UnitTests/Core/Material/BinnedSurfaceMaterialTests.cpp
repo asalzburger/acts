@@ -13,6 +13,7 @@
 #include "Acts/Material/MaterialSlab.hpp"
 #include "Acts/Utilities/ProtoAxis.hpp"
 
+#include <array>
 #include <utility>
 #include <vector>
 
@@ -48,7 +49,7 @@ BOOST_AUTO_TEST_CASE(BinnedSurfaceMaterial_construction_test) {
                                               std::move(l2)};
 
   // Create the material
-  BinnedSurfaceMaterial bsm(xyBinning, std::move(m));
+  BinnedSurfaceMaterial bsm(xyBinning[0], xyBinning[1], std::move(m));
 
   // Copy the material
   BinnedSurfaceMaterial bsmCopy(bsm);

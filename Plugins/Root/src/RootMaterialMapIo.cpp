@@ -18,8 +18,6 @@
 #include "Acts/Utilities/BinningType.hpp"
 #include "Acts/Utilities/Enumerate.hpp"
 
-#include <array>
-
 #include <TFile.h>
 #include <TH1I.h>
 #include <TH2F.h>
@@ -479,9 +477,8 @@ ActsPlugins::RootMaterialMapIo::readTextureSurfaceMaterial(
         texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
             dProtoAxes[0], std::move(materialMatrix[0]));
       } else if (dProtoAxes.size() == 2u) {
-        std::array<DirectedProtoAxis, 2u> axes = {dProtoAxes[0], dProtoAxes[1]};
         texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
-            axes, std::move(materialMatrix));
+            dProtoAxes[0], dProtoAxes[1], std::move(materialMatrix));
       }
     }
   } else {
@@ -514,9 +511,8 @@ ActsPlugins::RootMaterialMapIo::readTextureSurfaceMaterial(
         texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
             dProtoAxes[0], std::move(materialMatrix[0]));
       } else if (dProtoAxes.size() == 2u) {
-        std::array<DirectedProtoAxis, 2u> axes = {dProtoAxes[0], dProtoAxes[1]};
         texturedSurfaceMaterial = std::make_shared<const BinnedSurfaceMaterial>(
-            axes, std::move(materialMatrix));
+            dProtoAxes[0], dProtoAxes[1], std::move(materialMatrix));
       }
     }
   }

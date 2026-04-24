@@ -24,11 +24,11 @@ Acts::BinnedSurfaceMaterial::BinnedSurfaceMaterial(
 }
 
 Acts::BinnedSurfaceMaterial::BinnedSurfaceMaterial(
-    const std::array<DirectedProtoAxis, 2>& dProtoAxes,
+    const DirectedProtoAxis& dProtoAxis0, const DirectedProtoAxis& dProtoAxis1,
     MaterialSlabMatrix fullProperties, double splitFactor,
     Acts::MappingType mappingType)
     : ISurfaceMaterial(splitFactor, mappingType),
-      m_directedProtoAxes({dProtoAxes[0], dProtoAxes[1]}),
+      m_directedProtoAxes({dProtoAxis0, dProtoAxis1}),
       m_fullMaterial(std::move(fullProperties)) {}
 
 Acts::BinnedSurfaceMaterial& Acts::BinnedSurfaceMaterial::scale(double factor) {

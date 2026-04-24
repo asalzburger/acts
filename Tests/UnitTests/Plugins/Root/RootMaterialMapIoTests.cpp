@@ -75,7 +75,8 @@ std::vector<IdentifiedMaterial> createBinnedSurfaceMaterial() {
       materialMatrix.push_back(materialRow);
     }
     auto binnedMaterial =
-        std::make_shared<BinnedSurfaceMaterial>(xyBinning, materialMatrix);
+        std::make_shared<BinnedSurfaceMaterial>(xyBinning[0], xyBinning[1],
+                                                materialMatrix);
     auto geoID = GeometryIdentifier().withVolume(2).withSensitive(i + 1);
     binnedMaterials.push_back({geoID, binnedMaterial});
   }
