@@ -54,7 +54,7 @@ DetrayPayloadConverter::convertBinnedSurfaceMaterial(
         "DetrayMaterialConverter: Unsupported binning for Detray");
   }
 
-  detray::io::grid_payload<detray::io::material_slab_payload,
+  detray::io::grid_payload<detray::io::surface_material_payload,
                            detray::io::material_id>
       materialGrid;
 
@@ -76,11 +76,12 @@ DetrayPayloadConverter::convertBinnedSurfaceMaterial(
       // Translate into a local bin
       std::size_t lb0 = swapped ? ib1 : ib0;
       std::size_t lb1 = swapped ? ib0 : ib1;
-      detray::io::material_slab_payload slab =
+      detray::io::surface_material_payload slab =
           DetrayConversionUtils::convertMaterialSlab(materialMatrix[ib1][ib0]);
-      detray::io::grid_bin_payload<detray::io::material_slab_payload> slabBin{
-          {static_cast<unsigned int>(lb0), static_cast<unsigned int>(lb1)},
-          {slab}};
+      detray::io::grid_bin_payload<detray::io::surface_material_payload>
+          slabBin{
+              {static_cast<unsigned int>(lb0), static_cast<unsigned int>(lb1)},
+              {slab}};
       // Fill into the grid
       materialGrid.bins.push_back(slabBin);
     }
