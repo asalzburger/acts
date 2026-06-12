@@ -203,6 +203,8 @@ CkfConfig = namedtuple(
         "maxStripHoles",
         "trimTracks",
         "useJosephFormulation",
+        "multipleScattering",
+        "energyLoss",
         "constrainToVolumes",
         "endOfWorldVolumes",
     ],
@@ -219,6 +221,8 @@ CkfConfig = namedtuple(
         None,
         None,
         False,
+        None,
+        None,
         None,
         None,
     ],
@@ -1633,6 +1637,7 @@ def addCKFTracks(
     writeCovMat=False,
     logLevel: Optional[acts.logging.Level] = None,
     prefix: str = "",
+    findTracksFunction=None,
 ) -> None:
     """This function steers the seeding
 
@@ -1658,6 +1663,9 @@ def addCKFTracks(
         write performance_fitting_ckf.root and performance_finding_ckf.root ntuples?
     writeCovMat : bool, False
         write covaraiance matrices to tracksummary_ckf.root ntuple?
+    findTracksFunction : TrackFindingAlgorithm.TrackFinderFunction, None
+        custom track finder function (e.g. with a different stepper); None uses
+        the default CKF with the Sympy stepper
     """
 
     customLogLevel = acts.examples.defaultLogging(s, logLevel)
@@ -1719,8 +1727,12 @@ def addCKFTracks(
             else ""
         ),
         outputTracks=f"{prefix}ckf_tracks",
-        findTracks=acts.examples.TrackFindingAlgorithm.makeTrackFinderFunction(
-            trackingGeometry, field, customLogLevel()
+        findTracks=(
+            findTracksFunction
+            if findTracksFunction is not None
+            else acts.examples.TrackFindingAlgorithm.makeTrackFinderFunction(
+                trackingGeometry, field, customLogLevel()
+            )
         ),
         **acts.examples.defaultKWArgs(
             trackingGeometry=trackingGeometry,
@@ -1737,6 +1749,8 @@ def addCKFTracks(
             maxStripHoles=ckfConfig.maxStripHoles,
             trimTracks=ckfConfig.trimTracks,
             useJosephFormulation=ckfConfig.useJosephFormulation,
+            multipleScattering=ckfConfig.multipleScattering,
+            energyLoss=ckfConfig.energyLoss,
             constrainToVolumeIds=ckfConfig.constrainToVolumes,
             endOfWorldVolumeIds=ckfConfig.endOfWorldVolumes,
         ),

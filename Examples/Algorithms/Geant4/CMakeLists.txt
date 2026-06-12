@@ -13,6 +13,7 @@ acts_add_library(
     src/ParticleKillAction.cpp
     src/PhysicsListFactory.cpp
     src/Geant4Manager.cpp
+    src/Geant4TrackFindingFunction.cpp
 )
 
 target_compile_definitions(ActsExamplesGeant4 PUBLIC ${Geant4_DEFINITIONS})
@@ -27,5 +28,10 @@ target_include_directories(
 )
 target_link_libraries(
     ActsExamplesGeant4
-    PUBLIC Acts::ExamplesDetectorsCommon Boost::headers ${Geant4_LIBRARIES}
+    PUBLIC
+        Acts::ExamplesDetectorsCommon
+        Acts::ExamplesTrackFinding
+        Acts::PluginGeant4
+        Boost::headers
+        ${Geant4_LIBRARIES}
 )

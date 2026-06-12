@@ -8,11 +8,13 @@
 
 #include "Acts/Definitions/Algebra.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
+#include "Acts/MagneticField/MagneticFieldProvider.hpp"
 #include "Acts/Surfaces/SurfaceVisitorConcept.hpp"
 #include "Acts/Utilities/Logger.hpp"
 #include "ActsExamples/Geant4/Geant4ConstructionOptions.hpp"
 #include "ActsExamples/Geant4/Geant4Manager.hpp"
 #include "ActsExamples/Geant4/Geant4Simulation.hpp"
+#include "ActsExamples/Geant4/Geant4TrackFindingFunction.hpp"
 #include "ActsExamples/Geant4/RegionCreator.hpp"
 #include "ActsExamples/Geant4/SensitiveSurfaceMapper.hpp"
 #include "ActsExamples/Geant4Detector/GdmlDetector.hpp"
@@ -48,6 +50,20 @@ PYBIND11_MODULE(ActsExamplesPythonBindingsGeant4, mod) {
       .def_static("instance", &Geant4Manager::instance,
                   py::return_value_policy::reference)
       .def("currentHandle", &Geant4Manager::currentHandle);
+
+  mod.def(
+      "makeGeant4TrackFinderFunction",
+      [](std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+         std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
+         Acts::Logging::Level level, bool meanEnergyLoss,
+         bool covarianceNoise) {
+        return makeGeant4TrackFinderFunction(
+            std::move(trackingGeometry), std::move(magneticField),
+            *Acts::getDefaultLogger("Geant4TrackFinding", level),
+            meanEnergyLoss, covarianceNoise);
+      },
+      py::arg("trackingGeometry"), py::arg("magneticField"), py::arg("level"),
+      py::arg("meanEnergyLoss") = true, py::arg("covarianceNoise") = true);
 
   py::class_<Geant4Handle, std::shared_ptr<Geant4Handle>>(mod, "Geant4Handle")
       .def("tweakLogging", &Geant4Handle::tweakLogging);

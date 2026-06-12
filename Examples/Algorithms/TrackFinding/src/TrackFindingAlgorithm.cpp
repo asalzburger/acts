@@ -366,12 +366,16 @@ ProcessCode TrackFindingAlgorithm::execute(const AlgorithmContext& ctx) const {
                                   firstPropOptions);
 
   firstOptions.targetSurface = m_cfg.reverseSearch ? pSurface.get() : nullptr;
+  firstOptions.multipleScattering = m_cfg.multipleScattering;
+  firstOptions.energyLoss = m_cfg.energyLoss;
 
   TrackFinderOptions secondOptions(ctx.geoContext, ctx.magFieldContext,
                                    ctx.calibContext, extensions,
                                    secondPropOptions);
   secondOptions.targetSurface = m_cfg.reverseSearch ? nullptr : pSurface.get();
   secondOptions.skipPrePropagationUpdate = true;
+  secondOptions.multipleScattering = m_cfg.multipleScattering;
+  secondOptions.energyLoss = m_cfg.energyLoss;
 
   using Extrapolator = Acts::Propagator<Acts::SympyStepper, Acts::Navigator>;
   using ExtrapolatorOptions = Extrapolator::template Options<

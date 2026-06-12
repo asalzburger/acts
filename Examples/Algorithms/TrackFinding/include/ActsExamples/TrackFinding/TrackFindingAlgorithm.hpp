@@ -120,6 +120,15 @@ class TrackFindingAlgorithm final : public IAlgorithm {
     /// is typically more stable but also more computationally expensive.
     bool useJosephFormulation = false;
 
+    /// Whether the filter should handle multiple scattering noise. Switch
+    /// off if the stepper performs the material handling itself (e.g. the
+    /// Geant4 stepper).
+    bool multipleScattering = true;
+    /// Whether the filter should handle energy loss. Switch off if the
+    /// stepper performs the material handling itself (e.g. the Geant4
+    /// stepper).
+    bool energyLoss = true;
+
     // Pixel and strip volume ids to be used for maxPixel/StripHoles cuts
     std::vector<std::uint32_t> pixelVolumeIds;
     std::vector<std::uint32_t> stripVolumeIds;

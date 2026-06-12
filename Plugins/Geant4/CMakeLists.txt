@@ -4,6 +4,7 @@ acts_add_library(
     src/Geant4DetectorElement.cpp
     src/Geant4DetectorSurfaceFactory.cpp
     src/Geant4PhysicalVolumeSelectors.cpp
+    src/Geant4Stepper.cpp
     ACTS_INCLUDE_FOLDER include/ActsPlugins
 )
 
