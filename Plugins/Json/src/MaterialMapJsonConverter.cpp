@@ -20,6 +20,7 @@
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/Geometry/TrackingVolume.hpp"
 #include "Acts/Geometry/VolumeBounds.hpp"
+#include "Acts/Material/BinnedSurfaceMaterial.hpp"
 #include "Acts/Material/ISurfaceMaterial.hpp"
 #include "Acts/Material/IVolumeMaterial.hpp"
 #include "Acts/Material/ProtoSurfaceMaterial.hpp"
@@ -167,8 +168,12 @@ Acts::SurfaceAndMaterialWithContext defaultSurfaceMaterial(
         trapezoidBounds->get(Acts::TrapezoidBounds::eHalfLengthY), Acts::open,
         Acts::AxisDirection::AxisY);
   }
-  return {surface, std::make_shared<Acts::ProtoSurfaceMaterial>(bUtility),
-          context};
+  auto binning = Acts::binUtilityToMultiAxisSpec(bUtility);
+  auto protoMaterial =
+      binning.has_value()
+          ? std::make_shared<Acts::ProtoSurfaceMaterial>(*binning)
+          : std::make_shared<Acts::ProtoSurfaceMaterial>();
+  return {surface, std::move(protoMaterial), context};
 }
 
 Acts::TrackingVolumeAndMaterial defaultVolumeMaterial(

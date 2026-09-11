@@ -23,8 +23,8 @@
 #include "Acts/Propagator/SurfaceCollector.hpp"
 #include "Acts/Propagator/VolumeCollector.hpp"
 #include "Acts/Surfaces/SurfaceArray.hpp"
-#include "Acts/Utilities/BinAdjustment.hpp"
 #include "Acts/Utilities/BinUtility.hpp"
+#include "Acts/Utilities/MultiAxisSpec.hpp"
 #include "Acts/Utilities/Result.hpp"
 
 #include <cstddef>
@@ -128,22 +128,22 @@ void SurfaceMaterialMapper::checkAndInsert(State& mState,
     auto psm = dynamic_cast<const ProtoSurfaceMaterial*>(surfaceMaterial);
 
     // Get the bin utility: try proxy material first
-    const BinUtility* bu = (psm != nullptr) ? (&psm->binning()) : nullptr;
-    if (bu != nullptr) {
+    if (psm != nullptr && psm->binning().has_value()) {
       // Screen output for Binned Surface material
-      ACTS_DEBUG("       - (proto) binning is " << *bu);
-      // Now update
-      BinUtility buAdjusted = adjustBinUtility(*bu, surface, mState.geoContext);
+      ACTS_DEBUG("       - (proto) binning is " << *psm->binning());
+      // Resolve the deferred binning against the surface bounds
+      BinUtility buResolved(surface.localToGlobalTransform(mState.geoContext));
+      buResolved += BinUtility(*resolveMultiAxis(*psm->binning(), surface));
       // Screen output for Binned Surface material
-      ACTS_DEBUG("       - adjusted binning is " << buAdjusted);
+      ACTS_DEBUG("       - resolved binning is " << buResolved);
       mState.accumulatedMaterial[geoID] =
-          AccumulatedSurfaceMaterial(buAdjusted);
+          AccumulatedSurfaceMaterial(buResolved);
       return;
     }
 
     // Second attempt: binned material
     auto bmp = dynamic_cast<const BinnedSurfaceMaterial*>(surfaceMaterial);
-    bu = (bmp != nullptr) ? (&bmp->binUtility()) : nullptr;
+    const BinUtility* bu = (bmp != nullptr) ? (&bmp->binUtility()) : nullptr;
     // Create a binned type of material
     if (bu != nullptr) {
       // Screen output for Binned Surface material

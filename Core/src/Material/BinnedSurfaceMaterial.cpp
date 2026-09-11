@@ -10,12 +10,127 @@
 
 #include "Acts/Material/MaterialSlab.hpp"
 #include "Acts/Utilities/AxisDefinitions.hpp"
+#include "Acts/Utilities/AxisSpec.hpp"
 
+#include <algorithm>
+#include <array>
 #include <ostream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace Acts {
+
+namespace {
+
+/// @brief The partner of a local axis direction on the same surface
+///
+/// A one-dimensional binning only names one of the two local directions; the
+/// other one is implied by the surface type the direction belongs to.
+AxisDirection partnerDirection(AxisDirection direction) {
+  using enum AxisDirection;
+  switch (direction) {
+    case AxisX:
+      return AxisY;
+    case AxisY:
+      return AxisX;
+    case AxisR:
+      return AxisPhi;
+    case AxisPhi:
+      return AxisR;
+    case AxisRPhi:
+      return AxisZ;
+    case AxisZ:
+      return AxisRPhi;
+    default:
+      throw std::invalid_argument(
+          "binUtilityToMultiAxisSpec: no partner local axis direction known "
+          "for " +
+          axisDirectionName(direction));
+  }
+}
+
+/// @brief Convert one binning data into a deferred axis spec
+AxisSpec deferredSpecFromBinningData(const BinningData& binningData,
+                                     AxisDirection direction) {
+  if (binningData.type == equidistant) {
+    return AxisSpec::DeferredEquidistant(binningData.bins(), direction);
+  }
+  const std::vector<float>& edges = binningData.boundaries();
+  std::vector<double> normalizedEdges(edges.size());
+  const double min = edges.front();
+  const double span = static_cast<double>(edges.back()) - min;
+  std::ranges::transform(edges, normalizedEdges.begin(), [&](float edge) {
+    return (static_cast<double>(edge) - min) / span;
+  });
+  normalizedEdges.front() = 0.;
+  normalizedEdges.back() = 1.;
+  return AxisSpec::DeferredVariable(std::move(normalizedEdges), std::nullopt,
+                                    direction);
+}
+
+}  // namespace
+
+std::optional<MultiAxisSpec2D> binUtilityToMultiAxisSpec(
+    const BinUtility& binUtility) {
+  const std::vector<BinningData>& binningData = binUtility.binningData();
+  if (binningData.empty()) {
+    return std::nullopt;
+  }
+  if (binningData.size() > 2u) {
+    throw std::invalid_argument(
+        "binUtilityToMultiAxisSpec: a surface binning of more than two "
+        "dimensions cannot be expressed as a surface grid.");
+  }
+
+  // Azimuthal binning on a cylinder is canonically rPhi, not phi
+  auto direction = [&](std::size_t i) {
+    AxisDirection dir = binningData[i].binvalue;
+    if (dir == AxisDirection::AxisPhi && binningData.size() == 2u &&
+        binningData[1u - i].binvalue == AxisDirection::AxisZ) {
+      return AxisDirection::AxisRPhi;
+    }
+    return dir;
+  };
+
+  AxisSpec spec0 = deferredSpecFromBinningData(binningData[0], direction(0));
+  if (binningData.size() == 2u) {
+    return MultiAxisSpec2D(
+        {std::move(spec0),
+         deferredSpecFromBinningData(binningData[1], direction(1))});
+  }
+  // Pad the unbinned local direction with a single bin
+  return MultiAxisSpec2D(
+      {std::move(spec0),
+       AxisSpec::DeferredEquidistant(1u, partnerDirection(direction(0)))});
+}
+
+BinUtility multiAxisSpecToBinUtility(const MultiAxisSpec2D& binning) {
+  BinUtility binUtility;
+  for (const AxisSpec& spec : binning.axisSpecs()) {
+    const BinningOption option =
+        spec.boundaryType() == AxisBoundaryType::Closed ? closed : open;
+    // A deferred axis has no range of its own; the placeholder is dropped
+    // again by binUtilityToMultiAxisSpec on the way back
+    const AxisDirection direction =
+        spec.direction().value_or(AxisDirection::AxisX);
+    if (spec.isEquidistant()) {
+      const auto& params = spec.asEquidistant();
+      binUtility += BinUtility(
+          params.nBins, static_cast<float>(params.min.value_or(0.)),
+          static_cast<float>(params.max.value_or(1.)), option, direction);
+      continue;
+    }
+    const std::vector<double>& edges =
+        spec.isDeferredVariable() ? spec.asDeferredVariable().normalizedEdges
+                                  : spec.asVariable().edges;
+    std::vector<float> fEdges(edges.size());
+    std::ranges::transform(edges, fEdges.begin(),
+                           [](double e) { return static_cast<float>(e); });
+    binUtility += BinUtility(fEdges, option, direction);
+  }
+  return binUtility;
+}
 
 BinnedSurfaceMaterial::BinnedSurfaceMaterial(const BinUtility& binUtility,
                                              MaterialSlabVector materialVector,

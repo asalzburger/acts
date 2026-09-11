@@ -10,6 +10,7 @@
 
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "Acts/Geometry/TrackingVolume.hpp"
+#include "Acts/Material/BinnedSurfaceMaterial.hpp"
 #include "Acts/Material/IMaterialDecorator.hpp"
 #include "Acts/Material/ISurfaceMaterial.hpp"
 #include "Acts/Material/ProtoSurfaceMaterial.hpp"
@@ -245,7 +246,11 @@ class MappingMaterialDecorator : public IMaterialDecorator {
             Acts::open, Acts::AxisDirection::AxisY);
       }
     }
-    return std::make_shared<Acts::ProtoSurfaceMaterial>(bUtility);
+    auto binning = Acts::binUtilityToMultiAxisSpec(bUtility);
+    if (!binning.has_value()) {
+      return std::make_shared<Acts::ProtoSurfaceMaterial>();
+    }
+    return std::make_shared<Acts::ProtoSurfaceMaterial>(*binning);
   }
 
   /// Readonly access to the BinningMap

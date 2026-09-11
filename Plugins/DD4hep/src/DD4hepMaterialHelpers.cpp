@@ -10,6 +10,7 @@
 
 #include "Acts/Geometry/ApproachDescriptor.hpp"
 #include "Acts/Geometry/Layer.hpp"
+#include "Acts/Material/BinnedSurfaceMaterial.hpp"
 #include "Acts/Surfaces/Surface.hpp"
 #include "Acts/Utilities/BinUtility.hpp"
 #include "Acts/Utilities/BinningType.hpp"
@@ -49,7 +50,14 @@ std::shared_ptr<ProtoSurfaceMaterial> ActsPlugins::createProtoMaterial(
       bu += BinUtility(bins, min, max, bopt, bval);
     }
   }
-  return std::make_shared<ProtoSurfaceMaterial>(bu);
+  // The bin utility is assembled from the DD4hep parameters and then handed
+  // to the retired-binning conversion, which drops the placeholder ranges and
+  // normalises azimuthal cylinder binning onto the canonical rPhi axis
+  auto binningSpec = binUtilityToMultiAxisSpec(bu);
+  if (!binningSpec.has_value()) {
+    return std::make_shared<ProtoSurfaceMaterial>();
+  }
+  return std::make_shared<ProtoSurfaceMaterial>(*binningSpec);
 }
 
 void ActsPlugins::addLayerProtoMaterial(

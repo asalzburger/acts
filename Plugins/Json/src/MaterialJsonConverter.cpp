@@ -283,8 +283,12 @@ void Acts::to_json(nlohmann::json& j, const surfaceMaterialPointer& material) {
     jMaterial[Acts::jsonKey().maptype] = mapType;
     // by default the protoMaterial is not used for mapping
     jMaterial[Acts::jsonKey().mapkey] = false;
-    // write the bin utility
-    bUtility = &(psMaterial->binning());
+    // write the bin utility: the legacy json format is BinUtility based
+    Acts::BinUtility protoBinning;
+    if (psMaterial->binning().has_value()) {
+      protoBinning = Acts::multiAxisSpecToBinUtility(*psMaterial->binning());
+    }
+    bUtility = &protoBinning;
     // Check in the number of bin is different from 1
     auto& binningData = bUtility->binningData();
     for (std::size_t ibin = 0; ibin < binningData.size(); ++ibin) {
@@ -406,7 +410,10 @@ void Acts::from_json(const nlohmann::json& j,
   }
   // Return the appropriate typr of material
   if (mpMatrix.empty()) {
-    material = new Acts::ProtoSurfaceMaterial(bUtility, mapType);
+    auto protoBinning = Acts::binUtilityToMultiAxisSpec(bUtility);
+    material = protoBinning.has_value()
+                   ? new Acts::ProtoSurfaceMaterial(*protoBinning, mapType)
+                   : new Acts::ProtoSurfaceMaterial();
   } else if (bUtility.bins() == 1) {
     material = new Acts::HomogeneousSurfaceMaterial(mpMatrix[0][0], 1, mapType);
   } else {

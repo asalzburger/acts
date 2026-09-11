@@ -12,10 +12,50 @@
 #include "Acts/Material/ISurfaceMaterial.hpp"
 #include "Acts/Material/MaterialSlab.hpp"
 #include "Acts/Utilities/BinUtility.hpp"
+#include "Acts/Utilities/MultiAxisSpec.hpp"
 
 #include <iosfwd>
+#include <optional>
 
 namespace Acts {
+
+/// @brief Convert a bin utility into an equivalent 2D binning spec
+///
+/// Only the bin structure and the axis direction survive: range and boundary
+/// type are dropped and left to the surface the spec is later resolved
+/// against, which is where a proto binning took them from in the first place.
+/// A one-dimensional bin utility is padded with a single bin along the
+/// partner direction, which is how a 2D spec expresses binning restricted to
+/// one local direction.
+///
+/// Azimuthal binning given as @c AxisPhi alongside @c AxisZ is normalised to
+/// @c AxisRPhi , the canonical local axis of a cylinder. The binning is
+/// geometrically the same; only the unit of the axis changes.
+///
+/// @param binUtility the bin utility to convert
+/// @throws std::invalid_argument if the bin utility has more than two
+///         dimensions, or a direction without a known partner
+/// @return the equivalent deferred 2D binning spec, unset for a bin utility
+///         without dimensions
+///
+/// @note Transitional. @c BinUtility , @c BinnedSurfaceMaterial and this
+///       helper are retired together - new code should build a
+///       @c MultiAxisSpec2D directly.
+std::optional<MultiAxisSpec2D> binUtilityToMultiAxisSpec(
+    const BinUtility& binUtility);
+
+/// @brief Convert a 2D binning spec into an equivalent bin utility
+///
+/// The inverse of @c binUtilityToMultiAxisSpec , for the legacy json material
+/// map format. A deferred axis contributes its bin structure and direction;
+/// the range it leaves open is written as a placeholder that the reader drops
+/// again.
+///
+/// @param binning the binning spec to convert
+/// @return the equivalent bin utility
+///
+/// @note Transitional, see @c binUtilityToMultiAxisSpec .
+BinUtility multiAxisSpecToBinUtility(const MultiAxisSpec2D& binning);
 
 /// @ingroup material
 ///
@@ -61,6 +101,17 @@ class BinnedSurfaceMaterial : public ISurfaceMaterial {
   /// Return the BinUtility
   /// @return Reference to the bin utility used for material binning
   const BinUtility& binUtility() const { return m_binUtility; }
+
+  /// Return the binning as a 2D binning spec
+  ///
+  /// Lets consumers that have moved on to @c MultiAxisSpec2D - the material
+  /// mapping in particular - re-map an existing binned map without having to
+  /// know about @c BinUtility .
+  ///
+  /// @return the equivalent deferred binning spec, unset if unbinned
+  std::optional<MultiAxisSpec2D> binningSpec() const {
+    return binUtilityToMultiAxisSpec(m_binUtility);
+  }
 
   /// @brief Retrieve the entire material slab matrix
   /// @return Reference to the complete matrix of material slabs

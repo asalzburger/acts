@@ -12,6 +12,8 @@
 #include "Acts/Material/HomogeneousSurfaceMaterial.hpp"
 #include "Acts/Material/Material.hpp"
 #include "Acts/Material/ProtoSurfaceMaterial.hpp"
+#include "Acts/Utilities/AxisSpec.hpp"
+#include "Acts/Utilities/MultiAxisSpec.hpp"
 #include "ActsExamples/GenericDetector/ProtoLayerCreator.hpp"
 
 #include <memory>
@@ -166,26 +168,23 @@ std::vector<std::vector<Acts::Vector3>> modulePositionsDisc(
 GenericDetectorBuilder::GenericDetectorBuilder(
     const Config& cfg, std::unique_ptr<const Acts::Logger> logger)
     : m_cfg(cfg), m_logger(std::move(logger)) {
-  // Prepare the proto material - in case it's designed to do so
+  // Prepare the proto material - in case it's designed to do so.
+  // The binning is deferred: it fixes the number of bins and the local
+  // direction, the range comes from the surface it is resolved against.
+  using Acts::AxisSpec;
+  using enum Acts::AxisDirection;
   // - cylindrical
-  Acts::BinUtility pCylinderUtility(10, -1, 1, Acts::closed,
-                                    Acts::AxisDirection::AxisPhi);
-  pCylinderUtility +=
-      Acts::BinUtility(10, -1, 1, Acts::open, Acts::AxisDirection::AxisZ);
-  auto pCylinderMaterial =
-      std::make_shared<const Acts::ProtoSurfaceMaterial>(pCylinderUtility);
+  auto pCylinderMaterial = std::make_shared<const Acts::ProtoSurfaceMaterial>(
+      Acts::MultiAxisSpec2D({AxisSpec::DeferredEquidistant(10, AxisRPhi),
+                             AxisSpec::DeferredEquidistant(10, AxisZ)}));
   // - disc
-  Acts::BinUtility pDiscUtility(10, 0, 1, Acts::open,
-                                Acts::AxisDirection::AxisR);
-  pDiscUtility +=
-      Acts::BinUtility(10, -1, 1, Acts::closed, Acts::AxisDirection::AxisPhi);
-  auto pDiscMaterial =
-      std::make_shared<const Acts::ProtoSurfaceMaterial>(pDiscUtility);
+  auto pDiscMaterial = std::make_shared<const Acts::ProtoSurfaceMaterial>(
+      Acts::MultiAxisSpec2D({AxisSpec::DeferredEquidistant(10, AxisR),
+                             AxisSpec::DeferredEquidistant(10, AxisPhi)}));
   // - plane
-  Acts::BinUtility pPlaneUtility(1, -1, 1, Acts::open,
-                                 Acts::AxisDirection::AxisX);
-  auto pPlaneMaterial =
-      std::make_shared<const Acts::ProtoSurfaceMaterial>(pPlaneUtility);
+  auto pPlaneMaterial = std::make_shared<const Acts::ProtoSurfaceMaterial>(
+      Acts::MultiAxisSpec2D({AxisSpec::DeferredEquidistant(1, AxisX),
+                             AxisSpec::DeferredEquidistant(1, AxisY)}));
 
   ///
   /// BeamPipe material
