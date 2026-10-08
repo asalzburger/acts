@@ -135,7 +135,10 @@ def main():
         parser.error("--seed must be nonnegative")
 
     detector = getNoddDetector(
-        nodd_dir=args.nodd_dir, build_dir=args.build_dir, compact_file=args.compact
+        nodd_dir=args.nodd_dir,
+        build_dir=args.build_dir,
+        compact_file=args.compact,
+        gen3=False,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     runMaterialRecording(

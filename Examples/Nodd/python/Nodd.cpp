@@ -8,6 +8,7 @@
 
 #include "ActsExamples/Nodd/DD4hepNoddDetector.hpp"
 #include "ActsPython/Utilities/Helpers.hpp"
+#include "ActsPython/Utilities/Macros.hpp"
 
 #include <memory>
 
@@ -25,6 +26,7 @@ PYBIND11_MODULE(ActsExamplesPythonBindingsNodd, m) {
       py::class_<DD4hepNoddDetector, DD4hepDetectorBase,
                  std::shared_ptr<DD4hepNoddDetector>>(m, "DD4hepNoddDetector")
           .def(py::init<const DD4hepNoddDetector::Config&>())
+          .def("geometryReport", &DD4hepNoddDetector::geometryReport)
           .def_property_readonly("config", &DD4hepNoddDetector::config,
                                  py::return_value_policy::reference_internal);
 
@@ -32,5 +34,6 @@ PYBIND11_MODULE(ActsExamplesPythonBindingsNodd, m) {
       py::class_<DD4hepNoddDetector::Config, DD4hepDetectorBase::Config>(
           detector, "Config")
           .def(py::init<>());
+  ACTS_PYTHON_STRUCT(config, gen3, navigationEnvelopeMm);
   patchKwargsConstructor(config);
 }

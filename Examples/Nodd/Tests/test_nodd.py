@@ -26,7 +26,7 @@ def test_directory_override_and_environment(tmp_path, monkeypatch):
 
 
 def test_missing_compact_fails_before_construction(tmp_path):
-    with pytest.raises(FileNotFoundError, match="pixel compact"):
+    with pytest.raises(FileNotFoundError, match="tracker compact"):
         nodd.getNoddDetector(tmp_path, build_dir="custom-build")
 
 
@@ -41,7 +41,7 @@ def test_missing_factory_fails_before_xml_parsing(tmp_path):
 def external_nodd():
     path = os.environ.get("NODD_PATH")
     if not path:
-        pytest.skip("Set NODD_PATH to test the external built pixel detector")
+        pytest.skip("Set NODD_PATH to test the external built tracker")
     return Path(path).resolve()
 
 
@@ -50,8 +50,14 @@ def test_external_detector(external_nodd):
 from acts.examples.nodd import DD4hepNoddDetector, getNoddDetector
 detector = getNoddDetector()
 assert isinstance(detector, DD4hepNoddDetector)
-assert detector.config.name == 'NoddPixelDetector'
+assert detector.config.name == 'NoddDetector'
 assert len(detector.config.xmlFileNames) == 1
+import json
+report=json.loads(detector.geometryReport())
+assert report['generation']==3
+assert len(report['sensors'])>0
+assert len({s['geometry_id'] for s in report['sensors']})==len(report['sensors'])
+assert {s['ids']['system'] for s in report['sensors']}==set(range(1,8))
 print(detector.config.xmlFileNames[0])
 """
     subprocess.run([sys.executable, "-c", code], check=True, timeout=120)

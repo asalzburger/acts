@@ -12,17 +12,21 @@
 
 namespace ActsExamples {
 
-/// Load the external nODD DD4hep model for geometry and Geant4 workflows.
-/// This initial adapter does not construct an ACTS tracking geometry.
+/// Load nODD DD4hep; optionally build its complete DD4hep-backed Gen3 geometry.
 class DD4hepNoddDetector final : public DD4hepDetectorBase {
  public:
   struct Config : DD4hepDetectorBase::Config {
     Config();
+    bool gen3 = false;
+    double navigationEnvelopeMm = 1.0;
   };
 
   explicit DD4hepNoddDetector(const Config& cfg);
 
   const Config& config() const override;
+
+  /// JSON audit of source identities and actual converted transforms/bounds.
+  std::string geometryReport() const;
 
  private:
   Config m_cfg;

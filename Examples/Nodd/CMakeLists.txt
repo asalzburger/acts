@@ -12,7 +12,9 @@ target_link_libraries(ActsExamplesNodd PUBLIC Acts::ExamplesDetectorDD4hep)
 
 if(ACTS_BUILD_EXAMPLES_GEANT4 AND ACTS_BUILD_PYTHON_BINDINGS)
     install(
-        PROGRAMS Scripts/nodd_material_recording.py
+        PROGRAMS
+            Scripts/nodd_material_recording.py
+            Scripts/nodd_geometry_validation.py
         DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 endif()
