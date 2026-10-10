@@ -64,8 +64,8 @@ nanoseconds already have the native ACTS time scale.
   parameter, not an established nODD calibration.
 - Each event owns its output. The response has immutable configuration and no
   shared event state. Input indices remain meaningful only with the named input
-  collection for that event; future podio adapters must create persistent
-  relations explicitly.
+  collection for that event; podio adapters create persistent relations
+  explicitly.
 
 ## Clustering contract
 
@@ -96,7 +96,7 @@ for that event. Following a hit's `sourceIndices` reaches simulated deposits.
 The ActsExamples adapter writes a new cluster collection and preserves its
 input. The native helper has no shared event state. Duplicate input cell IDs,
 negative/nonfinite energies, nonfinite positions/times and output overflow are
-errors. Links remain transient until the persistent IO milestone.
+errors. The IO adapters below translate these indices to persistent relations.
 
 This baseline does not split nearby showers within one connected component,
 perform noise-significance clustering, infer geometry, correct time of flight,
@@ -187,8 +187,8 @@ ROOT 6.40.04. EDM4hep and podio use Apache-2.0 licenses
 cmake -S . -B build/calo -DACTS_BUILD_CALORIMETER_EDM4HEP=ON \
   -DACTS_BUILD_UNITTESTS=ON
 cmake --build build/calo --target ActsExampleCalorimeterEDM4hep \
-  ActsUnitTestCalorimeterEDM4hep
-ctest --test-dir build/calo -R '^CalorimeterEDM4hep(Example)?$' --output-on-failure
+  ActsUnitTestCalorimeterEDM4hep ActsUnitTestCalorimeterEDM4hepReconstruction
+ctest --test-dir build/calo -R '^CalorimeterEDM4hep(Reconstruction|Example)?$' --output-on-failure
 build/calo/bin/ActsExampleCalorimeterEDM4hep /tmp/calorimeter-io-example
 ```
 
@@ -236,8 +236,84 @@ ActsExamples reader, converters, response and writer. Its generated fixture
 contains a high-bit cell ID, two simulated hits in the same cell, contribution
 times, a rejected late contribution and MC relations. It verifies calibrated
 energies, time, geometry centres and truth weights 0.75/0.25 after rereading.
-This is a synthetic EDM4hep fixture, not a detector simulation sample. Persistent
-cluster/jet output and response configuration metadata are a separate PR.
+The extended fixture adds two cells: one joins the high-ID cell in a 0.12 GeV
+cluster, and one makes a separate nearby 0.06 GeV cluster. The opposing cluster
+has 0.04 GeV. It also checks persistent cluster relations, times, seed IDs and
+reconstruction metadata. This is a synthetic EDM4hep fixture, not a detector
+simulation sample.
+
+## Persistent clusters, jets and configuration
+
+`EDM4hepCalorimeterClusterOutputConverter` reads native clusters, native hits and
+the EDM4hep hits from the hit converter. It preserves native collection order
+and writes `edm4hep::ClusterCollection` with `Cluster::hits` relations. Input
+hit mapping is checked by cell ID and converted energy, time and position;
+indices alone are insufficient to identify a persistent object. Cluster energy,
+centre, time and seed must agree with its unique constituent hits. A hit cannot
+belong to two clusters. Invalid indices, duplicate cells, inconsistent values
+and float overflow cause failure before any output collection is stored.
+
+EDM4hep Cluster has no time or seed-ID field. The converter therefore writes a
+`podio::UserDataCollection<double>` for times in ns and a
+`podio::UserDataCollection<uint64_t>` for full seed IDs. Both have one entry per
+cluster in the same order, including empty events. Their names are returned by
+`collections()` and recorded in metadata. Never filter or reorder a cluster
+collection independently of its sidecars. Intrinsic shower direction, covariance
+and shape fields retain their EDM defaults and are marked unmeasured in metadata.
+
+When the IO and FastJet options are both ON, the additional
+`Acts::ExamplesCalorimeterJetsEDM4hep` library provides
+`EDM4hepCalorimeterJetOutputConverter`. It writes a named
+`edm4hep::ReconstructedParticleCollection` for jets with energy, momentum and mass
+in GeV and `ReconstructedParticle::clusters` relations. The collection name
+identifies the objects as jets; PDG, charge and covariance are not measured.
+Momentum and energy are rounded to EDM4hep floats separately. Mass is computed
+from the native four-vector, allowing roundoff-sized negative mass squared to
+clamp to zero. No jet constituent particles or PFOs are invented.
+
+Use the same jet reconstruction configuration for the native jet algorithm and
+its converter. The converter verifies native/persistent cluster mappings and
+E-scheme sums using that fixed origin, unique cluster membership and the pT cut.
+A small double-precision tolerance scales with constituent count to allow
+FastJet's different summation order. Native constituent order and output jet
+order are retained. The converter adds no second calibration or clustering.
+
+```sh
+cmake -S . -B build/calo -DACTS_BUILD_CALORIMETER_EDM4HEP=ON \
+  -DACTS_BUILD_EXAMPLES_FASTJET=ON -DACTS_BUILD_UNITTESTS=ON
+cmake --build build/calo --target ActsExampleCalorimeterJetsEDM4hep \
+  ActsUnitTestCalorimeterEDM4hepJets
+ctest --test-dir build/calo -R '^CalorimeterEDM4hep(Jets|JetExample)$' --output-on-failure
+build/calo/bin/ActsExampleCalorimeterJetsEDM4hep /tmp/calorimeter-jets-io-example
+```
+
+The jet ROOT example merges the two nearby clusters into a 0.18 GeV jet with
+nonzero mass and keeps the opposing 0.04 GeV jet. After rereading it checks the
+complete jet-to-cluster-to-hit-to-simulated-hit-to-contribution-to-MC chain,
+four-momentum and configuration. With FastJet discovery disabled, the hit/cluster
+IO library and ROOT example still build and run. No further package is required.
+
+`EDM4hepCalorimeterMetadata` runs after converters and transfers the original
+frame from `inputFrame` to a distinct `outputFrame` key. Point PodioWriter's
+`inputFrame` to that output key, and include all converter `collections()` names
+in the writer. The frame retains simulation collections and existing parameters.
+It receives schema version 1 parameters under `acts.calo.`: units, collection
+names, response scale/threshold/time window, clustering thresholds and normalized
+neighbour edges, geometry identifier and field conventions. Neighbour IDs are
+stored as decimal `first:second` strings, preserving all 64 bits. Jet converter
+`metadata()` supplies algorithm, radius, pT cut, origin and constituent conventions
+through the metadata configuration's `additional` field.
+
+Construct metadata from the same configurations passed to the algorithms and
+converters, as the example does; it checks their collection-name connections but
+does not inspect the previously executed algorithms. A versioned geometry source
+identifier is required because a cell-centre callback cannot be serialized.
+Unbounded response time limits are stored as double infinities. Existing keys
+under `acts.calo.` and duplicate additional keys across parameter types are
+rejected, avoiding stale configuration. Parameters are repeated per event in
+this prototype, including topology; a run-level representation for large detector
+geometries is a later optimization. No full detector calibration or physics
+performance is established by this IO fixture.
 
 ## Package layout
 
@@ -249,11 +325,12 @@ Calorimeter/
   Examples/                 # ActsExamples algorithms and runnable example
   Jets/                     # Optional FastJet helper and owned jet event data
     Examples/               # ActsExamples jet adapter and extended example
-  Io/EDM4hep/               # Optional hit converters and ROOT round-trip example
+  Io/EDM4hep/               # Optional hit/cluster IO, sidecars and frame metadata
+    Jets/                   # Optional jet IO and extended ROOT example
 Tests/UnitTests/Calorimeter/ # Response, clusters, jets and integration checks
 ```
 
-Add geometry adapters, persistent IO, tracking and Pandora subdirectories
+Add geometry adapters, tracking and Pandora subdirectories
 when the corresponding implementation lands. Keep dependencies optional at
 their point of use; do not introduce empty backends or automatic downloads.
 
@@ -268,8 +345,8 @@ from `codex/nodd-tracker-gen3`, whose existing PR provides the nODD integration.
 | 1 (merged: #4) | Optional package, data contract, deterministic response, ActsExamples synthetic run | Enabled/disabled build checks, response tests and executable pass | No new packages |
 | 2a (merged: #5) | Calorimeter cluster baseline | Seed/neighbour boundaries, energy accounting, provenance, input-order invariance and sequencer checks | No new packages |
 | 2b (merged: #6) | Reconstructed calorimeter jets | Geometry/mass convention, FastJet constituent mapping and synthetic jet checks | User approved reuse of installed FastJet 3.5.1 through the existing ACTS integration |
-| 3a (this change) | EDM4hep/podio simulated-hit input and calibrated-hit output | ROOT fixture round trip; preserve 64-bit IDs, units and hit/contribution/particle relations | User approved reuse of installed EDM4hep 1.1.1, podio 1.8.0 and ROOT 6.40.04; no vendoring |
-| 3b | Persistent cluster/jet output and reconstruction metadata | Resolve cluster-to-hit and jet-to-cluster relations after rereading; record conventions/configuration | Reuse the approved IO packages |
+| 3a (merged: #7) | EDM4hep/podio simulated-hit input and calibrated-hit output | ROOT fixture round trip; preserve 64-bit IDs, units and hit/contribution/particle relations | User approved reuse of installed EDM4hep 1.1.1, podio 1.8.0 and ROOT 6.40.04; no vendoring |
+| 3b (this change) | Persistent cluster/jet output and reconstruction metadata | Resolve cluster-to-hit and jet-to-cluster relations after rereading; record conventions/configuration | Reuse the approved IO packages |
 | 4 | nODD calorimeter geometry adapter and full-simulation input | Cells, centres, layers and neighbours agree with DD4hep; reproducible single-particle samples | Confirm geometry/input source and any needed external acquisition |
 | 5 | ACTS track extrapolation to calorimeter entrance surfaces | Barrel/endcap states, covariance, failures and track-hit provenance validated | Reuse ACTS propagation; no Gaudi tracking wrapper |
 | 6 | Direct PandoraSDK/LCContent ActsExamples adapter | Geometry/plugins/settings initialization, event conversion, PFO ownership and reliable reset; serial processing first | User approval required before fetching, linking or pinning Pandora dependencies |
