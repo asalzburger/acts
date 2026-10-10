@@ -7,9 +7,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "Acts/Definitions/Units.hpp"
-#include "ActsExamples/Calorimeter/CalorimeterDigitizationAlgorithm.hpp"
-#include "ActsExamples/Calorimeter/EDM4hepCalorimeterInputConverter.hpp"
-#include "ActsExamples/Calorimeter/EDM4hepCalorimeterOutputConverter.hpp"
 #include "ActsExamples/Framework/Sequencer.hpp"
 #include "ActsExamples/Io/Podio/PodioReader.hpp"
 #include "ActsExamples/Io/Podio/PodioWriter.hpp"
@@ -21,18 +18,24 @@
 #include <memory>
 #include <stdexcept>
 
-#include "ExampleFixture.hpp"
+#include "ReconstructionFixture.hpp"
+#ifdef ACTS_CALORIMETER_EDM4HEP_JETS
+#include "Jets/JetFixture.hpp"
+#endif
 
 namespace {
 using namespace ActsExamples;
-using namespace Acts::UnitLiterals;
-
+namespace Fixture = CalorimeterFixture;
+void require(bool condition, const char* message) {
+  if (!condition) {
+    throw std::runtime_error(message);
+  }
+}
 void checkOutput(const std::filesystem::path& path) {
   ActsPlugins::PodioUtil::ROOTReader reader;
   reader.openFile(path.string());
-  if (reader.getEntries("events") != 3) {
-    throw std::runtime_error("Unexpected number of calorimeter events");
-  }
+  require(reader.getEntries("events") == 3,
+          "Unexpected calorimeter event count");
   for (unsigned int event = 0; event < 3; ++event) {
     podio::Frame frame = reader.readEntry("events", event);
     const auto& hits = frame.get<edm4hep::CalorimeterHitCollection>("CaloHits");
@@ -40,47 +43,118 @@ void checkOutput(const std::filesystem::path& path) {
         frame.get<edm4hep::CaloHitSimCaloHitLinkCollection>("CaloLinks");
     const auto& simHits =
         frame.get<edm4hep::SimCalorimeterHitCollection>("SimCaloHits");
-    if (hits.size() != 2 || links.size() != 3 || simHits.size() != 3 ||
-        hits[0].getCellID() != 42 ||
-        hits[1].getCellID() != CalorimeterFixture::highCellId ||
-        std::abs(hits[0].getEnergy() - 0.04) > 1e-7 ||
-        std::abs(hits[1].getEnergy() - 0.08) > 1e-7 ||
-        std::abs(hits[1].getTime() - 4) > 1e-6 ||
-        hits[1].getPosition().x != 1500) {
-      throw std::runtime_error("Unexpected persistent calorimeter response");
-    }
+    const auto& clusters =
+        frame.get<edm4hep::ClusterCollection>("CaloClusters");
+    const auto& times =
+        frame.get<podio::UserDataCollection<double>>("CaloClusterTimes");
+    const auto& seeds = frame.get<podio::UserDataCollection<std::uint64_t>>(
+        "CaloClusterSeedCellIds");
+    require(hits.size() == 4 && links.size() == 5 && simHits.size() == 5 &&
+                clusters.size() == 3 && times.size() == 3 && seeds.size() == 3,
+            "Unexpected persistent collection size");
+    require(hits[0].getCellID() == 7 && hits[1].getCellID() == 42 &&
+                hits[2].getCellID() == Fixture::highCellId &&
+                hits[3].getCellID() == Fixture::highCellId + 1 &&
+                std::abs(hits[2].getEnergy() - 0.08) < 1e-7 &&
+                std::abs(hits[2].getTime() - 4) < 1e-6 &&
+                hits[2].getPosition().x == 1500,
+            "Unexpected persistent hit response");
     double weightSum = 0;
     for (const auto& link : links) {
-      if (!link.getFrom().isAvailable() || !link.getTo().isAvailable() ||
-          link.getFrom().getCellID() != link.getTo().getCellID()) {
-        throw std::runtime_error("Broken persistent calorimeter relation");
-      }
-      if (link.getFrom().getCellID() == CalorimeterFixture::highCellId) {
+      require(link.getFrom().isAvailable() && link.getTo().isAvailable() &&
+                  link.getFrom().getCellID() == link.getTo().getCellID(),
+              "Broken truth relation");
+      if (link.getFrom().getCellID() == Fixture::highCellId) {
         weightSum += link.getWeight();
         const double expected =
             link.getTo().getObjectID().index == 0 ? 0.75 : 0.25;
-        if (std::abs(link.getWeight() - expected) > 1e-6) {
-          throw std::runtime_error("Unexpected accepted-energy link weight");
-        }
+        require(std::abs(link.getWeight() - expected) < 1e-6,
+                "Unexpected truth weight");
       }
       for (const auto& contribution : link.getTo().getContributions()) {
-        if (!contribution.isAvailable() ||
-            !contribution.getParticle().isAvailable() ||
-            contribution.getParticle().getPDG() != 211) {
-          throw std::runtime_error("Broken contribution/particle provenance");
+        require(contribution.isAvailable() &&
+                    contribution.getParticle().isAvailable() &&
+                    contribution.getParticle().getPDG() == 211,
+                "Broken contribution/particle relation");
+      }
+    }
+    require(std::abs(weightSum - 1) < 1e-6, "Truth weights do not sum to one");
+    require(std::abs(clusters[0].getEnergy() - 0.06) < 1e-7 &&
+                std::abs(clusters[1].getEnergy() - 0.04) < 1e-7 &&
+                std::abs(clusters[2].getEnergy() - 0.12) < 1e-7 &&
+                clusters[0].getHits(0) == hits[0] &&
+                clusters[1].getHits(0) == hits[1] &&
+                clusters[2].hits_size() == 2 &&
+                clusters[2].getHits(0) == hits[2] &&
+                clusters[2].getHits(1) == hits[3],
+            "Broken cluster energy/hit relations");
+    require(
+        seeds[0] == 7 && seeds[1] == 42 && seeds[2] == Fixture::highCellId &&
+            std::abs(times[0] - 6) < 1e-6 && std::abs(times[1] - 2) < 1e-6 &&
+            std::abs(times[2] - 10. / 3) < 1e-6 &&
+            std::abs(clusters[2].getPosition().y - 40. / 3) < 1e-5,
+        "Broken cluster sidecars or centre");
+    require(
+        frame.getParameter<std::string>("generator.tag") == "synthetic" &&
+            frame.getParameter<double>("acts.calo.schemaVersion") == 1 &&
+            frame.getParameter<double>("acts.calo.response.energyScale") == 2 &&
+            frame.getParameter<std::vector<double>>(
+                "acts.calo.response.timeWindow") ==
+                std::vector<double>({0, 10}) &&
+            frame.getParameter<std::string>("acts.calo.output.clusterTimes") ==
+                "CaloClusterTimes" &&
+            frame.getParameter<std::vector<std::string>>(
+                "acts.calo.clustering.neighbours") ==
+                std::vector<std::string>{
+                    std::to_string(Fixture::highCellId) + ":" +
+                    std::to_string(Fixture::highCellId + 1)},
+        "Missing or incorrect reconstruction metadata");
+#ifdef ACTS_CALORIMETER_EDM4HEP_JETS
+    const auto& jets =
+        frame.get<edm4hep::ReconstructedParticleCollection>("CaloJets");
+    require(jets.size() == 2 && jets[0].clusters_size() == 2 &&
+                jets[1].clusters_size() == 1 &&
+                jets[0].getClusters(0) == clusters[0] &&
+                jets[0].getClusters(1) == clusters[2] &&
+                jets[1].getClusters(0) == clusters[1] &&
+                std::abs(jets[0].getEnergy() - 0.18) < 1e-7 &&
+                std::abs(jets[1].getEnergy() - 0.04) < 1e-7 &&
+                jets[0].getMass() > 0,
+            "Broken persistent jet relations, energy or mass");
+    const Acts::Vector3 expected =
+        0.06 * Acts::Vector3(1500, 100, 5).normalized() +
+        0.12 * Acts::Vector3(1500, 40. / 3, 5).normalized();
+    const auto momentum = jets[0].getMomentum();
+    require(
+        (Acts::Vector3(momentum.x, momentum.y, momentum.z) - expected).norm() <
+                1e-7 &&
+            frame.getParameter<double>("acts.calo.jets.radius") == 0.4 &&
+            frame.getParameter<std::vector<double>>("acts.calo.jets.origin") ==
+                std::vector<double>({0, 0, 0}),
+        "Incorrect persistent jet momentum or configuration");
+    // Resolve the complete jet -> cluster -> hit -> sim hit -> contribution ->
+    // MC chain.
+    for (const auto& jet : jets) {
+      for (const auto& cluster : jet.getClusters()) {
+        for (const auto& hit : cluster.getHits()) {
+          bool matched = false;
+          for (const auto& link : links) {
+            if (link.getFrom() == hit) {
+              matched = true;
+            }
+          }
+          require(matched, "Jet constituent lacks a truth association");
         }
       }
     }
-    if (std::abs(weightSum - 1) > 1e-6) {
-      throw std::runtime_error("Calorimeter link weights do not sum to one");
-    }
+#endif
   }
 }
 }  // namespace
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    std::cerr << "Usage: ActsExampleCalorimeterEDM4hep OUTPUT_DIRECTORY\n";
+    std::cerr << "Usage: " << argv[0] << " OUTPUT_DIRECTORY\n";
     return 1;
   }
   const std::filesystem::path directory(argv[1]);
@@ -90,7 +164,8 @@ int main(int argc, char* argv[]) {
   {
     ActsPlugins::PodioUtil::ROOTWriter writer(inputPath.string());
     for (int event = 0; event < 3; ++event) {
-      auto frame = CalorimeterFixture::makeFrame();
+      auto frame = Fixture::makeFrame(true);
+      frame.putParameter("generator.tag", std::string("synthetic"));
       writer.writeFrame(frame, "events");
     }
     writer.finish();
@@ -104,35 +179,40 @@ int main(int argc, char* argv[]) {
   reader.inputPath = inputPath;
   sequencer.addReader(
       std::make_shared<PodioReader>(reader, Acts::Logging::INFO));
-  EDM4hepCalorimeterInputConverter::Config input;
-  input.inputSimHits = "SimCaloHits";
-  input.outputDeposits = "calo_deposits";
-  input.outputSources = "calo_sources";
-  input.cellCentre = CalorimeterFixture::cellCentre;
+  auto metadata = Fixture::metadataConfig();
   sequencer.addAlgorithm(
-      std::make_shared<EDM4hepCalorimeterInputConverter>(input));
-  CalorimeterDigitizationAlgorithm::Config digitization;
-  digitization.inputSimHits = input.outputDeposits;
-  digitization.outputHits = "calo_hits";
-  digitization.response.energyScale = 2;
-  digitization.response.energyThreshold = 0.01_GeV;
-  digitization.response.timeMin = 0_ns;
-  digitization.response.timeMax = 10_ns;
+      std::make_shared<EDM4hepCalorimeterInputConverter>(metadata.input));
   sequencer.addAlgorithm(
-      std::make_shared<CalorimeterDigitizationAlgorithm>(digitization));
-  EDM4hepCalorimeterOutputConverter::Config output;
-  output.inputHits = digitization.outputHits;
-  output.inputDeposits = input.outputDeposits;
-  output.inputSources = input.outputSources;
-  output.outputHits = "CaloHits";
-  output.outputLinks = "CaloLinks";
-  auto converter = std::make_shared<EDM4hepCalorimeterOutputConverter>(output);
-  sequencer.addAlgorithm(converter);
+      std::make_shared<CalorimeterDigitizationAlgorithm>(metadata.response));
+  sequencer.addAlgorithm(
+      std::make_shared<CalorimeterClusteringAlgorithm>(metadata.clustering));
+  auto hitConverter =
+      std::make_shared<EDM4hepCalorimeterOutputConverter>(metadata.hitOutput);
+  auto clusterConverter =
+      std::make_shared<EDM4hepCalorimeterClusterOutputConverter>(
+          metadata.clusterOutput);
+  sequencer.addAlgorithm(hitConverter);
+  sequencer.addAlgorithm(clusterConverter);
+  auto collections = hitConverter->collections();
+  const auto clusterCollections = clusterConverter->collections();
+  collections.insert(collections.end(), clusterCollections.begin(),
+                     clusterCollections.end());
+#ifdef ACTS_CALORIMETER_EDM4HEP_JETS
+  const auto jets = Fixture::jetConfig();
+  sequencer.addAlgorithm(std::make_shared<CalorimeterJetAlgorithm>(jets));
+  auto jetConverter = std::make_shared<EDM4hepCalorimeterJetOutputConverter>(
+      Fixture::jetOutputConfig());
+  sequencer.addAlgorithm(jetConverter);
+  metadata.additional = jetConverter->metadata();
+  collections.push_back(jetConverter->collections().front());
+#endif
+  sequencer.addAlgorithm(
+      std::make_shared<EDM4hepCalorimeterMetadata>(metadata));
   PodioWriter::Config writer;
-  writer.inputFrame = input.inputFrame;
+  writer.inputFrame = metadata.outputFrame;
   writer.outputPath = outputPath.string();
   writer.category = "events";
-  writer.collections = converter->collections();
+  writer.collections = collections;
   sequencer.addWriter(
       std::make_shared<PodioWriter>(writer, Acts::Logging::INFO));
   const auto result = sequencer.run();
@@ -140,6 +220,7 @@ int main(int argc, char* argv[]) {
     return result;
   }
   checkOutput(outputPath);
-  std::cout << "Calorimeter ROOT round trip passed for three events\n";
+  std::cout
+      << "Calorimeter reconstruction ROOT round trip passed for three events\n";
   return 0;
 }

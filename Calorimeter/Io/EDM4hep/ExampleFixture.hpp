@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <tuple>
 #include <utility>
 
 #include <edm4hep/CaloHitContributionCollection.h>
@@ -30,12 +31,18 @@ inline Acts::Vector3 cellCentre(std::uint64_t id) {
   if (id == 42) {
     return Acts::Vector3{-1500, -10, -5} * Acts::UnitConstants::mm;
   }
+  if (id == highCellId + 1) {
+    return Acts::Vector3{1500, 20, 5} * Acts::UnitConstants::mm;
+  }
+  if (id == 7) {
+    return Acts::Vector3{1500, 100, 5} * Acts::UnitConstants::mm;
+  }
   throw std::invalid_argument("Unknown synthetic calorimeter cell");
 }
 
 /// Genuine EDM4hep collections in a synthetic fixture, without detector
 /// transport.
-inline podio::Frame makeFrame() {
+inline podio::Frame makeFrame(bool extended = false) {
   edm4hep::MCParticleCollection particles;
   auto particle = particles.create();
   particle.setPDG(211);
@@ -70,6 +77,20 @@ inline podio::Frame makeFrame() {
   thirdContribution.setTime(2);
   thirdContribution.setParticle(particle);
   third.addToContributions(thirdContribution);
+  if (extended) {
+    for (const auto [id, energy, time] :
+         {std::tuple{highCellId + 1, 0.02f, 2.f},
+          std::tuple{std::uint64_t{7}, 0.03f, 6.f}}) {
+      auto hit = hits.create();
+      hit.setCellID(id);
+      hit.setEnergy(energy);
+      auto contribution = contributions.create();
+      contribution.setEnergy(energy);
+      contribution.setTime(time);
+      contribution.setParticle(particle);
+      hit.addToContributions(contribution);
+    }
+  }
   podio::Frame frame;
   frame.put(std::move(particles), "MCParticles");
   frame.put(std::move(contributions), "CaloContributions");
