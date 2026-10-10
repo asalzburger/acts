@@ -1,5 +1,6 @@
 acts_add_library(
     Calorimeter
+    src/Clustering/CalorimeterClusterer.cpp
     src/Digitization/CalorimeterResponse.cpp
     ACTS_INCLUDE_FOLDER include/ActsCalorimeter
 )

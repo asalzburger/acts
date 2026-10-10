@@ -5,7 +5,7 @@ in ActsExamples. Detector descriptions and readout encodings belong to the
 external [nODD repository](https://github.com/asalzburger/nodd). This package owns
 reconstruction helpers, adapters, configuration and validation.
 
-## First executable milestone
+## Executable baseline
 
 Enable `ACTS_BUILD_CALORIMETER=ON` in a normal ACTS build. The option defaults to
 OFF and enables the existing basic Examples dependencies. It adds no new
@@ -18,8 +18,9 @@ coverage preset explicitly disables it to keep its Examples-free configuration.
 ```sh
 cmake -S . -B build/calo -DACTS_BUILD_CALORIMETER=ON \
   -DACTS_BUILD_UNITTESTS=ON
-cmake --build build/calo --target ActsExampleCalorimeter ActsUnitTestCalorimeterResponse
-ctest --test-dir build/calo -R '^Calorimeter(Response|Example)$' --output-on-failure
+cmake --build build/calo --target ActsExampleCalorimeter \
+  ActsUnitTestCalorimeterResponse ActsUnitTestCalorimeterClustering
+ctest --test-dir build/calo -R '^Calorimeter(Response|Clustering|Example)$' --output-on-failure
 build/calo/bin/ActsExampleCalorimeter
 ```
 
@@ -28,10 +29,14 @@ three synthetic events through the real ActsExamples sequencer:
 
 ```text
 SyntheticDeposits -> CalorimeterDigitizationAlgorithm -> CheckCalibratedHits
+                  -> CalorimeterClusteringAlgorithm -> CheckClusters
 ```
 
-Each event produces one cell with energy 0.06 GeV and time 3 ns. The executable
-checks its result and returns failure on a mismatch. It writes the framework's
+Each event produces calibrated cells 42, 43 and 46 with energies 0.06, 0.04 and
+0.06 GeV. The synthetic topology connects cells 42 and 43; cell 46 is isolated.
+The two resulting clusters contain 0.10 and 0.06 GeV, conserving the accepted cell
+energy. The executable checks both stages and returns failure on a mismatch.
+It writes the framework's
 timing CSV to the working directory. It neither loads nODD nor simulates showers;
 its purpose is to establish a runnable reconstruction and event-store boundary.
 
@@ -62,9 +67,44 @@ nanoseconds already have the native ACTS time scale.
   collection for that event; future podio adapters must create persistent
   relations explicitly.
 
-Noise, sampling fluctuations, detector-specific response, saturation, detailed
-electronics and shower-energy corrections are later milestones. No jet or
-particle-flow performance is established by this synthetic example.
+## Clustering contract
+
+`CalorimeterClusterer` implements a seeded connected-component baseline. Its
+geometry-supplied `CellNeighbour` edges form an undirected graph copied and
+normalized once at construction; duplicate/reversed edges are harmless, while
+self-edges are rejected. Full readout IDs are preserved. Numeric proximity of IDs
+does not imply adjacency. A cell missing from the graph is isolated; a geometry
+cell without an accepted event hit cannot bridge components.
+
+The algorithm keeps positive cells at or above the calibrated neighbour-energy
+threshold and retains each connected component containing a cell at or above the
+seed-energy threshold. The seed threshold must be at least the neighbour
+threshold, and both must be finite and nonnegative. A component with multiple
+seeds produces one cluster; a component whose total energy exceeds the seed
+threshold but has no qualifying individual cell is dropped. Zero-energy and
+below-threshold cells do not join or connect clusters.
+
+Each retained cell appears exactly once. Cluster energy is the sum of calibrated
+cell energies, with no second response or calibration. Position and time are
+calibrated-energy-weighted cell means. The highest-energy cell identifies the
+seed, with smaller IDs breaking ties. Clusters are ordered by their smallest
+constituent ID; constituent indices and accumulation order follow cell-ID order.
+These conventions make results reproducible under hit and edge permutations.
+
+`CalorimeterCluster::hitIndices` refers to the input calibrated-hit collection
+for that event. Following a hit's `sourceIndices` reaches simulated deposits.
+The ActsExamples adapter writes a new cluster collection and preserves its
+input. The native helper has no shared event state. Duplicate input cell IDs,
+negative/nonfinite energies, nonfinite positions/times and output overflow are
+errors. Links remain transient until the persistent IO milestone.
+
+This baseline does not split nearby showers within one connected component,
+perform noise-significance clustering, infer geometry, correct time of flight,
+or define jet four-momenta. Layer/readout boundaries must be respected by the
+geometry that supplies the edges. The synthetic graph is not a nODD geometry
+model. Noise, sampling fluctuations, detector-specific response, saturation,
+detailed electronics and shower-energy corrections are later milestones. No jet
+or particle-flow performance is established by this synthetic example.
 
 ## Package layout
 
@@ -72,11 +112,12 @@ particle-flow performance is established by this synthetic example.
 Calorimeter/
   include/ActsCalorimeter/   # Framework-independent data and reconstruction
   src/Digitization/         # Deterministic response baseline
+  src/Clustering/           # Seeded connected-component baseline
   Examples/                 # ActsExamples algorithms and runnable example
 Tests/UnitTests/Calorimeter/ # Response and framework integration checks
 ```
 
-Add geometry, persistent IO, clustering, tracking and Pandora subdirectories
+Add geometry adapters, persistent IO, tracking and Pandora subdirectories
 when the corresponding implementation lands. Keep dependencies optional at
 their point of use; do not introduce empty backends or automatic downloads.
 
@@ -88,8 +129,9 @@ from `codex/nodd-tracker-gen3`, whose existing PR provides the nODD integration.
 
 | PR | Scope | Acceptance criterion | External decision |
 | --- | --- | --- | --- |
-| 1 | Optional package, data contract, deterministic response, ActsExamples synthetic run | Enabled/disabled build checks, response tests and executable pass | No new packages |
-| 2 | Calorimeter cluster baseline and reconstructed jets | Energy accounting, geometry/mass convention, FastJet constituent mapping and synthetic jet checks | Check with the user before introducing FastJet use; prefer the existing ACTS integration |
+| 1 (merged: #4) | Optional package, data contract, deterministic response, ActsExamples synthetic run | Enabled/disabled build checks, response tests and executable pass | No new packages |
+| 2a | Calorimeter cluster baseline | Seed/neighbour boundaries, energy accounting, provenance, input-order invariance and sequencer checks | No new packages |
+| 2b | Reconstructed calorimeter jets | Geometry/mass convention, FastJet constituent mapping and synthetic jet checks | Check with the user before introducing FastJet use; prefer the existing ACTS integration |
 | 3 | EDM4hep/podio input, output and provenance | Real simulated-hit fixture round trip; preserve 64-bit IDs, units and relations | Confirm use of installed EDM4hep/podio before integration; no vendoring by default |
 | 4 | nODD calorimeter geometry adapter and full-simulation input | Cells, centres, layers and neighbours agree with DD4hep; reproducible single-particle samples | Confirm geometry/input source and any needed external acquisition |
 | 5 | ACTS track extrapolation to calorimeter entrance surfaces | Barrel/endcap states, covariance, failures and track-hit provenance validated | Reuse ACTS propagation; no Gaudi tracking wrapper |

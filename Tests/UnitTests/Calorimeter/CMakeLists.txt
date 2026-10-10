@@ -1,4 +1,5 @@
 set(unittest_extra_libraries Acts::Calorimeter Acts::ExamplesCalorimeter)
 add_unittest(CalorimeterResponse CalorimeterResponseTests.cpp)
+add_unittest(CalorimeterClustering CalorimeterClusteringTests.cpp)
 add_test(NAME CalorimeterExample COMMAND ActsExampleCalorimeter)
 add_dependencies(unit_tests ActsExampleCalorimeter)

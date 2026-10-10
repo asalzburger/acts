@@ -1,5 +1,6 @@
 acts_add_library(
     ExamplesCalorimeter
+    src/CalorimeterClusteringAlgorithm.cpp
     src/CalorimeterDigitizationAlgorithm.cpp
     ACTS_INCLUDE_FOLDER include/ActsExamples
 )
