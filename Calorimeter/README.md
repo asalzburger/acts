@@ -10,7 +10,7 @@ reconstruction helpers, adapters, configuration and validation.
 Enable `ACTS_BUILD_CALORIMETER=ON` in a normal ACTS build. The option defaults to
 OFF and enables the existing basic Examples dependencies. It adds no new
 third-party package, source download, detector requirement or Gaudi dependency.
-The library targets are `Acts::Calorimeter` (framework-independent response) and
+The library targets are `Acts::Calorimeter` (framework-independent reconstruction) and
 `Acts::ExamplesCalorimeter` (ActsExamples algorithms).
 The `github-ci` preset enables this package and its CTest entries; the existing
 coverage preset explicitly disables it to keep its Examples-free configuration.
@@ -100,11 +100,70 @@ errors. Links remain transient until the persistent IO milestone.
 
 This baseline does not split nearby showers within one connected component,
 perform noise-significance clustering, infer geometry, correct time of flight,
-or define jet four-momenta. Layer/readout boundaries must be respected by the
+or correct shower energies. Layer/readout boundaries must be respected by the
 geometry that supplies the edges. The synthetic graph is not a nODD geometry
 model. Noise, sampling fluctuations, detector-specific response, saturation,
 detailed electronics and shower-energy corrections are later milestones. No jet
 or particle-flow performance is established by this synthetic example.
+
+## Optional calorimeter jets
+
+Enable both `ACTS_BUILD_CALORIMETER=ON` and the existing
+`ACTS_BUILD_EXAMPLES_FASTJET=ON` option to build `Acts::CalorimeterJets` and
+`Acts::ExamplesCalorimeterJets`. This reuses ACTS's existing FastJet discovery;
+FastJet must already be installed (ACTS currently requires at least 3.4.1).
+The approved local prototype uses FastJet 3.5.1, licensed under
+[GNU GPL v2 or later](https://www.fastjet.fr/about.html). No source is copied or
+downloaded. With the FastJet option OFF, the response/clustering libraries,
+tests and executable continue to build without a FastJet dependency.
+
+```sh
+cmake -S . -B build/calo -DACTS_BUILD_CALORIMETER=ON \
+  -DACTS_BUILD_EXAMPLES_FASTJET=ON -DACTS_BUILD_UNITTESTS=ON
+cmake --build build/calo --target ActsExampleCalorimeterJets \
+  ActsUnitTestCalorimeterJets
+ctest --test-dir build/calo -R '^Calorimeter(Jets|JetExample)$' --output-on-failure
+build/calo/bin/ActsExampleCalorimeterJets
+```
+
+`CalorimeterJetReconstruction` assigns each positive-energy cluster the massless
+four-momentum `(E * unit(position - origin), E)`, in `(px, py, pz, E)` order and
+ACTS native units. The default origin is the global zero point; a configured
+origin is fixed for the run. Cluster times are not used. No additional energy
+calibration is applied. FastJet inclusive anti-kt uses radius 0.4 by default
+in rapidity-phi space and E-scheme four-vector addition. Recombined jets can have
+nonzero mass. The configured minimum pT is inclusive and defaults to zero.
+Outputs are ordered by decreasing pT, with sorted constituent indices breaking
+exact ties for a fixed input collection. FastJet determines clustering in
+degenerate configurations; no general permutation-invariance claim is made.
+
+`CalorimeterJet::clusterIndices` refers to the input cluster collection, including
+its original indices when zero-energy clusters are skipped. Four-momenta and
+constituent indices are copied while the clustering sequence is alive, so event
+output holds no FastJet objects or pointers. All clustering state is local to
+one call. The ActsExamples algorithm retains its input and writes a new jet
+collection. Linking the installed `Acts::CalorimeterJets` component finds
+FastJet again through the ACTS package configuration.
+
+Configuration requires a finite positive radius within FastJet's supported range,
+a finite nonnegative pT cut, and a finite origin. Input energies must be finite
+and nonnegative, and positions finite, including for zero-energy clusters.
+Zero-energy clusters are skipped; a positive-energy cluster at the origin has
+an undefined direction and is rejected. Undefined/nonfinite displacements,
+indices outside FastJet's signed-int range and excessive total energies are
+errors. Total energy is bounded by half the square root of the largest double
+to keep FastJet's squared-momentum calculations finite. These are numeric
+validity checks, not detector acceptance cuts.
+
+`ActsExampleCalorimeterJets` extends the same three-event response and clustering
+fixture with `CalorimeterJetAlgorithm -> CheckJets`. The opposing clusters
+produce jets with pT 0.10 and 0.06 GeV. Unit tests additionally check nearby
+clusters merging, four-momentum conservation and jet mass, the phi wrap,
+radius changes, forward-cluster pT ordering, a displaced origin, threshold
+boundaries, malformed inputs and the complete deposit-to-jet provenance chain.
+This is a calorimeter-only baseline. Track matching, particle flow, pileup
+subtraction, detector calibration and realistic jet performance remain later
+milestones.
 
 ## Package layout
 
@@ -114,7 +173,9 @@ Calorimeter/
   src/Digitization/         # Deterministic response baseline
   src/Clustering/           # Seeded connected-component baseline
   Examples/                 # ActsExamples algorithms and runnable example
-Tests/UnitTests/Calorimeter/ # Response and framework integration checks
+  Jets/                     # Optional FastJet helper and owned jet event data
+    Examples/               # ActsExamples jet adapter and extended example
+Tests/UnitTests/Calorimeter/ # Response, clusters, jets and integration checks
 ```
 
 Add geometry adapters, persistent IO, tracking and Pandora subdirectories
@@ -130,8 +191,8 @@ from `codex/nodd-tracker-gen3`, whose existing PR provides the nODD integration.
 | PR | Scope | Acceptance criterion | External decision |
 | --- | --- | --- | --- |
 | 1 (merged: #4) | Optional package, data contract, deterministic response, ActsExamples synthetic run | Enabled/disabled build checks, response tests and executable pass | No new packages |
-| 2a | Calorimeter cluster baseline | Seed/neighbour boundaries, energy accounting, provenance, input-order invariance and sequencer checks | No new packages |
-| 2b | Reconstructed calorimeter jets | Geometry/mass convention, FastJet constituent mapping and synthetic jet checks | Check with the user before introducing FastJet use; prefer the existing ACTS integration |
+| 2a (merged: #5) | Calorimeter cluster baseline | Seed/neighbour boundaries, energy accounting, provenance, input-order invariance and sequencer checks | No new packages |
+| 2b (this change) | Reconstructed calorimeter jets | Geometry/mass convention, FastJet constituent mapping and synthetic jet checks | User approved reuse of installed FastJet 3.5.1 through the existing ACTS integration |
 | 3 | EDM4hep/podio input, output and provenance | Real simulated-hit fixture round trip; preserve 64-bit IDs, units and relations | Confirm use of installed EDM4hep/podio before integration; no vendoring by default |
 | 4 | nODD calorimeter geometry adapter and full-simulation input | Cells, centres, layers and neighbours agree with DD4hep; reproducible single-particle samples | Confirm geometry/input source and any needed external acquisition |
 | 5 | ACTS track extrapolation to calorimeter entrance surfaces | Barrel/endcap states, covariance, failures and track-hit provenance validated | Reuse ACTS propagation; no Gaudi tracking wrapper |
