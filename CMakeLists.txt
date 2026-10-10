@@ -830,6 +830,13 @@ add_subdirectory_if(thirdparty/OpenDataDetector ACTS_BUILD_ODD)
 # Examples
 add_subdirectory_if(Examples ACTS_BUILD_EXAMPLES)
 add_component_if(Calorimeter Calorimeter ACTS_BUILD_CALORIMETER)
+add_component_if(
+    Calorimeter/Jets
+    CalorimeterJets
+    ACTS_BUILD_CALORIMETER
+    AND
+    ACTS_BUILD_EXAMPLES_FASTJET
+)
 
 # Python bindings
 add_subdirectory_if(Python ACTS_BUILD_PYTHON_BINDINGS)
