@@ -165,6 +165,80 @@ This is a calorimeter-only baseline. Track matching, particle flow, pileup
 subtraction, detector calibration and realistic jet performance remain later
 milestones.
 
+## Optional EDM4hep hit IO
+
+Enable `ACTS_BUILD_CALORIMETER_EDM4HEP=ON` to build
+`Acts::ExamplesCalorimeterEDM4hep`. This enables the calorimeter and podio examples
+options, which in turn enable the existing
+EDM4hep plugin, its data-model dictionary and ROOT IO dependencies. The broader
+`ACTS_BUILD_EXAMPLES_EDM4HEP` option is unnecessary for this calorimeter adapter;
+no DD4hep or Gaudi adapter is required. The default calorimeter build continues
+to work with the IO option OFF. This adapter requires EDM4hep 1.0 or newer and
+podio 1.7 or newer for typed calorimeter links; older versions remain supported
+by the existing ACTS EDM4hep plugin when the calorimeter IO option is OFF.
+Packages must already be installed; no automatic download
+or vendoring is added. The user-approved local prototype was tested with
+EDM4hep 1.1.1, podio 1.8.0 and
+ROOT 6.40.04. EDM4hep and podio use Apache-2.0 licenses
+([EDM4hep](https://github.com/key4hep/EDM4hep/blob/main/LICENSE),
+[podio](https://github.com/AIDASoft/podio/blob/master/LICENSE)).
+
+```sh
+cmake -S . -B build/calo -DACTS_BUILD_CALORIMETER_EDM4HEP=ON \
+  -DACTS_BUILD_UNITTESTS=ON
+cmake --build build/calo --target ActsExampleCalorimeterEDM4hep \
+  ActsUnitTestCalorimeterEDM4hep
+ctest --test-dir build/calo -R '^CalorimeterEDM4hep(Example)?$' --output-on-failure
+build/calo/bin/ActsExampleCalorimeterEDM4hep /tmp/calorimeter-io-example
+```
+
+The input converter reads one named `edm4hep::SimCalorimeterHitCollection` from
+the podio frame. Each `CaloHitContribution` becomes a native simulated deposit,
+in hit order followed by contribution order. GeV, mm and ns are converted
+explicitly into ACTS units. Full unsigned 64-bit cell IDs are preserved.
+Contribution step positions and simulated-hit positions are not assumed to be
+cell centres. A required `cellCentre(cellId)` callback supplies global centres
+in ACTS units, with one lookup per unique cell per event. Parallel processing
+requires the callback to support concurrent calls. A geometry adapter belongs
+to the following nODD milestone.
+
+Input hit energy must match the sum of contribution energies within 16 float
+epsilons relative to the larger sum; contributions are never rescaled. A positive
+hit without contributions is an error because it provides no deposit times.
+Empty collections and zero-energy hits without contributions are accepted.
+Negative/nonfinite energies, nonfinite contribution times, invalid/repeated
+contribution relations, missing/wrong collections and unresolved/nonfinite
+cell centres cause failure. The converter writes a source mapping alongside
+the native deposits, retaining the actual EDM4hep hit and contribution handles.
+
+The output converter writes `edm4hep::CalorimeterHitCollection` and
+`edm4hep::CaloHitSimCaloHitLinkCollection`. Energies, times and centres are
+converted back to GeV, ns and mm, with normal EDM4hep float rounding. Overflow
+and positive-energy underflow are errors. No second calibration is applied.
+Each output hit requires valid, unique deposit provenance matching its cell.
+The source mapping is checked against original contribution values and relations.
+One link per contributing simulated hit carries its fraction of the accepted
+deposited energy for that calibrated cell; fractions sum to one. Rejected
+contributions do not enter weights. These are simulated-hit-level associations,
+not separate persistent links to each accepted contribution.
+
+Use the existing `PodioReader` and `PodioWriter`. Configure the writer with the
+original `inputFrame` and both names from the output converter's `collections()`.
+Retaining the frame preserves original simulated hits, contributions and MC
+particles so all persistent relations resolve after writing and rereading.
+Output collection names must also be absent from the input frame. Native
+deposits, calibrated hits and source mappings remain available to subsequent
+reconstruction algorithms before the writer consumes the frame.
+
+The example writes `calorimeter-input.root` and `calorimeter-output.root` in its
+supplied directory and checks a three-event ROOT round trip through the real
+ActsExamples reader, converters, response and writer. Its generated fixture
+contains a high-bit cell ID, two simulated hits in the same cell, contribution
+times, a rejected late contribution and MC relations. It verifies calibrated
+energies, time, geometry centres and truth weights 0.75/0.25 after rereading.
+This is a synthetic EDM4hep fixture, not a detector simulation sample. Persistent
+cluster/jet output and response configuration metadata are a separate PR.
+
 ## Package layout
 
 ```text
@@ -175,6 +249,7 @@ Calorimeter/
   Examples/                 # ActsExamples algorithms and runnable example
   Jets/                     # Optional FastJet helper and owned jet event data
     Examples/               # ActsExamples jet adapter and extended example
+  Io/EDM4hep/               # Optional hit converters and ROOT round-trip example
 Tests/UnitTests/Calorimeter/ # Response, clusters, jets and integration checks
 ```
 
@@ -192,8 +267,9 @@ from `codex/nodd-tracker-gen3`, whose existing PR provides the nODD integration.
 | --- | --- | --- | --- |
 | 1 (merged: #4) | Optional package, data contract, deterministic response, ActsExamples synthetic run | Enabled/disabled build checks, response tests and executable pass | No new packages |
 | 2a (merged: #5) | Calorimeter cluster baseline | Seed/neighbour boundaries, energy accounting, provenance, input-order invariance and sequencer checks | No new packages |
-| 2b (this change) | Reconstructed calorimeter jets | Geometry/mass convention, FastJet constituent mapping and synthetic jet checks | User approved reuse of installed FastJet 3.5.1 through the existing ACTS integration |
-| 3 | EDM4hep/podio input, output and provenance | Real simulated-hit fixture round trip; preserve 64-bit IDs, units and relations | Confirm use of installed EDM4hep/podio before integration; no vendoring by default |
+| 2b (merged: #6) | Reconstructed calorimeter jets | Geometry/mass convention, FastJet constituent mapping and synthetic jet checks | User approved reuse of installed FastJet 3.5.1 through the existing ACTS integration |
+| 3a (this change) | EDM4hep/podio simulated-hit input and calibrated-hit output | ROOT fixture round trip; preserve 64-bit IDs, units and hit/contribution/particle relations | User approved reuse of installed EDM4hep 1.1.1, podio 1.8.0 and ROOT 6.40.04; no vendoring |
+| 3b | Persistent cluster/jet output and reconstruction metadata | Resolve cluster-to-hit and jet-to-cluster relations after rereading; record conventions/configuration | Reuse the approved IO packages |
 | 4 | nODD calorimeter geometry adapter and full-simulation input | Cells, centres, layers and neighbours agree with DD4hep; reproducible single-particle samples | Confirm geometry/input source and any needed external acquisition |
 | 5 | ACTS track extrapolation to calorimeter entrance surfaces | Barrel/endcap states, covariance, failures and track-hit provenance validated | Reuse ACTS propagation; no Gaudi tracking wrapper |
 | 6 | Direct PandoraSDK/LCContent ActsExamples adapter | Geometry/plugins/settings initialization, event conversion, PFO ownership and reliable reset; serial processing first | User approval required before fetching, linking or pinning Pandora dependencies |

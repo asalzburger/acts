@@ -123,6 +123,7 @@ option(ACTS_BUILD_FATRAS_GEANT4 "Build Geant4 Fatras package" OFF)
 option(ACTS_BUILD_ALIGNMENT "Build Alignment package" OFF)
 # calorimeter prototype options
 option(ACTS_BUILD_CALORIMETER "Build calorimeter prototype and ActsExamples adapters" OFF)
+option(ACTS_BUILD_CALORIMETER_EDM4HEP "Build optional EDM4hep calorimeter hit IO" OFF)
 # traccc related options
 option(ACTS_BUILD_TRACCC "Build traccc GPU tracking package" OFF)
 # examples related options
@@ -182,6 +183,9 @@ endif()
 # NOTE: ordering is important here. dependencies must come before dependees
 include(ActsOptionHelpers)
 
+set_option_if(ACTS_BUILD_CALORIMETER ACTS_BUILD_CALORIMETER_EDM4HEP)
+set_option_if(ACTS_BUILD_EXAMPLES_PODIO ACTS_BUILD_CALORIMETER_EDM4HEP)
+
 # any examples component activates the general examples option
 set_option_if(
     ACTS_BUILD_EXAMPLES
@@ -218,7 +222,12 @@ set_option_if(
     ACTS_BUILD_EXAMPLES_EDM4HEP
 )
 set_option_if(ACTS_ENABLE_CUDA ACTS_BUILD_EXAMPLES_CUDA_MUON_SEGMENT_FITTING)
-set_option_if(ACTS_BUILD_PLUGIN_EDM4HEP ACTS_BUILD_EXAMPLES_EDM4HEP)
+set_option_if(
+    ACTS_BUILD_PLUGIN_EDM4HEP
+    ACTS_BUILD_EXAMPLES_EDM4HEP
+    OR
+    ACTS_BUILD_EXAMPLES_PODIO
+)
 set_option_if(ACTS_BUILD_EXAMPLES_PODIO ACTS_BUILD_EXAMPLES_EDM4HEP)
 set_option_if(ACTS_BUILD_PLUGIN_ARROW ACTS_BUILD_EXAMPLES_PARQUET)
 set_option_if(ACTS_BUILD_PLUGIN_GEANT4 ACTS_BUILD_EXAMPLES_GEANT4)
@@ -837,6 +846,7 @@ add_component_if(
     AND
     ACTS_BUILD_EXAMPLES_FASTJET
 )
+add_subdirectory_if(Calorimeter/Io/EDM4hep ACTS_BUILD_CALORIMETER_EDM4HEP)
 
 # Python bindings
 add_subdirectory_if(Python ACTS_BUILD_PYTHON_BINDINGS)
