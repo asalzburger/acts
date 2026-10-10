@@ -121,6 +121,8 @@ option(ACTS_BUILD_FATRAS "Build FAst TRAcking Simulation package" OFF)
 option(ACTS_BUILD_FATRAS_GEANT4 "Build Geant4 Fatras package" OFF)
 # alignment related options
 option(ACTS_BUILD_ALIGNMENT "Build Alignment package" OFF)
+# calorimeter prototype options
+option(ACTS_BUILD_CALORIMETER "Build calorimeter prototype and ActsExamples adapters" OFF)
 # traccc related options
 option(ACTS_BUILD_TRACCC "Build traccc GPU tracking package" OFF)
 # examples related options
@@ -183,6 +185,8 @@ include(ActsOptionHelpers)
 # any examples component activates the general examples option
 set_option_if(
     ACTS_BUILD_EXAMPLES
+    ACTS_BUILD_CALORIMETER
+    OR
     ACTS_BUILD_EXAMPLES_DD4HEP
     OR
     ACTS_BUILD_EXAMPLES_EDM4HEP
@@ -825,6 +829,7 @@ add_subdirectory_if(thirdparty/OpenDataDetector ACTS_BUILD_ODD)
 
 # Examples
 add_subdirectory_if(Examples ACTS_BUILD_EXAMPLES)
+add_component_if(Calorimeter Calorimeter ACTS_BUILD_CALORIMETER)
 
 # Python bindings
 add_subdirectory_if(Python ACTS_BUILD_PYTHON_BINDINGS)
